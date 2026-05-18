@@ -1,0 +1,19 @@
+.secrets/
+
+# Python caches
+__pycache__/
+*.py[cod]
+
+# Virtual environments and editor artifacts
+.venv/
+.vscode/
+
+# Type checker cache
+.mypy_cache/
+
+# Local outputs
+reports/
+slurm/*.log
+
+# Local corpus / large input data (not part of source repository)
+RMaP papers first funding period/
