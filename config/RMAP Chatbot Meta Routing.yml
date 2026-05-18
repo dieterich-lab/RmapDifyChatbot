@@ -662,7 +662,7 @@ workflow:
 
 
           Always Category 2 for phrases like:
-          - how many / wie viele / number of papers
+          - how many / number of papers
           - which papers / list papers / papers by
           - authored by / co-authored by
 
@@ -685,7 +685,7 @@ workflow:
 
 
           Always Category 2 for phrases like:
-          - how many / wie viele / number of papers
+          - how many / number of papers
           - which papers / list papers / papers by
           - authored by / co-authored by
 
@@ -749,10 +749,10 @@ workflow:
 
           Author extraction rules:
           - If query contains patterns like "by <name>", "authored by <name>",
-            "co-authored by <name>", "von <name>", extract <name> into authors.
+            "co-authored by <name>", extract <name> into authors.
           - Example: "Which papers have been (co-) authored by Christoph Dieterich?"
             => authors=["Christoph Dieterich"]
-          - Example: "Wie viele Papiere hat Christoph Dieterich veroeffentlicht?"
+          - Example: "How many papers has Christoph Dieterich published?"
             => authors=["Christoph Dieterich"]
 
 

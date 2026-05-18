@@ -69,7 +69,7 @@ scripts/debug_route_draft.sh \
 	--app-id "<app_id>" \
 	--allow-cookie-auth \
 	--query "What are the main methods and findings of Sci-ModoM?" \
-	--query "Wie viele Papiere hat Christoph Dieterich veroeffentlicht?" \
+	--query "How many papers has Christoph Dieterich published?" \
 	--query "Which papers have been (co-) authored by Christoph Dieterich?"
 ```
 
