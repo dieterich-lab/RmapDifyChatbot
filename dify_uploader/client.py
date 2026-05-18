@@ -21,8 +21,8 @@ def upload_variant(
             "data": (None, json.dumps(indexing_data), "text/plain"),
         }
 
-        print(f"Lade hoch ({variant_name}): {filename}...")
-        print(f"Dateigroesse: {file_size} bytes")
+        print(f"Uploading ({variant_name}): {filename}...")
+        print(f"File size: {file_size} bytes")
         print(f"Endpoint: {url}")
         print(f"Payload(data): {json.dumps(indexing_data, ensure_ascii=False)}")
 
@@ -32,13 +32,13 @@ def upload_variant(
             response_json = response.json()
             doc = response_json.get("document", {})
             doc_id = doc.get("id")
-            print(f"✅ Erfolg! Doc-ID: {doc_id}")
-            print(f"   API-Antwort Dokumentname: {doc.get('name')}")
-            print(f"   API-Antwort Parse-Status: {doc.get('parsing_status')}")
+            print(f"✅ Success! Doc ID: {doc_id}")
+            print(f"   API response document name: {doc.get('name')}")
+            print(f"   API response parsing status: {doc.get('parsing_status')}")
             print(
-                f"   API-Antwort Tokens/Woerter: {doc.get('tokens')}/{doc.get('word_count')}"
+                f"   API response tokens/words: {doc.get('tokens')}/{doc.get('word_count')}"
             )
-            print(f"   API-Rohantwort: {json.dumps(response_json, ensure_ascii=False)}")
+            print(f"   API raw response: {json.dumps(response_json, ensure_ascii=False)}")
             if doc_id:
                 result = wait_for_indexing(doc_id)
                 result["variant"] = variant_name
@@ -50,7 +50,7 @@ def upload_variant(
                 "error": "no document id",
             }
 
-        print(f"❌ API-Fehler {response.status_code}: {response.text}")
+        print(f"❌ API error {response.status_code}: {response.text}")
         return {
             "variant": variant_name,
             "document_id": None,
@@ -64,7 +64,7 @@ def wait_for_indexing(
 ):
     status_url = f"{DIFY_API_URL}/datasets/{DATASET_ID}/documents/{document_id}"
 
-    print("Warte auf Indexierung...")
+    print("Waiting for indexing...")
     start = time.time()
 
     while time.time() - start < timeout_seconds:
@@ -75,7 +75,7 @@ def wait_for_indexing(
             timeout=60,
         )
         if response.status_code != 200:
-            print(f"❌ Status-API-Fehler {response.status_code}: {response.text}")
+            print(f"❌ Status API error {response.status_code}: {response.text}")
             return {
                 "indexing_status": "status_api_error",
                 "display_status": None,
@@ -93,12 +93,12 @@ def wait_for_indexing(
         doc_metadata = doc.get("doc_metadata", [])
 
         print(
-            f"   Status={status}, Display={display_status}, Woerter={word_count}, "
-            f"Metadaten-Felder={len(doc_metadata)}, Fehler={error}"
+            f"   Status={status}, Display={display_status}, Words={word_count}, "
+            f"Metadata fields={len(doc_metadata)}, Error={error}"
         )
 
         if status in {"completed", "error", "failed"}:
-            print(f"   Finale Dokument-Antwort: {json.dumps(doc, ensure_ascii=False)}")
+            print(f"   Final document response: {json.dumps(doc, ensure_ascii=False)}")
             return {
                 "indexing_status": status,
                 "display_status": display_status,
@@ -110,7 +110,7 @@ def wait_for_indexing(
 
         time.sleep(poll_seconds)
 
-    print("⏰ Timeout beim Warten auf Indexierung. Bitte spaeter erneut pruefen.")
+    print("⏰ Timeout while waiting for indexing. Please try again later.")
     return {
         "indexing_status": "timeout",
         "display_status": None,
@@ -127,7 +127,7 @@ def get_document_detail(document_id: str) -> dict | None:
         status_url, headers=get_headers(), params={"metadata": "all"}, timeout=60
     )
     if response.status_code != 200:
-        print(f"❌ Dokument-Detail-API-Fehler {response.status_code}: {response.text}")
+        print(f"❌ Document detail API error {response.status_code}: {response.text}")
         return None
     return response.json()
 
@@ -136,7 +136,7 @@ def get_dataset_metadata_fields() -> list[dict]:
     url = f"{DIFY_API_URL}/datasets/{DATASET_ID}/metadata"
     response = requests.get(url, headers=get_headers(), timeout=60)
     if response.status_code != 200:
-        print(f"❌ Dataset-Metadata-API-Fehler {response.status_code}: {response.text}")
+        print(f"❌ Dataset metadata API error {response.status_code}: {response.text}")
         return []
 
     data = response.json()
@@ -163,13 +163,13 @@ def ensure_metadata_fields_exist(metadata: dict) -> dict:
 
         create_url = f"{DIFY_API_URL}/datasets/{DATASET_ID}/metadata"
         create_payload = {"name": str(key), "type": "string"}
-        print(f"Erzeuge Metadata-Feld: {create_payload}")
+        print(f"Creating metadata field: {create_payload}")
         create_response = requests.post(
             create_url, headers=get_headers(), json=create_payload, timeout=60
         )
         if create_response.status_code not in (200, 201):
             print(
-                f"❌ Metadata-Feld konnte nicht erstellt werden ({create_response.status_code}): "
+                f"❌ Metadata field could not be created ({create_response.status_code}): "
                 f"{create_response.text}"
             )
             continue
@@ -208,11 +208,11 @@ def apply_metadata_two_pass(document_id: str, metadata: dict) -> dict:
         ]
     }
 
-    print("Versuche Metadata-Patch mit Feld-UUIDs...")
+    print("Attempting metadata patch with field UUIDs...")
     print(f"Payload: {json.dumps(payload, ensure_ascii=False)}")
     response = requests.post(url, headers=get_headers(), json=payload, timeout=60)
     if response.status_code == 200:
-        print("✅ Metadata-Update erfolgreich.")
+        print("✅ Metadata update successful.")
         return {
             "ok": True,
             "attempt": 1,

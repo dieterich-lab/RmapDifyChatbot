@@ -111,9 +111,9 @@ def _run_json_get(
         body = exc.read().decode("utf-8", errors="replace")
         return {}, f"Dify API Error {exc.code}: {body}"
     except URLError as exc:
-        return {}, f"Verbindungsfehler zur Dify API: {exc}"
+        return {}, f"Connection error to Dify API: {exc}"
     except Exception as exc:
-        return {}, f"Unbekannter Dify API-Fehler: {exc}"
+        return {}, f"Unexpected Dify API error: {exc}"
 
     if status != 200:
         return {}, f"Dify API Error {status}: {body}"
@@ -121,7 +121,7 @@ def _run_json_get(
     try:
         return json.loads(body), None
     except ValueError:
-        return {}, f"Ungueltige JSON-Antwort: {body}"
+        return {}, f"Invalid JSON response: {body}"
 
 
 def _extract_items(payload: dict) -> list[dict]:
@@ -214,7 +214,7 @@ def _collect_documents(
         detail_url = f"{api_base}/datasets/{dataset_id}/documents/{doc_id}?{urlencode({'metadata': 'all'})}"
         detail, detail_err = _run_json_get(detail_url, headers=headers)
         if detail_err:
-            errors.append(f"Dokument {doc_id}: {detail_err}")
+            errors.append(f"Document {doc_id}: {detail_err}")
             continue
 
         meta = _metadata_to_dict(detail)
@@ -234,8 +234,8 @@ def _collect_documents(
 def _render_result(matches: list[dict], total_docs: int) -> str:
     if not matches:
         return (
-            "Keine Dokumente gefunden.\n"
-            f"Code-Version: {CODE_VERSION}; Dokumente geprueft: {total_docs}; Treffer: 0"
+            "No documents found.\n"
+            f"Code version: {CODE_VERSION}; Documents checked: {total_docs}; Matches: 0"
         )
 
     lines = []
@@ -244,8 +244,8 @@ def _render_result(matches: list[dict], total_docs: int) -> str:
             f"{idx}. {doc['title']} | {doc['authors']} | {doc['year']} | {doc['journal']}"
         )
     header = (
-        f"Code-Version: {CODE_VERSION}; Dokumente geprueft: {total_docs}; "
-        f"Treffer: {len(matches)}"
+        f"Code version: {CODE_VERSION}; Documents checked: {total_docs}; "
+        f"Matches: {len(matches)}"
     )
     return header + "\n" + "\n".join(lines)
 
@@ -260,8 +260,8 @@ def main(year=None, authors=None, journal=None, title=None):
     if not _is_set(api_base) or not _is_set(dataset_id) or not _is_set(api_key):
         return {
             "result": (
-                "Dify API Konfiguration unvollstaendig. "
-                "Erwarte DIFY_API_URL, DIFY_DATASET_ID und DIFY_API_KEY."
+                "Dify API configuration incomplete. "
+                "Expected DIFY_API_URL, DIFY_DATASET_ID, and DIFY_API_KEY."
             )
         }
 
@@ -291,5 +291,5 @@ def main(year=None, authors=None, journal=None, title=None):
 
     result_text = _render_result(final_docs, total_docs=len(docs))
     if errors:
-        result_text += "\nFehlerdetails:\n" + "\n".join(f"- {e}" for e in errors[:8])
+        result_text += "\nError details:\n" + "\n".join(f"- {e}" for e in errors[:8])
     return {"result": result_text}

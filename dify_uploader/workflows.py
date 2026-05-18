@@ -27,7 +27,7 @@ def run_two_pass_test(filepath: str, filename: str, metadata: dict):
     )
     document_id = upload_result.get("document_id")
     if not document_id:
-        print("❌ Kein document_id aus Upload, breche Two-Pass-Test ab.")
+        print("❌ No document_id returned by upload, aborting two-pass test.")
         return
 
     metadata_result = apply_metadata_two_pass(document_id, metadata)
@@ -123,7 +123,7 @@ def run_abc_test(filepath: str, filename: str, metadata: dict):
 def run_default() -> None:
     first_pdf = get_first_pdf_file()
     if not first_pdf:
-        print("❌ Keine PDF-Datei im Ordner gefunden.")
+        print("❌ No PDF file found in the folder.")
         return
 
     filename, filepath = first_pdf
@@ -136,12 +136,12 @@ def run_selected_authors_two_pass(
 ) -> None:
     pdf_files = get_pdf_files(folder)
     if not pdf_files:
-        print("❌ Keine PDF-Datei im Ordner gefunden.")
+        print("❌ No PDF file found in the folder.")
         return
 
     target_names = [name.strip() for name in target_authors if name.strip()]
     if not target_names:
-        print("❌ Keine Ziel-Autoren angegeben.")
+        print("❌ No target authors provided.")
         return
 
     target_names_lower = [name.lower() for name in target_names]
@@ -175,7 +175,7 @@ def run_selected_authors_two_pass(
 def run_all_two_pass(folder: str | None = None) -> None:
     pdf_files = get_pdf_files(folder)
     if not pdf_files:
-        print("❌ Keine PDF-Datei im Ordner gefunden.")
+        print("❌ No PDF file found in the folder.")
         return
 
     print("\n===== BULK TWO-PASS RUN =====")
@@ -196,7 +196,7 @@ def run_all_two_pass(folder: str | None = None) -> None:
             uploaded += 1
         except Exception as exc:
             failed += 1
-            print(f"❌ Fehler bei {filename}: {exc}")
+            print(f"❌ Error while processing {filename}: {exc}")
 
     print("\n===== BULK TWO-PASS SUMMARY =====")
     print(f"PDF files processed: {len(pdf_files)}")
