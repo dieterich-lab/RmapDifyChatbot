@@ -1,0 +1,823 @@
+app:
+  description: ''
+  icon: bot
+  icon_background: '#D1E9FF'
+  icon_type: emoji
+  mode: advanced-chat
+  name: RMAP Chatbot Meta Routing
+  use_icon_as_answer_icon: false
+dependencies:
+- current_identifier: null
+  type: marketplace
+  value:
+    marketplace_plugin_unique_identifier: langgenius/ollama:0.1.5@e2b13201d65c15f5112e9b7696f7802283e807e6bb0d6fab1deda263da7331fe
+    version: null
+kind: app
+version: 0.6.0
+workflow:
+  conversation_variables: []
+  environment_variables: []
+  features:
+    file_upload:
+      allowed_file_extensions:
+      - .JPG
+      - .JPEG
+      - .PNG
+      - .GIF
+      - .WEBP
+      - .SVG
+      allowed_file_types:
+      - image
+      allowed_file_upload_methods:
+      - local_file
+      - remote_url
+      enabled: false
+      fileUploadConfig:
+        attachment_image_file_size_limit: 2
+        audio_file_size_limit: 50
+        batch_count_limit: 5
+        file_size_limit: 15
+        file_upload_limit: 20
+        image_file_batch_limit: 10
+        image_file_size_limit: 10
+        single_chunk_attachment_limit: 10
+        video_file_size_limit: 100
+        workflow_file_upload_limit: 10
+      image:
+        enabled: false
+        number_limits: 3
+        transfer_methods:
+        - local_file
+        - remote_url
+      number_limits: 3
+    opening_statement: ''
+    retriever_resource:
+      enabled: true
+    sensitive_word_avoidance:
+      enabled: false
+    speech_to_text:
+      enabled: false
+    suggested_questions: []
+    suggested_questions_after_answer:
+      enabled: false
+    text_to_speech:
+      enabled: false
+      language: ''
+      voice: ''
+  graph:
+    edges:
+    - data:
+        sourceType: knowledge-retrieval
+        targetType: llm
+      id: 1711528915811-1711528917469
+      source: '1711528915811'
+      sourceHandle: source
+      target: '1711528917469'
+      targetHandle: target
+      type: custom
+    - data:
+        sourceType: llm
+        targetType: answer
+      id: 1711528917469-1711528919501
+      source: '1711528917469'
+      sourceHandle: source
+      target: '1711528919501'
+      targetHandle: target
+      type: custom
+    - data:
+        sourceType: llm
+        targetType: answer
+      id: 1880000000003-1711528919501
+      source: '1880000000003'
+      sourceHandle: source
+      target: '1711528919501'
+      targetHandle: target
+      type: custom
+    - data:
+        isInLoop: false
+        sourceType: llm
+        targetType: question-classifier
+      id: 1778667575621-source-1778150713944-target
+      source: '1778667575621'
+      sourceHandle: source
+      target: '1778150713944'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInLoop: false
+        sourceType: question-classifier
+        targetType: knowledge-retrieval
+      id: 1778150713944-1-1711528915811-target
+      source: '1778150713944'
+      sourceHandle: '1'
+      target: '1711528915811'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInLoop: false
+        sourceType: question-classifier
+        targetType: parameter-extractor
+      id: 1778150713944-2-1778151289106-target
+      source: '1778150713944'
+      sourceHandle: '2'
+      target: '1778151289106'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInLoop: false
+        sourceType: parameter-extractor
+        targetType: code
+      id: 1778151289106-source-1880000000001-target
+      source: '1778151289106'
+      sourceHandle: source
+      target: '1880000000001'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInLoop: false
+        sourceType: code
+        targetType: llm
+      id: 1880000000001-source-1880000000003-target
+      source: '1880000000001'
+      sourceHandle: source
+      target: '1880000000003'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInLoop: false
+        sourceType: start
+        targetType: llm
+      id: 1711528914102-source-1778667575621-target
+      source: '1711528914102'
+      sourceHandle: source
+      target: '1778667575621'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    nodes:
+    - data:
+        desc: The user's question comes in here.
+        selected: false
+        title: Start
+        type: start
+        variables: []
+      height: 100
+      id: '1711528914102'
+      position:
+        x: -1051.849624364691
+        y: 2761.662811473129
+      positionAbsolute:
+        x: -1051.849624364691
+        y: 2761.662811473129
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 242
+    - data:
+        dataset_ids:
+        - 5/WcDtIuGANrAhqT255sDDblyQ7EPbz5ptEFPwuSFpIFdL2zcvi5ayyg7/+ctuJt
+        desc: Search your knowledge base to find the most relevant content for user's
+          question.
+        metadata_filtering_conditions:
+          conditions:
+          - comparison_operator: is
+            id: abfbf757-f441-4956-b10a-6b7b97ef0062
+            metadata_id: 8b2e5e43-2323-4bd0-9c70-a92256486501
+            name: year
+          logical_operator: and
+        metadata_filtering_mode: automatic
+        metadata_model_config:
+          completion_params:
+            temperature: 0.7
+          mode: chat
+          name: gpt-oss
+          provider: langgenius/ollama/ollama
+        multiple_retrieval_config:
+          reranking_enable: false
+          reranking_mode: weighted_score
+          score_threshold: null
+          top_k: 10
+          weights:
+            keyword_setting:
+              keyword_weight: 0.3
+            vector_setting:
+              embedding_model_name: nomic-embed-text-v2-moe
+              embedding_provider_name: langgenius/ollama/ollama
+              vector_weight: 0.7
+            weight_type: customized
+        query_attachment_selector: []
+        query_variable_selector:
+        - '1778667575621'
+        - text
+        retrieval_mode: multiple
+        selected: false
+        single_retrieval_config:
+          model:
+            completion_params:
+              frequency_penalty: 0
+              max_tokens: 512
+              presence_penalty: 0
+              temperature: 0
+              top_p: 1
+            mode: chat
+            name: gpt-3.5-turbo
+            provider: openai
+        title: Knowledge Retrieval
+        type: knowledge-retrieval
+      dragging: false
+      height: 149
+      id: '1711528915811'
+      position:
+        x: 131.30067739468222
+        y: 2458.3210803765874
+      positionAbsolute:
+        x: 131.30067739468222
+        y: 2458.3210803765874
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 242
+    - data:
+        context:
+          enabled: true
+          variable_selector:
+          - '1711528915811'
+          - result
+        desc: Turn retrieved content into a clear and helpful answers with AI.
+        memory:
+          role_prefix:
+            assistant: ''
+            user: ''
+          window:
+            enabled: true
+            size: 50
+        model:
+          completion_params:
+            temperature: 0.7
+            top_p: 1
+          mode: chat
+          name: gpt-oss
+          provider: langgenius/ollama/ollama
+        prompt_template:
+        - id: 943448fa-b145-4ae7-a485-d77e4a2cc77b
+          role: system
+          text: 'You are a strict academic assistant. Summarize requested papers using
+            ONLY the provided {{#context#}}.
+
+
+            Core policy:
+
+            1. For each paper requested by the user, verify that the context contains
+            substantial paper-specific content (for example: abstract, methods, results,
+            discussion), not only metadata.
+
+            2. If substantial content is present, provide a concise, faithful summary.
+
+            3. If context for a requested paper contains only metadata, title stubs,
+            or irrelevant placeholders (for example: ![image]), output exactly:
+            "For paper [Title/Author], the retrieved context does not contain sufficient
+            textual content for a reliable summary."
+
+            4. Never assign content from one paper to another paper or author.
+
+            5. Do not infer missing details from prior knowledge.
+
+            6. If multiple papers are requested, structure your response per paper.
+
+
+            Output format guidance:
+
+            - Start with a one-line overview.
+
+            - Then provide one section per requested paper.
+
+            - Keep each section short and evidence-grounded.
+
+
+            Example behavior:
+
+            - User asks for two papers; context has full abstract for paper A and only
+            title for paper B.
+
+            - You summarize paper A and output the exact insufficiency sentence for paper
+            B.
+
+
+            Answer in the user''s language.'
+        retry_config:
+          max_retries: 3
+          retry_enabled: false
+          retry_interval: 1000
+        selected: true
+        title: Knowledge LLM
+        type: llm
+        variables: []
+        vision:
+          enabled: false
+      height: 131
+      id: '1711528917469'
+      position:
+        x: 538.2624230424017
+        y: 2458.3210803765874
+      positionAbsolute:
+        x: 538.2624230424017
+        y: 2458.3210803765874
+      selected: true
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 242
+    - data:
+        answer: '{{#1880000000003.text#}}{{#1711528917469.text#}}'
+        desc: Send the final response back to the user.
+        selected: false
+        title: Answer
+        type: answer
+        variables: []
+      height: 164
+      id: '1711528919501'
+      position:
+        x: 1021.9406099584448
+        y: 2621.6859207764505
+      positionAbsolute:
+        x: 1021.9406099584448
+        y: 2621.6859207764505
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 242
+    - data:
+        code: |
+          import json
+          import os
+          from urllib.error import HTTPError, URLError
+          from urllib.parse import urlencode
+          from urllib.request import Request, urlopen
+
+          EMPTY = {"", "null", "none", "unknown", "n/a", "na", "[]", "{}", "-"}
+
+          def norm(value):
+              if value is None:
+                  return ""
+              text = str(value).strip()
+              return "" if text.lower() in EMPTY else text
+
+          def str_list(value):
+              if value is None:
+                  return []
+              if isinstance(value, list):
+                  return [norm(v) for v in value if norm(v)]
+              if isinstance(value, str):
+                  v = norm(value)
+                  return [v] if v else []
+              return []
+
+          def author_match(author_filter, doc_authors_lower):
+              raw = norm(author_filter).lower()
+              if not raw:
+                  return True
+
+              if raw in doc_authors_lower:
+                  return True
+
+              tokens = [t for t in raw.replace(".", " ").replace(",", " ").split() if t]
+              if not tokens:
+                  return True
+
+              # Prefer family-name hit when full name is given.
+              last_name = tokens[-1]
+              if len(last_name) >= 3 and last_name in doc_authors_lower:
+                  return True
+
+              # Fallback: require all meaningful tokens to appear somewhere.
+              strong_tokens = [t for t in tokens if len(t) >= 3]
+              if strong_tokens and all(t in doc_authors_lower for t in strong_tokens):
+                  return True
+
+              return False
+
+          def safe_json_get(url, headers):
+              req = Request(url=url, headers=headers, method="GET")
+              try:
+                  with urlopen(req, timeout=30) as r:
+                      if r.getcode() != 200:
+                          return {}, f"HTTP {r.getcode()}"
+                      return json.loads(r.read().decode("utf-8", errors="replace")), None
+              except HTTPError as e:
+                  return {}, f"HTTP {e.code}"
+              except URLError as e:
+                  return {}, f"Network error: {e}"
+              except Exception as e:
+                  return {}, f"Unexpected error: {e}"
+
+          def extract_docs(payload):
+              if isinstance(payload, dict):
+                  if isinstance(payload.get("data"), list):
+                      return payload.get("data", [])
+                  if isinstance(payload.get("documents"), list):
+                      return payload.get("documents", [])
+              return []
+
+          def meta_dict(detail):
+              out = {}
+              for item in (detail.get("doc_metadata") or []):
+                  name = norm((item or {}).get("name")).lower()
+                  value = norm((item or {}).get("value"))
+                  if name:
+                      out[name] = value
+              return out
+
+          def main(year=None, authors=None, journal=None, title=None):
+              api_base = (os.getenv("DIFY_API_URL") or "http://rmap-chatbot-demo-dify/v1").rstrip("/")
+              dataset_id = norm(os.getenv("DIFY_DATASET_ID") or "227cf97a-8e56-4cd6-808d-caf57bc0d2bf")
+              api_key = norm(os.getenv("DIFY_API_KEY") or "dataset-z3bHkQ6eUPKN21GaLq3KXIiS")
+              if not api_base or not dataset_id or not api_key:
+                  return {"result": "Metadata API configuration is incomplete."}
+
+              headers = {"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"}
+              year_filter = norm(year)
+              journal_filter = norm(journal).lower()
+              title_filter = norm(title).lower()
+              author_filters = [a.lower() for a in str_list(authors)]
+
+              docs_payload, err = safe_json_get(f"{api_base}/datasets/{dataset_id}/documents", headers)
+              if err:
+                  return {"result": f"Metadata lookup failed: {err}"}
+
+              matches = []
+              for item in extract_docs(docs_payload):
+                  doc_id = norm((item or {}).get("id"))
+                  if not doc_id:
+                      continue
+                  detail_url = f"{api_base}/datasets/{dataset_id}/documents/{doc_id}?{urlencode({'metadata':'all'})}"
+                  detail, d_err = safe_json_get(detail_url, headers)
+                  if d_err:
+                      continue
+
+                  meta = meta_dict(detail)
+                  doc_title = norm(meta.get("title") or detail.get("name"))
+                  doc_authors = norm(meta.get("authors"))
+                  doc_year = norm(meta.get("year"))
+                  doc_journal = norm(meta.get("journal"))
+
+                  if year_filter and year_filter != doc_year:
+                      continue
+                  if journal_filter and journal_filter not in doc_journal.lower():
+                      continue
+                  if title_filter and title_filter not in doc_title.lower():
+                      continue
+                  if author_filters and not all(author_match(a, doc_authors.lower()) for a in author_filters):
+                      continue
+
+                  matches.append(
+                      {
+                          "title": doc_title,
+                          "authors": doc_authors,
+                          "year": doc_year,
+                          "journal": doc_journal,
+                      }
+                  )
+
+              if not matches:
+                  return {"result": "No documents matched the requested metadata filters."}
+
+              lines = [f"Found {len(matches)} matching document(s)."]
+              for i, doc in enumerate(matches[:10], start=1):
+                  lines.append(
+                      f"{i}. {doc['title']} | {doc['authors']} | {doc['year']} | {doc['journal']}"
+                  )
+
+              return {"result": "\n".join(lines)}
+        code_language: python3
+        outputs:
+          result:
+            children: null
+            type: string
+        selected: false
+        title: Metadata Router
+        type: code
+        variables:
+        - value_selector:
+          - '1778151289106'
+          - year
+          value_type: number
+          variable: year
+        - value_selector:
+          - '1778151289106'
+          - authors
+          value_type: array[string]
+          variable: authors
+        - value_selector:
+          - '1778151289106'
+          - journal
+          value_type: string
+          variable: journal
+        - value_selector:
+          - '1778151289106'
+          - title
+          value_type: string
+          variable: title
+      height: 53
+      id: '1880000000001'
+      position:
+        x: -371.7949210582858
+        y: 2782.662811473129
+      positionAbsolute:
+        x: -371.7949210582858
+        y: 2782.662811473129
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 242
+    - data:
+        context:
+          enabled: true
+          variable_selector:
+          - '1880000000001'
+          - result
+        memory:
+          query_prompt_template: '{{#sys.query#}}'
+          role_prefix:
+            assistant: ''
+            user: ''
+          window:
+            enabled: false
+            size: 20
+        model:
+          completion_params:
+            temperature: 0
+          mode: chat
+          name: gpt-oss
+          provider: langgenius/ollama/ollama
+        prompt_template:
+        - id: 4e2bdb96-0f70-413a-b06b-3037f6fd38d9
+          role: system
+          text: 'You are the metadata answer assistant for an academic paper database.
+
+
+            Use only {{#context#}}.
+
+
+            Rules:
+            - Answer in the user language.
+            - Be concise and factual.
+            - Do not invent papers or counts.
+            - If no matches are found, say so clearly and suggest one concrete reformulation.'
+        selected: false
+        title: Metadata LLM
+        type: llm
+        vision:
+          enabled: false
+      height: 87
+      id: '1880000000003'
+      position:
+        x: 678.2050789417142
+        y: 2920.662811473129
+      positionAbsolute:
+        x: 678.2050789417142
+        y: 2920.662811473129
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 242
+    - data:
+        context:
+          enabled: true
+          variable_selector:
+          - sys
+          - query
+        memory:
+          query_prompt_template: '{{#sys.query#}}
+
+
+            {{#sys.files#}}'
+          role_prefix:
+            assistant: ''
+            user: ''
+          window:
+            enabled: false
+            size: 50
+        model:
+          completion_params:
+            temperature: 0
+          mode: chat
+          name: gpt-oss
+          provider: langgenius/ollama/ollama
+        prompt_template:
+        - id: f5ab7a53-8f4e-4d9e-b70e-5d359f14767d
+          role: system
+          text: 'Rewrite the latest user query into one standalone retrieval query.
+
+
+            Rules:
+            - Use conversation history only to resolve references (for example: these
+            papers, them, this author).
+            - Keep intent unchanged.
+            - Do not answer the question.
+            - Do not add explanation, JSON, markdown, labels, or quotes.
+            - Output exactly one plain text line.
+            - Never output <think> tags or hidden reasoning text.
+
+
+            If no reference resolution is needed, return the user query unchanged.'
+        selected: false
+        title: Query Rewriter
+        type: llm
+        vision:
+          enabled: false
+      height: 87
+      id: '1778667575621'
+      position:
+        x: -733.7949210582858
+        y: 2782.662811473129
+      positionAbsolute:
+        x: -733.7949210582858
+        y: 2782.662811473129
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 242
+    - data:
+        classes:
+        - id: '1'
+          name: Knowledge Route (content understanding)
+        - id: '2'
+          name: Metadata Route (count/list/filter by metadata)
+        instruction: 'Choose exactly one category.
+
+
+          Category 2 (Metadata Route) when the query asks for counts/lists/filters
+          over metadata fields (author, co-author, year, journal, title).
+
+
+          Always Category 2 for phrases like:
+          - how many / wie viele / number of papers
+          - which papers / list papers / papers by
+          - authored by / co-authored by
+
+
+          Category 1 (Knowledge Route) only for content understanding:
+          summary, methods, findings, comparison, interpretation.
+
+
+          If uncertain, choose Category 2.
+
+
+          Output format:
+          - Return one JSON object only.
+          - Include category_id ("1" or "2") and category_name.'
+        instructions: 'Choose exactly one category.
+
+
+          Category 2 (Metadata Route) when the query asks for counts/lists/filters
+          over metadata fields (author, co-author, year, journal, title).
+
+
+          Always Category 2 for phrases like:
+          - how many / wie viele / number of papers
+          - which papers / list papers / papers by
+          - authored by / co-authored by
+
+
+          Category 1 (Knowledge Route) only for content understanding:
+          summary, methods, findings, comparison, interpretation.
+
+
+          If uncertain, choose Category 2.
+
+
+          Output format:
+          - Return one JSON object only.
+          - Include category_id ("1" or "2") and category_name.'
+        memory:
+          query_prompt_template: '{{#sys.query#}}
+
+
+            {{#sys.files#}}'
+          window:
+            enabled: false
+            size: 50
+        model:
+          completion_params:
+            temperature: 0
+          mode: chat
+          name: gpt-oss
+          provider: langgenius/ollama/ollama
+        query_variable_selector:
+        - sys
+        - query
+        selected: false
+        title: Question Classifier
+        type: question-classifier
+        vision:
+          enabled: false
+      height: 169
+      id: '1778150713944'
+      position:
+        x: -41.04282698281514
+        y: 2672.662811473129
+      positionAbsolute:
+        x: -41.04282698281514
+        y: 2672.662811473129
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 242
+    - data:
+        instruction: 'Extract only explicit metadata constraints from the user query.
+
+
+          Required fields:
+          - year: return publication year only if explicitly stated as a 4-digit
+          year.
+          - authors: return list of explicitly named authors.
+          - journal: return journal only if explicitly stated.
+          - title: return title only if explicitly stated or clearly quoted.
+
+
+          Author extraction rules:
+          - If query contains patterns like "by <name>", "authored by <name>",
+            "co-authored by <name>", "von <name>", extract <name> into authors.
+          - Example: "Which papers have been (co-) authored by Christoph Dieterich?"
+            => authors=["Christoph Dieterich"]
+          - Example: "Wie viele Papiere hat Christoph Dieterich veroeffentlicht?"
+            => authors=["Christoph Dieterich"]
+
+
+          Strict constraints:
+          - Do not infer or hallucinate missing values.
+          - Preserve user-provided spelling.
+          - For non-mentioned fields return empty values.'
+        memory:
+          query_prompt_template: '{{#sys.query#}}
+
+
+            {{#sys.files#}}'
+          role_prefix:
+            assistant: ''
+            user: ''
+          window:
+            enabled: false
+            size: 50
+        model:
+          completion_params:
+            temperature: 0
+          mode: chat
+          name: gpt-oss
+          provider: langgenius/ollama/ollama
+        parameters:
+        - description: Publication year.
+          name: year
+          required: false
+          type: string
+        - description: List of authors.
+          name: authors
+          required: false
+          type: array[string]
+        - description: Journal name.
+          name: journal
+          required: false
+          type: string
+        - description: Paper title.
+          name: title
+          required: false
+          type: string
+        query:
+        - sys
+        - query
+        reasoning_mode: prompt
+        selected: false
+        title: Parameter Extractor
+        type: parameter-extractor
+        vision:
+          enabled: false
+      height: 87
+      id: '1778151289106'
+      position:
+        x: 319.0344551918072
+        y: 2894.542637331412
+      positionAbsolute:
+        x: 319.0344551918072
+        y: 2894.542637331412
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 242
+    viewport:
+      x: 640.6201975073027
+      y: -584.7290890479399
+      zoom: 0.353553405200258
+  rag_pipeline_variables: []
