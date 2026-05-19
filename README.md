@@ -1,14 +1,16 @@
 # RmapDifyChatbot
 
-Tools and workflow definitions for:
+RmapDifyChatbot is a production-oriented Python project for operating a Dify-based
+academic assistant with explicit metadata routing.
 
-- uploading and annotating papers in Dify datasets,
-- metadata-first retrieval over academic papers,
-- routing user queries between knowledge answers and metadata answers.
+## Overview
 
-## Architecture
+The project has two responsibilities:
 
-Current advanced-chat workflow (`config/RMAP Chatbot Meta Routing.yml`):
+1. Main use-case: deploy and operate a metadata-aware Dify chatbot workflow.
+2. Secondary service: extract metadata from papers and upload documents into Dify datasets.
+
+Current routing workflow (`config/RMAP Chatbot Meta Routing.yml`):
 
 ```mermaid
 flowchart LR
@@ -25,22 +27,31 @@ flowchart LR
 		I --> H
 ```
 
-## Milestone
+## Installation
 
-Routing milestone is tagged as `milestone-routing-stable-v1`.
+### Requirements
 
-Detailed release notes: `RELEASE_NOTES_milestone-routing-stable-v1.md`.
+1. Python 3.11+
+2. Poetry
 
-## Quick Start
+### Setup
 
 ```bash
 poetry install
 poetry run dify-upload --help
 ```
 
-## Dify Import And Debug
+Optional local environment file (for import/debug scripts):
 
-### Preferred: API key
+```bash
+source .secrets/dify_console_session.env
+```
+
+## Main Use-Case: Set Up The Meta Routing Chatbot
+
+### 1. Import workflow DSL into Dify
+
+Preferred mode (console API key):
 
 ```bash
 DIFY_BASE_URL="http://your-dify-host" \
@@ -49,7 +60,7 @@ AUTO_CONFIRM=true \
 scripts/import_dify_dsl.sh "config/RMAP Chatbot Meta Routing.yml" --app-id "<app_id>"
 ```
 
-### Cookie fallback (for deployments without console API key support)
+Cookie fallback (for deployments without console API key support):
 
 ```bash
 DIFY_BASE_URL="http://your-dify-host" \
@@ -59,7 +70,7 @@ AUTO_CONFIRM=true \
 scripts/import_dify_dsl.sh "config/RMAP Chatbot Meta Routing.yml" --app-id "<app_id>" --allow-cookie-auth
 ```
 
-### Routing regression check
+### 2. Validate routing behavior
 
 ```bash
 DIFY_BASE_URL="http://your-dify-host" \
@@ -73,47 +84,50 @@ scripts/debug_route_draft.sh \
 	--query "Which papers have been (co-) authored by Christoph Dieterich?"
 ```
 
-Expected routing:
+Expected routes:
 
-- content question -> `Knowledge Route`
-- metadata count/list/filter questions -> `Metadata Route`
+1. Content questions -> `Knowledge Route`
+2. Count/list/filter questions -> `Metadata Route`
 
-## CLI Commands
+## Secondary Service: Metadata Extraction And Paper Upload
+
+Use the CLI entrypoint:
 
 ```bash
-# Main entry point
 poetry run dify-upload
+```
 
-# Default workflow
+Common commands:
+
+```bash
+# Run default two-pass workflow
 poetry run dify-upload default
 
-# Two-pass upload
+# Run two-pass upload on one file
 poetry run dify-upload two-pass --file "RMaP papers first funding period/your-file.pdf"
 
-# A/B/C diagnostics
+# Run diagnostics
 poetry run dify-upload abc-test --file "RMaP papers first funding period/your-file.pdf"
 
-# Metadata preview
+# Preview extracted metadata
 poetry run dify-upload metadata --file "RMaP papers first funding period/your-file.pdf"
 
-# Selected authors workflow
-poetry run dify-upload selected-authors
+# Process selected authors only
+poetry run dify-upload selected-authors --author "Mark Helm" --author "Christoph Dieterich"
 
-# Full bulk upload
+# Bulk processing
 poetry run dify-upload bulk-two-pass --folder "RMaP papers first funding period"
 
-# Author quality report
+# Quality report for extracted authors
 poetry run dify-upload author-quality --folder "RMaP papers first funding period"
 ```
 
-## Hybrid Author Extraction (Regex + BAML)
+Hybrid extraction behavior in `dify_uploader/author_extraction.py`:
 
-The extractor in `dify_uploader/author_extraction.py` uses a hybrid strategy:
+1. Fast regex and heuristics.
+2. Optional LLM fallback via BAML for low-confidence cases.
 
-1. Fast regex/heuristic extraction.
-2. Automatic fallback to BAML structured output for low-confidence cases.
-
-### BAML Runtime Setup
+BAML runtime example:
 
 ```bash
 export BAML_OLLAMA_BASE_URL="http://127.0.0.1:11434/v1"
@@ -121,8 +135,7 @@ export BAML_OLLAMA_MODEL="qwen3:32b"
 export AUTHOR_EXTRACTION_ENABLE_LLM_FALLBACK="true"
 ```
 
-### Slurm Example
+## Project Notes
 
-```bash
-sbatch slurm/author-extraction-baml-qwen32.sbatch
-```
+1. Milestone tag: `milestone-routing-stable-v1`
+2. Release notes: `RELEASE_NOTES_milestone-routing-stable-v1.md`
