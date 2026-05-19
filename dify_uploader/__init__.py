@@ -6,7 +6,14 @@ from .client import (
     upload_variant,
     wait_for_indexing,
 )
-from .config import DATASET_ID, DIFY_API_KEY, DIFY_API_URL, DIFY_DATASET_API_KEY, PDF_FOLDER, get_headers
+from .config import (
+    DATASET_ID,
+    DIFY_API_KEY,
+    DIFY_API_URL,
+    DIFY_DATASET_API_KEY,
+    PDF_FOLDER,
+    get_headers,
+)
 from .metadata import extract_metadata
 from .workflows import (
     run_abc_test,

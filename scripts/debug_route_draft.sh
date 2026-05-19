@@ -8,6 +8,7 @@ fi
 
 APP_ID=""
 CLASSIFIER_NODE_ID="1778150713944"
+CONVERSATION_ID=""
 ALLOW_COOKIE_AUTH=0
 declare -a QUERIES=()
 
@@ -29,6 +30,12 @@ while [[ $# -gt 0 ]]; do
       shift
       [[ $# -ge 1 ]] || { echo "Missing value for --classifier-node-id"; exit 1; }
       CLASSIFIER_NODE_ID="$1"
+      shift
+      ;;
+    --conversation-id)
+      shift
+      [[ $# -ge 1 ]] || { echo "Missing value for --conversation-id"; exit 1; }
+      CONVERSATION_ID="$1"
       shift
       ;;
     --allow-cookie-auth)
@@ -82,7 +89,11 @@ for q in "${QUERIES[@]}"; do
   echo "=== Query ==="
   echo "$q"
 
-  payload=$(jq -cn --arg q "$q" '{query:$q, inputs:{}, files:[], response_mode:"streaming", user:"route-debug-script"}')
+  if [[ -n "$CONVERSATION_ID" ]]; then
+    payload=$(jq -cn --arg q "$q" --arg cid "$CONVERSATION_ID" '{query:$q, inputs:{}, files:[], response_mode:"streaming", user:"route-debug-script", conversation_id:$cid}')
+  else
+    payload=$(jq -cn --arg q "$q" '{query:$q, inputs:{}, files:[], response_mode:"streaming", user:"route-debug-script"}')
+  fi
   tmp_out=$(mktemp)
   http_code=$(curl -sS -o "$tmp_out" -w "%{http_code}" -X POST "$RUN_URL" \
     "${AUTH_HEADERS[@]}" \
@@ -95,11 +106,19 @@ for q in "${QUERIES[@]}"; do
     continue
   fi
 
+  # Parsing SSE can legitimately yield no rows for a selector; avoid aborting under pipefail.
+  set +e
   class_name=$(grep '^data: ' "$tmp_out" | sed 's/^data: //' | jq -r --arg id "$CLASSIFIER_NODE_ID" 'select(.event=="node_finished" and .data.node_id==$id) | .data.outputs.class_name' | tail -n1)
   class_id=$(grep '^data: ' "$tmp_out" | sed 's/^data: //' | jq -r --arg id "$CLASSIFIER_NODE_ID" 'select(.event=="node_finished" and .data.node_id==$id) | .data.outputs.class_id' | tail -n1)
   answer=$(grep '^data: ' "$tmp_out" | sed 's/^data: //' | jq -r 'select(.event=="message") | .answer' | tr -d '\r' | paste -sd '' - | perl -0777 -pe 's/<think>.*?<\/think>//sg')
+  current_conversation_id=$(grep '^data: ' "$tmp_out" | sed 's/^data: //' | jq -r '(.conversation_id // .data.conversation_id // empty)' | head -n1)
+  set -e
+  if [[ -n "$current_conversation_id" ]]; then
+    CONVERSATION_ID="$current_conversation_id"
+  fi
 
   echo "Classifier node: $CLASSIFIER_NODE_ID"
+  echo "Conversation ID: ${CONVERSATION_ID:-<none>}"
   echo "Class ID: ${class_id:-<none>}"
   echo "Class Name: ${class_name:-<none>}"
   echo "Answer preview:"
