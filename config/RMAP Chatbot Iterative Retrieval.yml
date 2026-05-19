@@ -4,6 +4,75 @@ app:
   icon_background: '#D1E9FF'
   icon_type: emoji
   mode: advanced-chat
+  name: RMAP Chatbot Iterative Retrieval
+  use_icon_as_answer_icon: false
+dependencies:
+- current_identifier: null
+  type: marketplace
+  value:
+    marketplace_plugin_unique_identifier: langgenius/ollama:0.1.5@e2b13201d65c15f5112e9b7696f7802283e807e6bb0d6fab1deda263da7331fe
+    version: null
+kind: app
+version: 0.6.0
+workflow:
+  conversation_variables:
+  - description: ''
+    id: b4d4ec69-f935-44c9-9d24-5156f6913064
+    name: memory
+    selector:
+    - conversation
+    - memory
+    value: []
+    value_type: array[object]
+  environment_variables: []
+  features:
+    file_upload:
+      allowed_file_extensions:
+      - .JPG
+      - .JPEG
+      - .PNG
+      - .GIF
+      - .WEBP
+      - .SVG
+      allowed_file_types:
+      - image
+      allowed_file_upload_methods:
+      - local_file
+      - remote_url
+      enabled: false
+      fileUploadConfig:
+        attachment_image_file_size_limit: 2
+        audio_file_size_limit: 50
+        batch_count_limit: 5
+        file_size_limit: 15
+        file_upload_limit: 20
+        image_file_batch_limit: 10
+        image_file_size_limit: 10
+        single_chunk_attachment_limit: 10
+        video_file_size_limit: 100
+        workflow_file_upload_limit: 10
+      image:
+        enabled: false
+        number_limits: 3
+        transfer_methods:
+        - local_file
+        - remote_url
+      number_limits: 3
+    opening_statement: ''
+    retriever_resource:
+      enabled: true
+    sensitive_word_avoidance:
+      enabled: false
+    speech_to_text:
+      enabled: false
+    suggested_questions: []
+    suggested_questions_after_answer:
+      enabled: false
+    text_to_speech:
+      enabled: false
+      language: ''
+      voice: ''
+  graph:
     edges:
     - data:
         isInLoop: false
@@ -13,6 +82,17 @@ app:
       source: '1711528914102'
       sourceHandle: source
       target: '1778508354995'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInLoop: false
+        sourceType: llm
+        targetType: answer
+      id: 17785945559750-source-17785946070360-target
+      source: '17785945559750'
+      sourceHandle: source
+      target: '17785946070360'
       targetHandle: target
       type: custom
       zIndex: 0
@@ -30,9 +110,31 @@ app:
     - data:
         isInLoop: false
         sourceType: llm
-        targetType: if-else
-      id: 1778676150362-source-1778677927006-target
+        targetType: code
+      id: 1778676150362-source-1778800001001-target
       source: '1778676150362'
+      sourceHandle: source
+      target: '1778800001001'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInLoop: false
+        sourceType: code
+        targetType: assigner
+      id: 1778800001001-source-1778800001002-target
+      source: '1778800001001'
+      sourceHandle: source
+      target: '1778800001002'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInLoop: false
+        sourceType: assigner
+        targetType: if-else
+      id: 1778800001002-source-1778677927006-target
+      source: '1778800001002'
       sourceHandle: source
       target: '1778677927006'
       targetHandle: target
@@ -50,50 +152,6 @@ app:
       type: custom
       zIndex: 0
     - data:
-        isInLoop: false
-        sourceType: if-else
-        targetType: code
-      id: 1778677927006-false-1778689900101-target
-      source: '1778677927006'
-      sourceHandle: 'false'
-      target: '1778689900101'
-      targetHandle: target
-      type: custom
-      zIndex: 0
-    - data:
-        isInLoop: false
-        sourceType: code
-        targetType: iteration
-      id: 1778689900101-source-1778676584534-target
-      source: '1778689900101'
-      sourceHandle: source
-      target: '1778676584534'
-      targetHandle: target
-      type: custom
-      zIndex: 0
-    - data:
-        isInLoop: false
-        sourceType: knowledge-retrieval
-        targetType: llm
-      id: 17785930638200-source-17785945559750-target
-      source: '17785930638200'
-      sourceHandle: source
-      target: '17785945559750'
-      targetHandle: target
-      type: custom
-      zIndex: 0
-    - data:
-        isInLoop: false
-        sourceType: llm
-        targetType: answer
-      id: 17785945559750-source-17785946070360-target
-      source: '17785945559750'
-      sourceHandle: source
-      target: '17785946070360'
-      targetHandle: target
-      type: custom
-      zIndex: 0
-    - data:
         isInIteration: true
         isInLoop: false
         iteration_id: '1778676584534'
@@ -106,6 +164,17 @@ app:
       targetHandle: target
       type: custom
       zIndex: 1002
+    - data:
+        isInLoop: false
+        sourceType: if-else
+        targetType: iteration
+      id: 1778677927006-false-1778676584534-target
+      source: '1778677927006'
+      sourceHandle: 'false'
+      target: '1778676584534'
+      targetHandle: target
+      type: custom
+      zIndex: 0
     - data:
         isInIteration: true
         isInLoop: false
@@ -146,66 +215,8 @@ app:
       type: custom
       zIndex: 1002
     - data:
-        isInIteration: true
         isInLoop: false
-        iteration_id: '1778676584534'
-        sourceType: code
-        targetType: variable-aggregator
-      id: 17786780698570-source-1778678575789-target
-      source: '17786780698570'
-      sourceHandle: source
-      target: '1778678575789'
-      targetHandle: target
-      type: custom
-      zIndex: 1002
-    - data:
-        isInIteration: true
-        isInLoop: false
-        iteration_id: '1778676584534'
-        sourceType: llm
-        targetType: variable-aggregator
-      id: 1778689042001-source-1778678575789-target
-      source: '1778689042001'
-      sourceHandle: source
-      target: '1778678575789'
-      targetHandle: target
-      type: custom
-      zIndex: 1002
-    - data:
-        isInIteration: true
-        isInLoop: false
-        iteration_id: '1778676584534'
         sourceType: knowledge-retrieval
-        targetType: variable-aggregator
-      id: 17786780201700-source-1778678756135-target
-      source: '17786780201700'
-      sourceHandle: source
-      target: '1778678756135'
-      targetHandle: target
-      type: custom
-      zIndex: 1002
-    - data:
-        isInLoop: false
-        sourceType: iteration
-        targetType: llm
-      id: 1778676584534-source-17785945324000-target
-      source: '1778676584534'
-      sourceHandle: source
-      target: '17785945324000'
-      targetHandle: target
-      type: custom
-      zIndex: 0
-    - data:
-        isInLoop: false
-        sourceType: llm
-        targetType: answer
-      id: 17785945324000-source-17785946070360-target
-      source: '17785945324000'
-      sourceHandle: source
-      target: '17785946070360'
-      targetHandle: target
-      type: custom
-      zIndex: 0
         targetType: llm
       id: 17785930638200-source-17785945559750-target
       source: '17785930638200'
@@ -314,7 +325,7 @@ app:
             size: 12
         model:
           completion_params:
-            temperature: 0.7
+            temperature: 0
           mode: chat
           name: gpt-oss
           provider: langgenius/ollama/ollama
@@ -407,10 +418,8 @@ app:
       width: 241
     - data:
         context:
-          enabled: true
-          variable_selector:
-          - '1778676584534'
-          - output
+          enabled: false
+          variable_selector: []
         isInIteration: false
         isInLoop: false
         memory:
@@ -433,7 +442,9 @@ app:
           text: 'You are the reduce step of a map-reduce academic assistant.
 
 
-            Use ONLY the mapped per-paper results provided in {{#context#}}.
+            Use ONLY the mapped per-paper results provided below:
+
+            {{#1778676584534.output#}}
 
 
             Response policy:
@@ -613,6 +624,14 @@ app:
             - Output one object per requested paper or paper constraint.
 
 
+            - Never invent paper titles, years, journals, or authors.
+
+
+            - If the query asks for papers by author only (for example: "What papers
+            did X author?"), output exactly one item with only authors set and keep
+            title/year/journal empty.
+
+
             - Allowed fields per item: title, authors, year, journal.
 
 
@@ -677,273 +696,17 @@ app:
       type: custom
       width: 241
     - data:
-        code: |
-          import json
-          import os
-          from urllib.error import HTTPError, URLError
-          from urllib.parse import urlencode
-          from urllib.request import Request, urlopen
-
-          _EMPTY = {"", "null", "none", "unknown", "n/a", "na", "[]", "{}", "-"}
-
-
-          def _norm(value):
-              if value is None:
-                  return ""
-              text = str(value).strip()
-              return "" if text.lower() in _EMPTY else text
-
-
-          def _is_set(value):
-              if isinstance(value, list):
-                  return any(_is_set(v) for v in value)
-              if isinstance(value, dict):
-                  return any(_is_set(v) for v in value.values())
-              return _norm(value) != ""
-
-
-          def _to_list(value):
-              if value is None:
-                  return []
-              if isinstance(value, list):
-                  return [_norm(v) for v in value if _is_set(v)]
-              if isinstance(value, dict):
-                  out = []
-                  for key in ("authors", "author", "value", "name", "text"):
-                      if key in value:
-                          out.extend(_to_list(value.get(key)))
-                  if out:
-                      return [x for x in out if x]
-                  return [_norm(v) for v in value.values() if _is_set(v)]
-              text = _norm(value)
-              if not text:
-                  return []
-              parts = []
-              for sep in [";", ",", " and ", " und "]:
-                  if sep in text:
-                      parts = [p.strip() for p in text.split(sep)]
-                      break
-              if not parts:
-                  parts = [text]
-              return [p for p in parts if p]
-
-
-          def _author_variants(author):
-              text = " ".join(str(author).strip().split())
-              if not text:
-                  return []
-
-              variants = [text]
-              parts = text.split()
-              if len(parts) >= 2:
-                  first = parts[0].strip(".")
-                  last = parts[-1].strip(".,;")
-                  if first and last:
-                      variants.extend([f"{first[0]}. {last}", f"{first[0]} {last}", last])
-
-              seen = set()
-              deduped = []
-              for item in variants:
-                  key = item.lower()
-                  if key in seen:
-                      continue
-                  seen.add(key)
-                  deduped.append(item)
-              return deduped
-
-
-          def _req_json(url, headers):
-              req = Request(url=url, headers=headers, method="GET")
-              try:
-                  with urlopen(req, timeout=25) as res:
-                      body = res.read().decode("utf-8", errors="replace")
-                      if res.getcode() != 200:
-                          return {}, f"HTTP {res.getcode()}: {body}"
-                      return json.loads(body), None
-              except HTTPError as exc:
-                  return {}, f"HTTP {exc.code}: {exc.read().decode('utf-8', errors='replace')}"
-              except URLError as exc:
-                  return {}, f"URL error: {exc}"
-              except Exception as exc:
-                  return {}, f"Unknown error: {exc}"
-
-
-          def _metadata_dict(detail):
-              out = {}
-              for item in detail.get("doc_metadata", []) or []:
-                  name = _norm((item or {}).get("name")).lower()
-                  if name:
-                      out[name] = _norm((item or {}).get("value"))
-              return out
-
-
-          def _collect_docs(api_base, dataset_id, headers):
-              docs_url = f"{api_base}/datasets/{dataset_id}/documents"
-              payload, err = _req_json(docs_url, headers)
-              if err:
-                  return [], [err]
-
-              items = []
-              if isinstance(payload, dict):
-                  if isinstance(payload.get("data"), list):
-                      items = payload.get("data", [])
-                  elif isinstance(payload.get("documents"), list):
-                      items = payload.get("documents", [])
-
-              docs = []
-              errors = []
-              for item in items:
-                  doc_id = _norm((item or {}).get("id"))
-                  if not doc_id:
-                      continue
-                  detail_url = f"{api_base}/datasets/{dataset_id}/documents/{doc_id}?{urlencode({'metadata': 'all'})}"
-                  detail, derr = _req_json(detail_url, headers)
-                  if derr:
-                      errors.append(f"{doc_id}: {derr}")
-                      continue
-                  meta = _metadata_dict(detail)
-                  docs.append(
-                      {
-                          "title": _norm(meta.get("title")) or _norm(detail.get("name")),
-                          "authors": _norm(meta.get("authors")),
-                          "year": _norm(meta.get("year")),
-                          "journal": _norm(meta.get("journal")),
-                      }
-                  )
-
-              return docs, errors
-
-
-          def _match(doc, spec):
-              title = _norm(spec.get("title"))
-              year = _norm(spec.get("year"))
-              journal = _norm(spec.get("journal"))
-              authors = _to_list(spec.get("authors")) + _to_list(spec.get("author"))
-
-              if year and doc["year"].lower() != year.lower():
-                  return False
-              if journal and journal.lower() not in doc["journal"].lower():
-                  return False
-              if title and title.lower() not in doc["title"].lower():
-                  return False
-
-              if authors:
-                  doc_auth = doc["authors"].lower()
-                  for author in authors:
-                      variants = [v.lower() for v in _author_variants(author)]
-                      if not any(v and v in doc_auth for v in variants):
-                          return False
-
-              return True
-
-
-          def main(paper_list=None):
-              specs = paper_list if isinstance(paper_list, list) else []
-              if not specs:
-                  return {"expanded_paper_list": [], "expansion_log": "No metadata constraints provided."}
-
-              api_base = (os.getenv("DIFY_API_URL") or "http://rmap-chatbot-demo-dify/v1").rstrip("/")
-              dataset_id = _norm(os.getenv("DIFY_DATASET_ID") or "227cf97a-8e56-4cd6-808d-caf57bc0d2bf")
-              api_key = _norm(
-                  os.getenv("DIFY_DATASET_API_KEY")
-                  or os.getenv("DIFY_API_KEY")
-                  or "REDACTED"
-              )
-
-              if not api_base or not dataset_id or not api_key:
-                  return {
-                      "expanded_paper_list": specs,
-                      "expansion_log": "Dataset API config incomplete, using original paper_list.",
-                  }
-
-              headers = {"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"}
-              docs, errors = _collect_docs(api_base, dataset_id, headers)
-
-              expanded = []
-              for spec in specs:
-                  if not isinstance(spec, dict):
-                      continue
-                  matched = [doc for doc in docs if _match(doc, spec)]
-                  if matched:
-                      expanded.extend(matched)
-                  elif any(_is_set(spec.get(k)) for k in ("title", "authors", "author", "year", "journal")):
-                      expanded.append(
-                          {
-                              "title": _norm(spec.get("title")),
-                              "authors": _norm(spec.get("authors") or spec.get("author")),
-                              "year": _norm(spec.get("year")),
-                              "journal": _norm(spec.get("journal")),
-                          }
-                      )
-
-              unique = {}
-              for doc in expanded:
-                  key = (
-                      _norm(doc.get("title")).lower(),
-                      _norm(doc.get("authors")).lower(),
-                      _norm(doc.get("year")),
-                      _norm(doc.get("journal")).lower(),
-                  )
-                  if key not in unique:
-                      unique[key] = {
-                          "title": _norm(doc.get("title")),
-                          "authors": _norm(doc.get("authors")),
-                          "year": _norm(doc.get("year")),
-                          "journal": _norm(doc.get("journal")),
-                      }
-
-              result = list(unique.values())
-              log = f"Expanded {len(specs)} constraints into {len(result)} explicit paper items."
-              if errors:
-                  log += " Detail fetch issues: " + " | ".join(errors[:5])
-
-              return {"expanded_paper_list": result if result else specs, "expansion_log": log}
-        code_language: python3
-        desc: Expand metadata constraints to explicit per-paper items before iteration.
-        isInIteration: false
-        isInLoop: false
-        outputs:
-          expanded_paper_list:
-            children: null
-            type: array[object]
-          expansion_log:
-            children: null
-            type: string
-        selected: false
-        title: Expand Paper List
-        type: code
-        variables:
-        - value_selector:
-          - '1778676150362'
-          - structured_output
-          - paper_list
-          value_type: array[object]
-          variable: paper_list
-      height: 53
-      id: '1778689900101'
-      position:
-        x: -1026.8842163551342
-        y: 3420.5768477740867
-      positionAbsolute:
-        x: -1026.8842163551342
-        y: 3420.5768477740867
-      selected: false
-      sourcePosition: right
-      targetPosition: left
-      type: custom
-      width: 241
-    - data:
         error_handle_mode: terminated
         flatten_output: false
         height: 411.7237205737565
         is_parallel: false
         iterator_input_type: array[object]
         iterator_selector:
-        - '1778689900101'
-        - expanded_paper_list
+        - '1778800001001'
+        - paper_list
         output_selector:
         - '1778678575789'
-        - result
+        - output
         output_type: array[string]
         parallel_nums: 10
         selected: false
@@ -996,8 +759,7 @@ app:
             value: '[]'
             varType: array[object]
             variable_selector:
-            - '1778676150362'
-            - structured_output
+            - '1778800001001'
             - paper_list
           id: 'true'
           logical_operator: and
@@ -1432,6 +1194,74 @@ app:
       type: custom
       width: 241
       zIndex: 1002
+    - data:
+        code: "def main(paper_list=None, memory=None):\n    # Prefer current-turn extracted metadata, then fall back to conversation memory.\n    resolved = paper_list if isinstance(paper_list, list) and len(paper_list) > 0 else memory\n    if not isinstance(resolved, list):\n        resolved = []\n\n    cleaned = []\n    for item in resolved:\n        if isinstance(item, dict):\n            cleaned.append(item)\n\n    return {\"paper_list\": cleaned}\n"
+        code_language: python3
+        isInIteration: false
+        isInLoop: false
+        outputs:
+          paper_list:
+            children: null
+            type: array[object]
+        selected: false
+        title: Resolve Paper List
+        type: code
+        variables:
+        - value_selector:
+          - '1778676150362'
+          - structured_output
+          - paper_list
+          value_type: array[object]
+          variable: paper_list
+        - value_selector:
+          - conversation
+          - memory
+          value_type: array[object]
+          variable: memory
+      height: 53
+      id: '1778800001001'
+      position:
+        x: -1248.2
+        y: 3242.2
+      positionAbsolute:
+        x: -1248.2
+        y: 3242.2
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 241
+    - data:
+        desc: ''
+        isInIteration: false
+        isInLoop: false
+        items:
+        - input_type: variable
+          operation: over-write
+          value:
+          - '1778800001001'
+          - paper_list
+          variable_selector:
+          - conversation
+          - memory
+          write_mode: over-write
+        selected: false
+        title: Persist Paper Memory
+        type: assigner
+        version: '2'
+      height: 84
+      id: '1778800001002'
+      position:
+        x: -1248.2
+        y: 3398.2
+      positionAbsolute:
+        x: -1248.2
+        y: 3398.2
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 241
     viewport:
       x: 2244.1602448170765
       y: -2190.1808017610697

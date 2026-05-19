@@ -27,6 +27,31 @@ flowchart LR
 		I --> H
 ```
 
+Planned iterative retrieval workflow (`config/RMAP Chatbot Iterative Retrieval.yml`):
+
+```mermaid
+flowchart LR
+		A[Start] --> B[Query Rewriter]
+		B --> C[JSON Metadata Extractor]
+		C --> D[Resolve Paper List]
+		D --> E[Persist Paper Memory]
+		E --> F{Paper List Empty?}
+
+		F -->|Yes| G[Knowledge Retrieval]
+		G --> H[Knowledge LLM]
+		H --> Z[Answer]
+
+		F -->|No| I[Paper Iterator]
+		I --> J[Question Classifier]
+		J -->|Count/List| K[Metadata Code]
+		J -->|Content| L[KR with filter]
+		L --> M[Paper Map LLM]
+		K --> N[Iteration Aggregator]
+		M --> N
+		N --> O[Map/Reduce LLM]
+		O --> Z
+```
+
 ## Installation
 
 ### Requirements
@@ -112,6 +137,38 @@ Expected routes:
 
 1. Content questions -> `Knowledge Route`
 2. Count/list/filter questions -> `Metadata Route`
+
+## Planned Use-Case: Iterative Map/Reduce Routing
+
+Import the iterative workflow config:
+
+```bash
+DIFY_BASE_URL="http://your-dify-host" \
+DIFY_CONSOLE_COOKIE="..." \
+DIFY_CSRF_TOKEN="..." \
+AUTO_CONFIRM=true \
+scripts/import_dify_dsl.sh "config/RMAP Chatbot Iterative Retrieval.yml" --app-id "<app_id>" --allow-cookie-auth
+```
+
+Validate a two-turn handover (author list -> summarize previous papers):
+
+```bash
+DIFY_BASE_URL="http://your-dify-host" \
+DIFY_CONSOLE_COOKIE="..." \
+DIFY_CSRF_TOKEN="..." \
+scripts/debug_route_draft.sh \
+	--app-id "<app_id>" \
+	--allow-cookie-auth \
+	--classifier-node-id "17786780005730" \
+	--query "What papers did Christoph Dieterich author?" \
+	--query "Can you summarize these papers?"
+```
+
+Notes:
+
+1. `scripts/debug_route_draft.sh` now reuses `conversation_id` automatically across multiple `--query` values in one run.
+2. You can also force a known conversation with `--conversation-id "<uuid>"`.
+3. Conversation variable `conversation.memory` stores resolved metadata constraints for cross-turn map/reduce routing.
 
 ## Secondary Service: Metadata Extraction And Paper Upload
 

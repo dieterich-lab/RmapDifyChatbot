@@ -38,7 +38,9 @@ def upload_variant(
             print(
                 f"   API response tokens/words: {doc.get('tokens')}/{doc.get('word_count')}"
             )
-            print(f"   API raw response: {json.dumps(response_json, ensure_ascii=False)}")
+            print(
+                f"   API raw response: {json.dumps(response_json, ensure_ascii=False)}"
+            )
             if doc_id:
                 result = wait_for_indexing(doc_id)
                 result["variant"] = variant_name

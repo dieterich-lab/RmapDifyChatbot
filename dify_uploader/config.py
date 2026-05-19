@@ -3,7 +3,10 @@ import os
 DIFY_API_URL = os.getenv("DIFY_API_URL", "http://rmap-chatbot-demo-dify/v1")
 # Preferred explicit name for dataset operations (paper upload/metadata update).
 # Backward-compatible fallback: DIFY_API_KEY.
-DIFY_DATASET_API_KEY = os.getenv("DIFY_DATASET_API_KEY", os.getenv("DIFY_API_KEY", "REDACTED"))
+DIFY_DATASET_API_KEY = os.getenv(
+    "DIFY_DATASET_API_KEY",
+    os.getenv("DIFY_API_KEY", "REDACTED"),
+)
 
 # Backward-compatible alias kept for existing imports.
 DIFY_API_KEY = DIFY_DATASET_API_KEY
@@ -13,7 +16,9 @@ PDF_FOLDER = os.getenv("PDF_FOLDER", "./RMaP papers first funding period")
 
 def get_headers() -> dict[str, str]:
     if not DIFY_DATASET_API_KEY:
-        raise ValueError("Missing DIFY_DATASET_API_KEY (or legacy DIFY_API_KEY) for dataset upload endpoints.")
+        raise ValueError(
+            "Missing DIFY_DATASET_API_KEY (or legacy DIFY_API_KEY) for dataset upload endpoints."
+        )
 
     if not DIFY_DATASET_API_KEY.startswith("dataset-"):
         raise ValueError(
