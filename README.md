@@ -134,8 +134,3 @@ export BAML_OLLAMA_BASE_URL="http://127.0.0.1:11434/v1"
 export BAML_OLLAMA_MODEL="qwen3:32b"
 export AUTHOR_EXTRACTION_ENABLE_LLM_FALLBACK="true"
 ```
-
-## Project Notes
-
-1. Milestone tag: `milestone-routing-stable-v1`
-2. Release notes: `RELEASE_NOTES_milestone-routing-stable-v1.md`
