@@ -1,0 +1,1173 @@
+app:
+  description: ''
+  icon: 🤖
+  icon_background: '#D1E9FF'
+  icon_type: emoji
+  mode: advanced-chat
+  name: RMAP Chatbot Iterative Retrieval
+  use_icon_as_answer_icon: false
+dependencies:
+- current_identifier: null
+  type: marketplace
+  value:
+    marketplace_plugin_unique_identifier: langgenius/ollama:0.1.5@e2b13201d65c15f5112e9b7696f7802283e807e6bb0d6fab1deda263da7331fe
+    version: null
+kind: app
+version: 0.6.0
+workflow:
+  conversation_variables:
+  - description: ''
+    id: b4d4ec69-f935-44c9-9d24-5156f6913064
+    name: memory
+    selector:
+    - conversation
+    - memory
+    value: []
+    value_type: array[object]
+  environment_variables: []
+  features:
+    file_upload:
+      allowed_file_extensions:
+      - .JPG
+      - .JPEG
+      - .PNG
+      - .GIF
+      - .WEBP
+      - .SVG
+      allowed_file_types:
+      - image
+      allowed_file_upload_methods:
+      - local_file
+      - remote_url
+      enabled: false
+      fileUploadConfig:
+        attachment_image_file_size_limit: 2
+        audio_file_size_limit: 50
+        batch_count_limit: 5
+        file_size_limit: 15
+        file_upload_limit: 20
+        image_file_batch_limit: 10
+        image_file_size_limit: 10
+        single_chunk_attachment_limit: 10
+        video_file_size_limit: 100
+        workflow_file_upload_limit: 10
+      image:
+        enabled: false
+        number_limits: 3
+        transfer_methods:
+        - local_file
+        - remote_url
+      number_limits: 3
+    opening_statement: ''
+    retriever_resource:
+      enabled: true
+    sensitive_word_avoidance:
+      enabled: false
+    speech_to_text:
+      enabled: false
+    suggested_questions: []
+    suggested_questions_after_answer:
+      enabled: false
+    text_to_speech:
+      enabled: false
+      language: ''
+      voice: ''
+  graph:
+    edges:
+    - data:
+        isInLoop: false
+        sourceType: start
+        targetType: llm
+      id: 1711528914102-source-1778508354995-target
+      source: '1711528914102'
+      sourceHandle: source
+      target: '1778508354995'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInLoop: false
+        sourceType: llm
+        targetType: answer
+      id: 17785945559750-source-17785946070360-target
+      source: '17785945559750'
+      sourceHandle: source
+      target: '17785946070360'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInLoop: false
+        sourceType: llm
+        targetType: llm
+      id: 1778508354995-source-1778676150362-target
+      source: '1778508354995'
+      sourceHandle: source
+      target: '1778676150362'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInLoop: false
+        sourceType: llm
+        targetType: if-else
+      id: 1778676150362-source-1778677927006-target
+      source: '1778676150362'
+      sourceHandle: source
+      target: '1778677927006'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInLoop: false
+        sourceType: if-else
+        targetType: knowledge-retrieval
+      id: 1778677927006-true-17785930638200-target
+      source: '1778677927006'
+      sourceHandle: 'true'
+      target: '17785930638200'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInIteration: true
+        isInLoop: false
+        iteration_id: '1778676584534'
+        sourceType: iteration-start
+        targetType: question-classifier
+      id: 1778676584534start-source-17786780005730-target
+      source: 1778676584534start
+      sourceHandle: source
+      target: '17786780005730'
+      targetHandle: target
+      type: custom
+      zIndex: 1002
+    - data:
+        isInLoop: false
+        sourceType: if-else
+        targetType: iteration
+      id: 1778677927006-false-1778676584534-target
+      source: '1778677927006'
+      sourceHandle: 'false'
+      target: '1778676584534'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInIteration: true
+        isInLoop: false
+        iteration_id: '1778676584534'
+        sourceType: question-classifier
+        targetType: knowledge-retrieval
+      id: 17786780005730-2-17786780201700-target
+      source: '17786780005730'
+      sourceHandle: '2'
+      target: '17786780201700'
+      targetHandle: target
+      type: custom
+      zIndex: 1002
+    - data:
+        isInIteration: true
+        isInLoop: false
+        iteration_id: '1778676584534'
+        sourceType: knowledge-retrieval
+        targetType: llm
+      id: 17786780201700-source-1778689042001-target
+      source: '17786780201700'
+      sourceHandle: source
+      target: '1778689042001'
+      targetHandle: target
+      type: custom
+      zIndex: 1002
+    - data:
+        isInIteration: true
+        isInLoop: false
+        iteration_id: '1778676584534'
+        sourceType: question-classifier
+        targetType: code
+      id: 17786780005730-1-17786780698570-target
+      source: '17786780005730'
+      sourceHandle: '1'
+      target: '17786780698570'
+      targetHandle: target
+      type: custom
+      zIndex: 1002
+    - data:
+        isInLoop: false
+        sourceType: knowledge-retrieval
+        targetType: llm
+      id: 17785930638200-source-17785945559750-target
+      source: '17785930638200'
+      sourceHandle: source
+      target: '17785945559750'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInIteration: true
+        isInLoop: false
+        iteration_id: '1778676584534'
+        sourceType: code
+        targetType: variable-aggregator
+      id: 17786780698570-source-1778678575789-target
+      source: '17786780698570'
+      sourceHandle: source
+      target: '1778678575789'
+      targetHandle: target
+      type: custom
+      zIndex: 1002
+    - data:
+        isInIteration: true
+        isInLoop: false
+        iteration_id: '1778676584534'
+        sourceType: llm
+        targetType: variable-aggregator
+      id: 1778689042001-source-1778678575789-target
+      source: '1778689042001'
+      sourceHandle: source
+      target: '1778678575789'
+      targetHandle: target
+      type: custom
+      zIndex: 1002
+    - data:
+        isInIteration: true
+        isInLoop: false
+        iteration_id: '1778676584534'
+        sourceType: knowledge-retrieval
+        targetType: variable-aggregator
+      id: 17786780201700-source-1778678756135-target
+      source: '17786780201700'
+      sourceHandle: source
+      target: '1778678756135'
+      targetHandle: target
+      type: custom
+      zIndex: 1002
+    - data:
+        isInLoop: false
+        sourceType: iteration
+        targetType: llm
+      id: 1778676584534-source-17785945324000-target
+      source: '1778676584534'
+      sourceHandle: source
+      target: '17785945324000'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInLoop: false
+        sourceType: llm
+        targetType: answer
+      id: 17785945324000-source-17785946070360-target
+      source: '17785945324000'
+      sourceHandle: source
+      target: '17785946070360'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    nodes:
+    - data:
+        desc: The user's question comes in here.
+        selected: false
+        title: Start
+        type: start
+        variables: []
+      height: 100
+      id: '1711528914102'
+      position:
+        x: -1438.8974027694867
+        y: 3045.4242757229285
+      positionAbsolute:
+        x: -1438.8974027694867
+        y: 3045.4242757229285
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 242
+    - data:
+        context:
+          enabled: true
+          variable_selector:
+          - sys
+          - query
+        memory:
+          query_prompt_template: '{{#sys.query#}}
+
+
+            {{#sys.files#}}'
+          role_prefix:
+            assistant: ''
+            user: ''
+          window:
+            enabled: true
+            size: 12
+        model:
+          completion_params:
+            temperature: 0.7
+          mode: chat
+          name: gpt-oss
+          provider: langgenius/ollama/ollama
+        prompt_template:
+        - id: 42201b27-2ae0-414a-aa1b-c859a8060145
+          role: system
+          text: 'You are a specialized query rewriting assistant. You receive a new
+            user query and have access to the recent conversation history.
+
+
+            Your only task is to rewrite the new user query so that it is completely
+            understandable in isolation, without needing the conversation history.
+
+
+            If the user refers to previous answers (e.g., using pronouns like ''these
+            papers'', ''them'', ''this author'', ''those findings''), replace these
+            pronouns with the exact names, titles, or specific context from the conversation
+            history.
+
+
+            Do not answer the question! Output ONLY the rewritten, standalone query.
+            Do not add any introductory text, quotes, or conversational filler.'
+        reasoning_format: separated
+        selected: false
+        title: Query Rewriter
+        type: llm
+        vision:
+          enabled: false
+      height: 87
+      id: '1778508354995'
+      position:
+        x: -1445.680202203922
+        y: 3236.5065744495823
+      positionAbsolute:
+        x: -1445.680202203922
+        y: 3236.5065744495823
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 241
+    - data:
+        dataset_ids:
+        - 5/WcDtIuGANrAhqT255sDDblyQ7EPbz5ptEFPwuSFpIFdL2zcvi5ayyg7/+ctuJt
+        isInIteration: false
+        isInLoop: false
+        metadata_filtering_conditions:
+          conditions: []
+          logical_operator: and
+        metadata_filtering_mode: automatic
+        metadata_model_config:
+          completion_params:
+            temperature: 0.7
+          mode: chat
+          name: gpt-oss
+          provider: langgenius/ollama/ollama
+        multiple_retrieval_config:
+          reranking_enable: false
+          reranking_mode: weighted_score
+          score_threshold: null
+          top_k: 10
+          weights:
+            keyword_setting:
+              keyword_weight: 0.3
+            vector_setting:
+              embedding_model_name: nomic-embed-text-v2-moe
+              embedding_provider_name: langgenius/ollama/ollama
+              vector_weight: 0.7
+            weight_type: customized
+        query_attachment_selector: []
+        query_variable_selector:
+        - '1778508354995'
+        - text
+        retrieval_mode: multiple
+        selected: false
+        title: Knowledge Retrieval
+        type: knowledge-retrieval
+      height: 89
+      id: '17785930638200'
+      position:
+        x: -703.2926805141044
+        y: 3060.2819247915104
+      positionAbsolute:
+        x: -703.2926805141044
+        y: 3060.2819247915104
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 241
+    - data:
+        context:
+          enabled: true
+          variable_selector:
+          - '1778676584534'
+          - output
+        isInIteration: false
+        isInLoop: false
+        memory:
+          query_prompt_template: '{{#sys.query#}}'
+          role_prefix:
+            assistant: ''
+            user: ''
+          window:
+            enabled: false
+            size: 50
+        model:
+          completion_params:
+            temperature: 0.7
+          mode: chat
+          name: gpt-oss
+          provider: langgenius/ollama/ollama
+        prompt_template:
+        - id: 400aef06-66bf-4730-a1f4-3dd418d2d48e
+          role: system
+          text: 'You are the reduce step of a map-reduce academic assistant.
+
+
+            Use ONLY the mapped per-paper results provided in {{#context#}}.
+
+
+            Response policy:
+
+
+            - Answer in the same language as the user.
+
+
+            - Be precise and concise.
+
+
+            - If context includes errors or no results, explain that clearly and suggest
+            one concrete reformulation (for example: add year, remove strict filters,
+            or provide full author name).
+
+
+            - If context includes per-paper summaries, produce a compact global synthesis
+            first, then a clean numbered list per paper.
+
+
+            - If context includes only document list outputs, present count first and
+            then up to 10 items in a numbered list.
+
+
+            - Do not invent papers or counts.
+
+
+            - Do not mention internal nodes, GraphQL, or system internals unless the
+            user explicitly asks for technical details.'
+        reasoning_format: separated
+        selected: false
+        title: Metadata LLM 2
+        type: llm
+        vision:
+          enabled: false
+      height: 87
+      id: '17785945324000'
+      position:
+        x: 363.1058416861696
+        y: 3300.6444821833115
+      positionAbsolute:
+        x: 363.1058416861696
+        y: 3300.6444821833115
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 241
+    - data:
+        context:
+          enabled: true
+          variable_selector:
+          - '17785930638200'
+          - result
+        desc: Turn retrieved content into a clear and helpful answers with AI.
+        isInIteration: false
+        isInLoop: false
+        memory:
+          role_prefix:
+            assistant: ''
+            user: ''
+          window:
+            enabled: true
+            size: 50
+        model:
+          completion_params:
+            temperature: 0.7
+            top_p: 1
+          mode: chat
+          name: gpt-oss
+          provider: langgenius/ollama/ollama
+        prompt_template:
+        - id: 943448fa-b145-4ae7-a485-d77e4a2cc77b
+          role: system
+          text: 'You are a strict academic assistant. You must summarize the requested
+            papers based ONLY on the provided {{#context#}}.
+
+
+            CRITICAL INSTRUCTIONS FOR MULTIPLE PAPERS:
+
+            1. For EVERY paper requested in the user query, check if the {{#context#}}
+            actually contains content (abstract, methods, results) that belongs to
+            those specific authors and that specific title.
+
+            2. If the {{#context#}} contains information for a paper, summarize it.
+
+            3. If the {{#context#}} contains ONLY the title/metadata or irrelevant
+            images (like `![image]`) for a specific paper, you MUST output: "Für das
+            Paper [Titel/Autor] liegt im abgerufenen Kontext kein ausreichender Textinhalt
+            vor."
+
+            4. NEVER assign the content of one paper in the context to the authors
+            of another paper.
+
+            5. Do NOT guess, infer, or use your internal knowledge to fill in missing
+            abstracts.
+
+
+            Answer in the language of the user.'
+        retry_config:
+          max_retries: 3
+          retry_enabled: false
+          retry_interval: 1000
+        selected: false
+        title: Knowledge LLM
+        type: llm
+        variables: []
+        vision:
+          enabled: false
+      height: 131
+      id: '17785945559750'
+      position:
+        x: -351.34191535249096
+        y: 3060.2819247915104
+      positionAbsolute:
+        x: -351.34191535249096
+        y: 3060.2819247915104
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 241
+    - data:
+        answer: '{{#17785945559750.text#}}{{#17785945324000.text#}}'
+        desc: Send the final response back to the user.
+        isInIteration: false
+        isInLoop: false
+        selected: false
+        title: Answer 2
+        type: answer
+        variables: []
+      height: 163
+      id: '17785946070360'
+      position:
+        x: 953.0977040106275
+        y: 3258.0224579145383
+      positionAbsolute:
+        x: 953.0977040106275
+        y: 3258.0224579145383
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 241
+    - data:
+        context:
+          enabled: false
+          variable_selector: []
+        memory:
+          query_prompt_template: '{{#1778508354995.text#}}
+
+            {{#sys.query#}}'
+          role_prefix:
+            assistant: ''
+            user: ''
+          window:
+            enabled: true
+            size: 12
+        model:
+          completion_params:
+            temperature: 0.7
+          mode: chat
+          name: gpt-oss
+          provider: langgenius/ollama/ollama
+        prompt_template:
+        - id: a9fe8803-7835-42ac-95b4-b46cd7ac5917
+          role: system
+          text: 'Extract a normalized paper list for downstream iterative retrieval.
+
+
+            Return valid JSON only via structured output.
+
+
+            Rules:
+
+
+            - Output one object per requested paper or paper constraint.
+
+
+            - Allowed fields per item: title, authors, year, journal.
+
+
+            - Keep only explicit constraints from the rewritten query.
+
+
+            - If user references prior turns (for example: "those papers"), resolve
+            them from conversation context and emit explicit paper items.
+
+
+            - If no metadata constraints are present, return an empty list.
+
+
+            - Do not add explanations.'
+        reasoning_format: separated
+        selected: false
+        structured_output:
+          schema:
+            additionalProperties: false
+            properties:
+              paper_list:
+                description: List of papers extracted from a user query.
+                items:
+                  additionalProperties: false
+                  properties:
+                    author:
+                      description: Backward-compatible alias field.
+                      type: string
+                    authors:
+                      description: Comma-separated author names or one author name.
+                      type: string
+                    journal:
+                      description: Journal name if explicitly constrained.
+                      type: string
+                    title:
+                      description: Paper title if available.
+                      type: string
+                    year:
+                      description: Publication year as string.
+                      type: string
+                  type: object
+                type: array
+            required:
+            - paper_list
+            type: object
+        structured_output_enabled: true
+        title: JSON Metadata Extractor
+        type: llm
+        vision:
+          enabled: false
+      height: 87
+      id: '1778676150362'
+      position:
+        x: -1452.6825467404378
+        y: 3420.550852922454
+      positionAbsolute:
+        x: -1452.6825467404378
+        y: 3420.550852922454
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 241
+    - data:
+        error_handle_mode: terminated
+        flatten_output: false
+        height: 411.7237205737565
+        is_parallel: false
+        iterator_input_type: array[object]
+        iterator_selector:
+        - '1778676150362'
+        - structured_output
+        - paper_list
+        output_selector:
+        - '1778678575789'
+        - result
+        output_type: array[string]
+        parallel_nums: 10
+        selected: false
+        start_node_id: 1778676584534start
+        title: Paper Iterator
+        type: iteration
+        width: 1248.0312910954485
+      height: 412
+      id: '1778676584534'
+      position:
+        x: -1026.8842163551342
+        y: 3376.5768477740867
+      positionAbsolute:
+        x: -1026.8842163551342
+        y: 3376.5768477740867
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 1248
+      zIndex: 1
+    - data:
+        desc: ''
+        isInIteration: true
+        selected: false
+        title: ''
+        type: iteration-start
+      draggable: false
+      height: 48
+      id: 1778676584534start
+      parentId: '1778676584534'
+      position:
+        x: 24
+        y: 68
+      positionAbsolute:
+        x: -1002.8842163551342
+        y: 3444.5768477740867
+      selectable: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom-iteration-start
+      width: 44
+      zIndex: 1002
+    - data:
+        cases:
+        - case_id: 'true'
+          conditions:
+          - comparison_operator: empty
+            id: 6b990a2f-40d3-43f2-871c-538601b97c06
+            value: '[]'
+            varType: array[object]
+            variable_selector:
+            - '1778676150362'
+            - structured_output
+            - paper_list
+          id: 'true'
+          logical_operator: and
+        selected: true
+        title: IF/ELSE
+        type: if-else
+      height: 139
+      id: '1778677927006'
+      position:
+        x: -1050.76193834915
+        y: 3060.2819247915104
+      positionAbsolute:
+        x: -1050.76193834915
+        y: 3060.2819247915104
+      selected: true
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 241
+    - data:
+        classes:
+        - id: '1'
+          name: IS_COUNT_OR_LIST (Zählen, Auflisten) 
+        - id: '2'
+          name: IS_CONTENT (Zusammenfassen, Erklären)
+        instruction: ''
+        instructions: ''
+        isInIteration: true
+        isInLoop: false
+        iteration_id: '1778676584534'
+        memory:
+          query_prompt_template: '{{#sys.query#}}
+
+
+            {{#sys.files#}}'
+          window:
+            enabled: true
+            size: 50
+        model:
+          completion_params:
+            temperature: 0.7
+          mode: chat
+          name: gpt-oss
+          provider: langgenius/ollama/ollama
+        query_variable_selector:
+        - '1778508354995'
+        - text
+        selected: false
+        title: Question Classifier 2 (1)
+        type: question-classifier
+        vision:
+          enabled: false
+      height: 169
+      id: '17786780005730'
+      parentId: '1778676584534'
+      position:
+        x: 199.39726098682888
+        y: 72.69752138655213
+      positionAbsolute:
+        x: -827.4869553683053
+        y: 3449.274369160639
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 241
+      zIndex: 1002
+    - data:
+        dataset_ids:
+        - 5/WcDtIuGANrAhqT255sDDblyQ7EPbz5ptEFPwuSFpIFdL2zcvi5ayyg7/+ctuJt
+        isInIteration: true
+        isInLoop: false
+        iteration_id: '1778676584534'
+        metadata_filtering_conditions:
+          conditions:
+          - comparison_operator: contains
+            id: 796a8a70-32a2-4a12-89fc-f09454c4f649
+            metadata_id: 8b2e5e43-2323-4bd0-9c70-a92256486501
+            name: year
+            value: '{{#1778676584534.item.year#}}'
+          - comparison_operator: contains
+            id: a98ae230-8c73-4d3c-aad0-9e065486de12
+            metadata_id: c66d9446-d2a6-4bb8-84cd-909a76ba3052
+            name: journal
+            value: '{{#1778676584534.item.journal#}}'
+          - comparison_operator: contains
+            id: dc67b41e-81dd-49ad-83e5-eec7223a791f
+            metadata_id: a0a36fb9-793b-4c0b-9373-f9a1797601f9
+            name: title
+            value: '{{#1778676584534.item.title#}}'
+          - comparison_operator: in
+            id: a5aabe49-3207-495e-bac5-f96ae579a31e
+            metadata_id: f0738e8c-9ba7-46a4-8b01-355afa8cdc9b
+            name: authors
+            value: '{{#1778676584534.item.authors#}}{{#1778676584534.item.author#}}'
+          logical_operator: and
+        metadata_filtering_mode: manual
+        multiple_retrieval_config:
+          reranking_enable: false
+          reranking_mode: weighted_score
+          score_threshold: null
+          top_k: 10
+          weights:
+            keyword_setting:
+              keyword_weight: 0.3
+            vector_setting:
+              embedding_model_name: nomic-embed-text-v2-moe
+              embedding_provider_name: langgenius/ollama/ollama
+              vector_weight: 0.7
+            weight_type: customized
+        query_attachment_selector: []
+        query_variable_selector:
+        - '1778508354995'
+        - text
+        retrieval_mode: multiple
+        selected: false
+        title: KR with filter
+        type: knowledge-retrieval
+      height: 89
+      id: '17786780201700'
+      parentId: '1778676584534'
+      position:
+        x: 512.7854379520014
+        y: 222.914864879182
+      positionAbsolute:
+        x: -514.0987784031328
+        y: 3599.4917126532687
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 241
+      zIndex: 1002
+    - data:
+        context:
+          enabled: true
+          variable_selector:
+          - '17786780201700'
+          - result
+        isInIteration: true
+        isInLoop: false
+        iteration_id: '1778676584534'
+        memory:
+          query_prompt_template: '{{#1778508354995.text#}}'
+          role_prefix:
+            assistant: ''
+            user: ''
+          window:
+            enabled: false
+            size: 10
+        model:
+          completion_params:
+            temperature: 0.2
+          mode: chat
+          name: gpt-oss
+          provider: langgenius/ollama/ollama
+        prompt_template:
+        - id: 4eaf6992-1e89-4a94-97ac-a7f6f2f6a151
+          role: system
+          text: 'You are the map step for one paper candidate.
+
+
+            Use only {{#context#}} from the filtered retrieval of this single iteration.
+
+
+            Output exactly 2 short sections:
+
+
+            1) MATCH: identify title/authors if visible; otherwise say uncertain match.
+
+
+            2) SUMMARY: concise methods/findings summary, or "insufficient textual context"
+            if retrieval contains only metadata or non-content snippets.
+
+
+            No hallucinations.'
+        reasoning_format: separated
+        selected: false
+        title: Paper Map LLM
+        type: llm
+        vision:
+          enabled: false
+      height: 87
+      id: '1778689042001'
+      parentId: '1778676584534'
+      position:
+        x: 812.7854379520014
+        y: 226.914864879182
+      positionAbsolute:
+        x: -214.09877840313277
+        y: 3603.4917126532687
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 241
+      zIndex: 1002
+    - data:
+        code: "import json\nimport os\nimport re\nfrom urllib.error import HTTPError,\
+          \ URLError\nfrom urllib.parse import urlencode\nfrom urllib.request import\
+          \ Request, urlopen\n\nCODE_VERSION = \"metadata_query_v2026-05-11_dify-metadata_1\"\
+          \n\n_EMPTY_TOKENS = {\n    \"\",\n    \"null\",\n    \"none\",\n    \"unknown\"\
+          ,\n    \"n/a\",\n    \"na\",\n    \"[]\",\n    \"{}\",\n    \"-\",\n}\n\n\
+          \ndef _is_set(value) -> bool:\n    if value is None:\n        return False\n\
+          \    if isinstance(value, (int, float)) and value == 0:\n        return\
+          \ False\n    if isinstance(value, list):\n        return any(_is_set(item)\
+          \ for item in value)\n    if isinstance(value, dict):\n        return any(_is_set(v)\
+          \ for v in value.values())\n    text = str(value).strip()\n    return text.lower()\
+          \ not in _EMPTY_TOKENS\n\n\ndef _normalize_text(value) -> str:\n    if value\
+          \ is None:\n        return \"\"\n    text = str(value).strip()\n    return\
+          \ \"\" if text.lower() in _EMPTY_TOKENS else text\n\n\ndef _to_string_list(value)\
+          \ -> list[str]:\n    if value is None:\n        return []\n    if isinstance(value,\
+          \ list):\n        return [_normalize_text(v) for v in value if _is_set(v)]\n\
+          \    if isinstance(value, dict):\n        # Accept common extractor payload\
+          \ shapes like {\"value\": \"...\"}.\n        candidates = []\n        for\
+          \ key in (\"value\", \"name\", \"author\", \"authors\", \"text\"):\n   \
+          \         if key in value:\n                entry = value.get(key)\n   \
+          \             if isinstance(entry, list):\n                    candidates.extend(_to_string_list(entry))\n\
+          \                elif _is_set(entry):\n                    norm = _normalize_text(entry)\n\
+          \                    if norm:\n                        candidates.append(norm)\n\
+          \        if candidates:\n            return candidates\n        return [_normalize_text(v)\
+          \ for v in value.values() if _is_set(v)]\n    if _is_set(value):\n     \
+          \   normalized = _normalize_text(value)\n        return [normalized] if\
+          \ normalized else []\n    return []\n\n\ndef _author_variants(author: str)\
+          \ -> list[str]:\n    text = \" \".join(str(author).strip().split())\n  \
+          \  if not text:\n        return []\n\n    variants = [text]\n    parts =\
+          \ text.split(\" \")\n    if len(parts) >= 2:\n        first = parts[0].strip(\"\
+          .\")\n        last = parts[-1].strip(\".,;\")\n        if first and last:\n\
+          \            variants.append(f\"{first[0]}. {last}\")\n            variants.append(f\"\
+          {first[0]} {last}\")\n            variants.append(last)\n\n    seen = set()\n\
+          \    deduped = []\n    for item in variants:\n        key = item.lower()\n\
+          \        if key in seen:\n            continue\n        seen.add(key)\n\
+          \        deduped.append(item)\n    return deduped\n\n\ndef _build_headers(api_key:\
+          \ str) -> dict:\n    return {\n        \"Authorization\": f\"Bearer {api_key}\"\
+          ,\n        \"Content-Type\": \"application/json\",\n    }\n\n\ndef _run_json_get(\n\
+          \    url: str, headers: dict, timeout: int = 30\n) -> tuple[dict, str |\
+          \ None]:\n    request = Request(url=url, headers=headers, method=\"GET\"\
+          )\n    try:\n        with urlopen(request, timeout=timeout) as response:\n\
+          \            body = response.read().decode(\"utf-8\", errors=\"replace\"\
+          )\n            status = response.getcode()\n    except HTTPError as exc:\n\
+          \        body = exc.read().decode(\"utf-8\", errors=\"replace\")\n     \
+          \   return {}, f\"Dify API Error {exc.code}: {body}\"\n    except URLError\
+          \ as exc:\n        return {}, f\"Verbindungsfehler zur Dify API: {exc}\"\
+          \n    except Exception as exc:\n        return {}, f\"Unbekannter Dify API-Fehler:\
+          \ {exc}\"\n\n    if status != 200:\n        return {}, f\"Dify API Error\
+          \ {status}: {body}\"\n\n    try:\n        return json.loads(body), None\n\
+          \    except ValueError:\n        return {}, f\"Ungueltige JSON-Antwort:\
+          \ {body}\"\n\n\ndef _extract_items(payload: dict) -> list[dict]:\n    if\
+          \ isinstance(payload, dict):\n        if isinstance(payload.get(\"data\"\
+          ), list):\n            return payload.get(\"data\", [])\n        if isinstance(payload.get(\"\
+          documents\"), list):\n            return payload.get(\"documents\", [])\n\
+          \    return []\n\n\ndef _metadata_to_dict(detail: dict) -> dict[str, str]:\n\
+          \    result = {}\n    for item in detail.get(\"doc_metadata\", []) or []:\n\
+          \        name = str((item or {}).get(\"name\") or \"\").strip().lower()\n\
+          \        value = (item or {}).get(\"value\")\n        if name:\n       \
+          \     result[name] = \"\" if value is None else str(value).strip()\n   \
+          \ return result\n\n\ndef _matches_filters(meta: dict[str, str], year, authors,\
+          \ journal, title) -> bool:\n    meta_year = _normalize_text(meta.get(\"\
+          year\", \"\"))\n    meta_authors = _normalize_text(meta.get(\"authors\"\
+          , \"\"))\n    meta_journal = _normalize_text(meta.get(\"journal\", \"\"\
+          ))\n    meta_title = _normalize_text(meta.get(\"title\", \"\"))\n\n    year_text\
+          \ = _normalize_text(year)\n    journal_text = _normalize_text(journal)\n\
+          \    title_text = _normalize_text(title)\n\n    if _is_set(year_text) and\
+          \ year_text.lower() != meta_year.lower():\n        return False\n\n    if\
+          \ _is_set(journal_text) and journal_text.lower() not in meta_journal.lower():\n\
+          \        return False\n\n    if _is_set(title_text) and title_text.lower()\
+          \ not in meta_title.lower():\n        return False\n\n    author_inputs\
+          \ = _to_string_list(authors)\n    for author in author_inputs:\n       \
+          \ variants = [v.lower() for v in _author_variants(author)]\n        if not\
+          \ any(v in meta_authors.lower() for v in variants):\n            return\
+          \ False\n\n    return True\n\n\ndef _sanitize_year_filter(value) -> str:\n\
+          \    text = _normalize_text(value)\n    if not text:\n        return \"\"\
+          \n    return text if re.fullmatch(r\"(19|20)\\d{2}\", text) else \"\"\n\n\
+          \ndef _sanitize_free_text_filter(value, max_len: int = 120) -> str:\n  \
+          \  text = _normalize_text(value)\n    if not text:\n        return \"\"\n\
+          \    # Extractor noise often includes full questions or long fragments.\n\
+          \    if len(text) > max_len:\n        return \"\"\n    if \"?\" in text:\n\
+          \        return \"\"\n    lower = text.lower()\n    noisy_markers = [\"\
+          which documents\", \"co-authored\", \"co-authored by\", \"authored by\"\
+          ]\n    if any(marker in lower for marker in noisy_markers):\n        return\
+          \ \"\"\n    return text\n\n\ndef _collect_documents(\n    api_base: str,\
+          \ dataset_id: str, headers: dict\n) -> tuple[list[dict], list[str]]:\n \
+          \   errors = []\n    docs = []\n\n    list_url = f\"{api_base}/datasets/{dataset_id}/documents\"\
+          \n    payload, err = _run_json_get(list_url, headers=headers)\n    if err:\n\
+          \        return [], [err]\n\n    items = _extract_items(payload)\n    for\
+          \ item in items:\n        doc_id = str((item or {}).get(\"id\") or \"\"\
+          ).strip()\n        if not doc_id:\n            continue\n\n        detail_url\
+          \ = f\"{api_base}/datasets/{dataset_id}/documents/{doc_id}?{urlencode({'metadata':\
+          \ 'all'})}\"\n        detail, detail_err = _run_json_get(detail_url, headers=headers)\n\
+          \        if detail_err:\n            errors.append(f\"Dokument {doc_id}:\
+          \ {detail_err}\")\n            continue\n\n        meta = _metadata_to_dict(detail)\n\
+          \        docs.append(\n            {\n                \"id\": doc_id,\n\
+          \                \"title\": meta.get(\"title\") or str(detail.get(\"name\"\
+          ) or \"\").strip(),\n                \"authors\": meta.get(\"authors\",\
+          \ \"\"),\n                \"year\": meta.get(\"year\", \"\"),\n        \
+          \        \"journal\": meta.get(\"journal\", \"\"),\n            }\n    \
+          \    )\n\n    return docs, errors\n\n\ndef _render_result(matches: list[dict],\
+          \ total_docs: int) -> str:\n    if not matches:\n        return (\n    \
+          \        \"Keine Dokumente gefunden.\\n\"\n            f\"Code-Version:\
+          \ {CODE_VERSION}; Dokumente geprueft: {total_docs}; Treffer: 0\"\n     \
+          \   )\n\n    lines = []\n    for idx, doc in enumerate(matches, start=1):\n\
+          \        lines.append(\n            f\"{idx}. {doc['title']} | {doc['authors']}\
+          \ | {doc['year']} | {doc['journal']}\"\n        )\n    header = (\n    \
+          \    f\"Code-Version: {CODE_VERSION}; Dokumente geprueft: {total_docs};\
+          \ \"\n        f\"Treffer: {len(matches)}\"\n    )\n    return header + \"\
+          \\n\" + \"\\n\".join(lines)\n\n\ndef main(year=None, authors=None, journal=None,\
+          \ title=None):\n    api_base = (os.getenv(\"DIFY_API_URL\") or \"http://rmap-chatbot-demo-dify/v1\"\
+          ).rstrip(\n        \"/\"\n    )\n    dataset_id = os.getenv(\"DIFY_DATASET_ID\"\
+          ) or \"227cf97a-8e56-4cd6-808d-caf57bc0d2bf\"\n    api_key = os.getenv(\"\
+          DIFY_API_KEY\") or \"dataset-z3bHkQ6eUPKN21GaLq3KXIiS\"\n\n    if not _is_set(api_base)\
+          \ or not _is_set(dataset_id) or not _is_set(api_key):\n        return {\n\
+          \            \"result\": (\n                \"Dify API Konfiguration unvollstaendig.\
+          \ \"\n                \"Erwarte DIFY_API_URL, DIFY_DATASET_ID und DIFY_API_KEY.\"\
+          \n            )\n        }\n\n    headers = _build_headers(str(api_key).strip())\n\
+          \    docs, errors = _collect_documents(str(api_base), str(dataset_id).strip(),\
+          \ headers)\n\n    year_filter = _sanitize_year_filter(year)\n    journal_filter\
+          \ = _sanitize_free_text_filter(journal, max_len=80)\n    title_filter =\
+          \ _sanitize_free_text_filter(title, max_len=160)\n\n    matches = []\n \
+          \   for doc in docs:\n        if _matches_filters(doc, year_filter, authors,\
+          \ journal_filter, title_filter):\n            matches.append(doc)\n\n  \
+          \  unique = {}\n    for doc in matches:\n        key = (\n            (doc.get(\"\
+          title\") or \"\").strip().lower(),\n            (doc.get(\"authors\") or\
+          \ \"\").strip().lower(),\n            (doc.get(\"year\") or \"\").strip(),\n\
+          \            (doc.get(\"journal\") or \"\").strip().lower(),\n        )\n\
+          \        if key not in unique:\n            unique[key] = doc\n    final_docs\
+          \ = list(unique.values())\n\n    result_text = _render_result(final_docs,\
+          \ total_docs=len(docs))\n    if errors:\n        result_text += \"\\nFehlerdetails:\\\
+          n\" + \"\\n\".join(f\"- {e}\" for e in errors[:8])\n    return {\"result\"\
+          : result_text}\n"
+        code_language: python3
+        isInIteration: true
+        isInLoop: false
+        iteration_id: '1778676584534'
+        outputs:
+          result:
+            children: null
+            type: string
+        selected: false
+        title: Code
+        type: code
+        variables:
+        - value_selector:
+          - '1778676584534'
+          - item
+          - year
+          value_type: string
+          variable: year
+        - value_selector:
+          - '1778676584534'
+          - item
+          - authors
+          value_type: string
+          variable: authors
+        - value_selector:
+          - '1778676584534'
+          - item
+          - journal
+          value_type: string
+          variable: journal
+        - value_selector:
+          - '1778676584534'
+          - item
+          - title
+          value_type: string
+          variable: title
+      height: 51
+      id: '17786780698570'
+      parentId: '1778676584534'
+      position:
+        x: 507.70835440792223
+        y: 82.02579653098337
+      positionAbsolute:
+        x: -519.175861947212
+        y: 3458.60264430507
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 241
+      zIndex: 1002
+    - data:
+        isInIteration: true
+        isInLoop: false
+        iteration_id: '1778676584534'
+        output_type: string
+        selected: false
+        title: Variable Aggregator
+        type: variable-aggregator
+        variables:
+        - - '17786780698570'
+          - result
+        - - '1778689042001'
+          - text
+      height: 108
+      id: '1778678575789'
+      parentId: '1778676584534'
+      position:
+        x: 809.7083544079222
+        y: 79.4518180363807
+      positionAbsolute:
+        x: -217.17586194721196
+        y: 3456.0286658104674
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 241
+      zIndex: 1002
+    - data:
+        isInIteration: true
+        isInLoop: false
+        iteration_id: '1778676584534'
+        output_type: array[object]
+        selected: false
+        title: Variable Aggregator 2
+        type: variable-aggregator
+        variables:
+        - - '17786780201700'
+          - result
+      height: 108
+      id: '1778678756135'
+      parentId: '1778676584534'
+      position:
+        x: 814.7854379520014
+        y: 222.914864879182
+      positionAbsolute:
+        x: -212.09877840313277
+        y: 3599.4917126532687
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 241
+      zIndex: 1002
+    viewport:
+      x: 2244.1602448170765
+      y: -2190.1808017610697
+      zoom: 0.8950250709279719
+  rag_pipeline_variables: []
