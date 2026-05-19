@@ -47,6 +47,20 @@ Optional local environment file (for import/debug scripts):
 source .secrets/dify_console_session.env
 ```
 
+### API credential map
+
+Use different keys for different endpoint families:
+
+1. `DIFY_APP_API_KEY` (prefix `app-`): app runtime endpoints under `/v1` (for example `/v1/chat-messages`, `/v1/meta`).
+2. `DIFY_DATASET_API_KEY` (prefix `dataset-`): dataset upload/metadata endpoints under `/v1/datasets/...` used by `dify-upload`.
+3. `DIFY_CONSOLE_API_KEY`: console-management endpoints under `/console/api/...` (workflow import, draft run).
+4. Cookie fallback (`DIFY_CONSOLE_COOKIE` + `DIFY_CSRF_TOKEN`): only for deployments where console API keys are not accepted.
+
+Notes:
+
+1. The uploader currently supports `DIFY_API_KEY` as a backward-compatible alias for `DIFY_DATASET_API_KEY`.
+2. In this deployment, app keys are valid for `/v1` but not for `/console/api`.
+
 ## Main Use-Case: Set Up The Meta Routing Chatbot
 
 ### 1. Import workflow DSL into Dify
@@ -84,6 +98,16 @@ scripts/debug_route_draft.sh \
 	--query "Which papers have been (co-) authored by Christoph Dieterich?"
 ```
 
+Or with console API key (if supported by your deployment):
+
+```bash
+DIFY_BASE_URL="http://your-dify-host" \
+DIFY_CONSOLE_API_KEY="<console_api_key>" \
+scripts/debug_route_draft.sh \
+	--app-id "<app_id>" \
+	--query "What are the main methods and findings of Sci-ModoM?"
+```
+
 Expected routes:
 
 1. Content questions -> `Knowledge Route`
@@ -95,6 +119,14 @@ Use the CLI entrypoint:
 
 ```bash
 poetry run dify-upload
+```
+
+If needed, provide dataset credentials via environment variables:
+
+```bash
+export DIFY_DATASET_API_KEY="dataset-..."
+export DIFY_API_URL="http://your-dify-host/v1"
+export DATASET_ID="<dataset_id>"
 ```
 
 Common commands:

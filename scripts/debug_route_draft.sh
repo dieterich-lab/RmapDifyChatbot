@@ -47,6 +47,13 @@ done
 [[ -n "$APP_ID" ]] || { echo "--app-id is required"; exit 1; }
 [[ ${#QUERIES[@]} -gt 0 ]] || { echo "At least one --query is required"; exit 1; }
 
+# Guardrail: app runtime keys (usually prefix app-) do not authorize console endpoints.
+if [[ -n "${DIFY_API_KEY:-}" && -z "${DIFY_CONSOLE_API_KEY:-}" ]]; then
+  echo "Detected DIFY_API_KEY but missing DIFY_CONSOLE_API_KEY."
+  echo "For draft console endpoints (/console/api), use DIFY_CONSOLE_API_KEY or --allow-cookie-auth with DIFY_CONSOLE_COOKIE + DIFY_CSRF_TOKEN."
+  exit 1
+fi
+
 BASE_URL="${DIFY_BASE_URL%/}"
 RUN_URL="$BASE_URL/console/api/apps/$APP_ID/advanced-chat/workflows/draft/run"
 
