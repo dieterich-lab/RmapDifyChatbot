@@ -17,7 +17,6 @@ dependencies = [
 
 [project.scripts]
 dify-upload = "dify_uploader.cli:main"
-dify-upload-selected = "dify_uploader.runners.selected_authors:main"
 
 [tool.poetry]
 packages = [{ include = "dify_uploader" }]
