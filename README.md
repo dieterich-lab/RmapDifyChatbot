@@ -33,9 +33,7 @@ Planned iterative retrieval workflow (`config/RMAP Chatbot Iterative Retrieval.y
 flowchart LR
 		A[Start] --> B[Query Rewriter]
 		B --> C[JSON Metadata Extractor]
-		C --> D[Resolve Paper List]
-		D --> E[Persist Paper Memory]
-		E --> F{Paper List Empty?}
+		C --> F{Paper List Empty?}
 
 		F -->|Yes| G[Knowledge Retrieval]
 		G --> H[Knowledge LLM]
@@ -168,7 +166,16 @@ Notes:
 
 1. `scripts/debug_route_draft.sh` now reuses `conversation_id` automatically across multiple `--query` values in one run.
 2. You can also force a known conversation with `--conversation-id "<uuid>"`.
-3. Conversation variable `conversation.memory` stores resolved metadata constraints for cross-turn map/reduce routing.
+3. Iterative workflow now uses minimal memory handover: concrete paper entities from list queries are persisted in `conversation.memory` for follow-up summarize turns.
+4. Memory fallback is only applied for follow-up style prompts (for example: "these papers", "Fasse mir diese Papiere zusammen") to avoid contaminating unrelated turns.
+5. Hardened follow-up intents for map/reduce now include references like:
+	- compare/contrast: "Compare these papers by methods and key findings"
+	- ranking/subset: "Which one is the newest?", "top 3", "first two papers"
+	- cross-lingual references: "diese Paper", "vergleiche diese", "welches davon"
+6. Milestone 2026-05-21 (Map/Reduce follow-up hardening):
+	- Resolve Paper List now performs deterministic subset selection from `conversation.memory` for `first/top/newest/oldest` follow-ups.
+	- Restored missing iteration Code node (`17786780698570`) to keep graph edges consistent and avoid draft runtime `MISSING_NODE` errors.
+	- Verified two-turn flow for `Which paper have been published by Christoph Dieterich` -> `Please summarize the first two papers.` returns successfully (HTTP 200) in draft run.
 
 ## Secondary Service: Metadata Extraction And Paper Upload
 
