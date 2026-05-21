@@ -16,7 +16,7 @@ kind: app
 version: 0.6.0
 workflow:
   conversation_variables:
-  - description: ''
+  - description: Resolved papers for follow-up summarize turns
     id: b4d4ec69-f935-44c9-9d24-5156f6913064
     name: memory
     selector:
@@ -121,20 +121,9 @@ workflow:
     - data:
         isInLoop: false
         sourceType: code
-        targetType: assigner
-      id: 1778800001001-source-1778800001002-target
-      source: '1778800001001'
-      sourceHandle: source
-      target: '1778800001002'
-      targetHandle: target
-      type: custom
-      zIndex: 0
-    - data:
-        isInLoop: false
-        sourceType: assigner
         targetType: if-else
-      id: 1778800001002-source-1778677927006-target
-      source: '1778800001002'
+      id: 1778800001001-source-1778677927006-target
+      source: '1778800001001'
       sourceHandle: source
       target: '1778677927006'
       targetHandle: target
@@ -252,24 +241,33 @@ workflow:
       type: custom
       zIndex: 1002
     - data:
-        isInIteration: true
-        isInLoop: false
-        iteration_id: '1778676584534'
-        sourceType: knowledge-retrieval
-        targetType: variable-aggregator
-      id: 17786780201700-source-1778678756135-target
-      source: '17786780201700'
-      sourceHandle: source
-      target: '1778678756135'
-      targetHandle: target
-      type: custom
-      zIndex: 1002
-    - data:
         isInLoop: false
         sourceType: iteration
-        targetType: llm
-      id: 1778676584534-source-17785945324000-target
+        targetType: code
+      id: 1778676584534-source-1778800001002-target
       source: '1778676584534'
+      sourceHandle: source
+      target: '1778800001002'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInLoop: false
+        sourceType: code
+        targetType: assigner
+      id: 1778800001002-source-1778800001003-target
+      source: '1778800001002'
+      sourceHandle: source
+      target: '1778800001003'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInLoop: false
+        sourceType: assigner
+        targetType: llm
+      id: 1778800001003-source-17785945324000-target
+      source: '1778800001003'
       sourceHandle: source
       target: '17785945324000'
       targetHandle: target
@@ -293,7 +291,7 @@ workflow:
         title: Start
         type: start
         variables: []
-      height: 100
+      height: 101
       id: '1711528914102'
       position:
         x: -1438.8974027694867
@@ -346,6 +344,26 @@ workflow:
             history.
 
 
+            Also resolve follow-up intents that refer to subsets or relations of previous
+            paper lists, for example:
+
+
+            - subset references: ''the first two'', ''top 3'', ''which one'', ''the
+            newest one'', ''the oldest one''
+
+
+            - relational intents: ''compare them'', ''differences'', ''similarities'',
+            ''key findings'', ''methods'', ''limitations''
+
+
+            - German variants: ''diese Paper'', ''die ersten zwei'', ''vergleiche
+            diese'', ''welches davon''
+
+
+            Keep user intent and constraints unchanged. Only make references explicit
+            and standalone.
+
+
             Do not answer the question! Output ONLY the rewritten, standalone query.
             Do not add any introductory text, quotes, or conversational filler.'
         reasoning_format: separated
@@ -354,7 +372,7 @@ workflow:
         type: llm
         vision:
           enabled: false
-      height: 87
+      height: 88
       id: '1778508354995'
       position:
         x: -1445.680202203922
@@ -366,7 +384,7 @@ workflow:
       sourcePosition: right
       targetPosition: left
       type: custom
-      width: 241
+      width: 242
     - data:
         dataset_ids:
         - 5/WcDtIuGANrAhqT255sDDblyQ7EPbz5ptEFPwuSFpIFdL2zcvi5ayyg7/+ctuJt
@@ -403,7 +421,7 @@ workflow:
         selected: false
         title: Knowledge Retrieval
         type: knowledge-retrieval
-      height: 89
+      height: 90
       id: '17785930638200'
       position:
         x: -703.2926805141044
@@ -415,7 +433,7 @@ workflow:
       sourcePosition: right
       targetPosition: left
       type: custom
-      width: 241
+      width: 242
     - data:
         context:
           enabled: false
@@ -432,7 +450,8 @@ workflow:
             size: 50
         model:
           completion_params:
-            temperature: 0.7
+            max_tokens: 256
+            temperature: 0
           mode: chat
           name: gpt-oss
           provider: langgenius/ollama/ollama
@@ -465,34 +484,52 @@ workflow:
             first, then a clean numbered list per paper.
 
 
-            - If context includes only document list outputs, present count first and
-            then up to 10 items in a numbered list.
+            - If user intent is comparison/contrast, add a short comparison table
+            (or bullet matrix) across the referenced papers before the per-paper details.
 
 
-            - Do not invent papers or counts.
+            - If user intent asks for newest/oldest/first/top subset, explicitly
+            state your selection criterion (typically publication year if available)
+            and then provide only the requested subset.
+
+
+            - If context includes only document list outputs, present count first
+            and then up to 10 items in a numbered list.
+
+
+            - If context indicates missing textual content for some or all papers,
+            do NOT stop at a generic refusal. Still provide a useful structured answer:
+            first list all matched papers (title, year, journal), then explicitly
+            mark which papers have insufficient text for reliable summarization.
+
+
+            - Keep the response constructive: add one short next step (for example:
+            ask for full text, re-index documents, or relax filters).
+
+
+            - Do not invent papers, counts, methods, or findings.
 
 
             - Do not mention internal nodes, GraphQL, or system internals unless the
             user explicitly asks for technical details.'
-        reasoning_format: separated
         selected: false
         title: Metadata LLM 2
         type: llm
         vision:
           enabled: false
-      height: 87
+      height: 88
       id: '17785945324000'
       position:
-        x: 363.1058416861696
-        y: 3300.6444821833115
+        x: 300.53776195412524
+        y: 3779.0130793874514
       positionAbsolute:
-        x: 363.1058416861696
-        y: 3300.6444821833115
+        x: 300.53776195412524
+        y: 3779.0130793874514
       selected: false
       sourcePosition: right
       targetPosition: left
       type: custom
-      width: 241
+      width: 242
     - data:
         context:
           enabled: true
@@ -554,7 +591,7 @@ workflow:
         variables: []
         vision:
           enabled: false
-      height: 131
+      height: 132
       id: '17785945559750'
       position:
         x: -351.34191535249096
@@ -566,7 +603,7 @@ workflow:
       sourcePosition: right
       targetPosition: left
       type: custom
-      width: 241
+      width: 242
     - data:
         answer: '{{#17785945559750.text#}}{{#17785945324000.text#}}'
         desc: Send the final response back to the user.
@@ -576,7 +613,7 @@ workflow:
         title: Answer 2
         type: answer
         variables: []
-      height: 163
+      height: 164
       id: '17785946070360'
       position:
         x: 953.0977040106275
@@ -588,7 +625,7 @@ workflow:
       sourcePosition: right
       targetPosition: left
       type: custom
-      width: 241
+      width: 242
     - data:
         context:
           enabled: false
@@ -605,7 +642,8 @@ workflow:
             size: 12
         model:
           completion_params:
-            temperature: 0.7
+            max_tokens: 256
+            temperature: 0
           mode: chat
           name: gpt-oss
           provider: langgenius/ollama/ollama
@@ -642,11 +680,27 @@ workflow:
             them from conversation context and emit explicit paper items.
 
 
+            - If the rewritten query asks for a subset of previously listed papers
+            (for example: "first two", "top 3", "newest one", "oldest one"),
+            still emit explicit paper items for that subset.
+
+
+            - If the rewritten query asks to compare or contrast previously listed
+            papers, emit all referenced papers as explicit items.
+
+
+            - For ranking intents, preserve year constraints when available so downstream
+            retrieval can keep ordering cues.
+
+
             - If no metadata constraints are present, return an empty list.
 
 
-            - Do not add explanations.'
-        reasoning_format: separated
+            - Do not add explanations.
+
+
+            - Never output <think> tags or reasoning text.'
+          reasoning_format: separated
         selected: false
         structured_output:
           schema:
@@ -677,12 +731,12 @@ workflow:
             required:
             - paper_list
             type: object
-        structured_output_enabled: true
+        structured_output_enabled: false
         title: JSON Metadata Extractor
         type: llm
         vision:
           enabled: false
-      height: 87
+      height: 88
       id: '1778676150362'
       position:
         x: -1452.6825467404378
@@ -694,11 +748,11 @@ workflow:
       sourcePosition: right
       targetPosition: left
       type: custom
-      width: 241
+      width: 242
     - data:
         error_handle_mode: terminated
         flatten_output: false
-        height: 411.7237205737565
+        height: 777
         is_parallel: false
         iterator_input_type: array[object]
         iterator_selector:
@@ -713,8 +767,8 @@ workflow:
         start_node_id: 1778676584534start
         title: Paper Iterator
         type: iteration
-        width: 1248.0312910954485
-      height: 412
+        width: 1282
+      height: 777
       id: '1778676584534'
       position:
         x: -1026.8842163551342
@@ -726,7 +780,7 @@ workflow:
       sourcePosition: right
       targetPosition: left
       type: custom
-      width: 1248
+      width: 1282
       zIndex: 1
     - data:
         desc: ''
@@ -763,22 +817,22 @@ workflow:
             - paper_list
           id: 'true'
           logical_operator: and
-        selected: true
+        selected: false
         title: IF/ELSE
         type: if-else
-      height: 139
+      height: 140
       id: '1778677927006'
       position:
-        x: -1050.76193834915
-        y: 3060.2819247915104
+        x: -1135.6757608426387
+        y: 3051.343627686933
       positionAbsolute:
-        x: -1050.76193834915
-        y: 3060.2819247915104
-      selected: true
+        x: -1135.6757608426387
+        y: 3051.343627686933
+      selected: false
       sourcePosition: right
       targetPosition: left
       type: custom
-      width: 241
+      width: 242
     - data:
         classes:
         - id: '1'
@@ -812,7 +866,7 @@ workflow:
         type: question-classifier
         vision:
           enabled: false
-      height: 169
+      height: 170
       id: '17786780005730'
       parentId: '1778676584534'
       position:
@@ -825,7 +879,7 @@ workflow:
       sourcePosition: right
       targetPosition: left
       type: custom
-      width: 241
+      width: 242
       zIndex: 1002
     - data:
         dataset_ids:
@@ -850,11 +904,11 @@ workflow:
             metadata_id: a0a36fb9-793b-4c0b-9373-f9a1797601f9
             name: title
             value: '{{#1778676584534.item.title#}}'
-          - comparison_operator: in
+          - comparison_operator: contains
             id: a5aabe49-3207-495e-bac5-f96ae579a31e
             metadata_id: f0738e8c-9ba7-46a4-8b01-355afa8cdc9b
             name: authors
-            value: '{{#1778676584534.item.authors#}}{{#1778676584534.item.author#}}'
+            value: '{{#1778676584534.item.authors#}}'
           logical_operator: and
         metadata_filtering_mode: manual
         multiple_retrieval_config:
@@ -878,20 +932,20 @@ workflow:
         selected: false
         title: KR with filter
         type: knowledge-retrieval
-      height: 89
+      height: 90
       id: '17786780201700'
       parentId: '1778676584534'
       position:
-        x: 512.7854379520014
-        y: 222.914864879182
+        x: 472.88877128566196
+        y: 287.2643272442456
       positionAbsolute:
-        x: -514.0987784031328
-        y: 3599.4917126532687
+        x: -553.9954450694722
+        y: 3663.8411750183323
       selected: false
       sourcePosition: right
       targetPosition: left
       type: custom
-      width: 241
+      width: 242
       zIndex: 1002
     - data:
         context:
@@ -903,7 +957,9 @@ workflow:
         isInLoop: false
         iteration_id: '1778676584534'
         memory:
-          query_prompt_template: '{{#1778508354995.text#}}'
+          query_prompt_template: '{{#sys.query#}}
+
+            {{#1778508354995.text#}}'
           role_prefix:
             assistant: ''
             user: ''
@@ -931,8 +987,21 @@ workflow:
             1) MATCH: identify title/authors if visible; otherwise say uncertain match.
 
 
-            2) SUMMARY: concise methods/findings summary, or "insufficient textual context"
-            if retrieval contains only metadata or non-content snippets.
+            2) SUMMARY: concise methods/findings summary, or "insufficient textual
+            context" if retrieval contains only metadata or non-content snippets.
+
+
+            Additional formatting rules:
+
+
+            - In MATCH, include a confidence label: high, medium, or low.
+
+
+            - If text is insufficient, include one line "AVAILABLE_METADATA:" with
+            any visible title/year/journal/authors from context.
+
+
+            - Never claim findings when only metadata is available.
 
 
             No hallucinations.'
@@ -942,159 +1011,32 @@ workflow:
         type: llm
         vision:
           enabled: false
-      height: 87
+      height: 88
       id: '1778689042001'
       parentId: '1778676584534'
       position:
-        x: 812.7854379520014
-        y: 226.914864879182
+        x: 737.7501075289508
+        y: 284.8293810077398
       positionAbsolute:
-        x: -214.09877840313277
-        y: 3603.4917126532687
+        x: -289.13410882618336
+        y: 3661.4062287818265
       selected: false
       sourcePosition: right
       targetPosition: left
       type: custom
-      width: 241
+      width: 242
       zIndex: 1002
     - data:
-        code: "import json\nimport os\nimport re\nfrom urllib.error import HTTPError,\
-          \ URLError\nfrom urllib.parse import urlencode\nfrom urllib.request import\
-          \ Request, urlopen\n\nCODE_VERSION = \"metadata_query_v2026-05-11_dify-metadata_1\"\
-          \n\n_EMPTY_TOKENS = {\n    \"\",\n    \"null\",\n    \"none\",\n    \"unknown\"\
-          ,\n    \"n/a\",\n    \"na\",\n    \"[]\",\n    \"{}\",\n    \"-\",\n}\n\n\
-          \ndef _is_set(value) -> bool:\n    if value is None:\n        return False\n\
-          \    if isinstance(value, (int, float)) and value == 0:\n        return\
-          \ False\n    if isinstance(value, list):\n        return any(_is_set(item)\
-          \ for item in value)\n    if isinstance(value, dict):\n        return any(_is_set(v)\
-          \ for v in value.values())\n    text = str(value).strip()\n    return text.lower()\
-          \ not in _EMPTY_TOKENS\n\n\ndef _normalize_text(value) -> str:\n    if value\
-          \ is None:\n        return \"\"\n    text = str(value).strip()\n    return\
-          \ \"\" if text.lower() in _EMPTY_TOKENS else text\n\n\ndef _to_string_list(value)\
-          \ -> list[str]:\n    if value is None:\n        return []\n    if isinstance(value,\
-          \ list):\n        return [_normalize_text(v) for v in value if _is_set(v)]\n\
-          \    if isinstance(value, dict):\n        # Accept common extractor payload\
-          \ shapes like {\"value\": \"...\"}.\n        candidates = []\n        for\
-          \ key in (\"value\", \"name\", \"author\", \"authors\", \"text\"):\n   \
-          \         if key in value:\n                entry = value.get(key)\n   \
-          \             if isinstance(entry, list):\n                    candidates.extend(_to_string_list(entry))\n\
-          \                elif _is_set(entry):\n                    norm = _normalize_text(entry)\n\
-          \                    if norm:\n                        candidates.append(norm)\n\
-          \        if candidates:\n            return candidates\n        return [_normalize_text(v)\
-          \ for v in value.values() if _is_set(v)]\n    if _is_set(value):\n     \
-          \   normalized = _normalize_text(value)\n        return [normalized] if\
-          \ normalized else []\n    return []\n\n\ndef _author_variants(author: str)\
-          \ -> list[str]:\n    text = \" \".join(str(author).strip().split())\n  \
-          \  if not text:\n        return []\n\n    variants = [text]\n    parts =\
-          \ text.split(\" \")\n    if len(parts) >= 2:\n        first = parts[0].strip(\"\
-          .\")\n        last = parts[-1].strip(\".,;\")\n        if first and last:\n\
-          \            variants.append(f\"{first[0]}. {last}\")\n            variants.append(f\"\
-          {first[0]} {last}\")\n            variants.append(last)\n\n    seen = set()\n\
-          \    deduped = []\n    for item in variants:\n        key = item.lower()\n\
-          \        if key in seen:\n            continue\n        seen.add(key)\n\
-          \        deduped.append(item)\n    return deduped\n\n\ndef _build_headers(api_key:\
-          \ str) -> dict:\n    return {\n        \"Authorization\": f\"Bearer {api_key}\"\
-          ,\n        \"Content-Type\": \"application/json\",\n    }\n\n\ndef _run_json_get(\n\
-          \    url: str, headers: dict, timeout: int = 30\n) -> tuple[dict, str |\
-          \ None]:\n    request = Request(url=url, headers=headers, method=\"GET\"\
-          )\n    try:\n        with urlopen(request, timeout=timeout) as response:\n\
-          \            body = response.read().decode(\"utf-8\", errors=\"replace\"\
-          )\n            status = response.getcode()\n    except HTTPError as exc:\n\
-          \        body = exc.read().decode(\"utf-8\", errors=\"replace\")\n     \
-          \   return {}, f\"Dify API Error {exc.code}: {body}\"\n    except URLError\
-          \ as exc:\n        return {}, f\"Verbindungsfehler zur Dify API: {exc}\"\
-          \n    except Exception as exc:\n        return {}, f\"Unbekannter Dify API-Fehler:\
-          \ {exc}\"\n\n    if status != 200:\n        return {}, f\"Dify API Error\
-          \ {status}: {body}\"\n\n    try:\n        return json.loads(body), None\n\
-          \    except ValueError:\n        return {}, f\"Ungueltige JSON-Antwort:\
-          \ {body}\"\n\n\ndef _extract_items(payload: dict) -> list[dict]:\n    if\
-          \ isinstance(payload, dict):\n        if isinstance(payload.get(\"data\"\
-          ), list):\n            return payload.get(\"data\", [])\n        if isinstance(payload.get(\"\
-          documents\"), list):\n            return payload.get(\"documents\", [])\n\
-          \    return []\n\n\ndef _metadata_to_dict(detail: dict) -> dict[str, str]:\n\
-          \    result = {}\n    for item in detail.get(\"doc_metadata\", []) or []:\n\
-          \        name = str((item or {}).get(\"name\") or \"\").strip().lower()\n\
-          \        value = (item or {}).get(\"value\")\n        if name:\n       \
-          \     result[name] = \"\" if value is None else str(value).strip()\n   \
-          \ return result\n\n\ndef _matches_filters(meta: dict[str, str], year, authors,\
-          \ journal, title) -> bool:\n    meta_year = _normalize_text(meta.get(\"\
-          year\", \"\"))\n    meta_authors = _normalize_text(meta.get(\"authors\"\
-          , \"\"))\n    meta_journal = _normalize_text(meta.get(\"journal\", \"\"\
-          ))\n    meta_title = _normalize_text(meta.get(\"title\", \"\"))\n\n    year_text\
-          \ = _normalize_text(year)\n    journal_text = _normalize_text(journal)\n\
-          \    title_text = _normalize_text(title)\n\n    if _is_set(year_text) and\
-          \ year_text.lower() != meta_year.lower():\n        return False\n\n    if\
-          \ _is_set(journal_text) and journal_text.lower() not in meta_journal.lower():\n\
-          \        return False\n\n    if _is_set(title_text) and title_text.lower()\
-          \ not in meta_title.lower():\n        return False\n\n    author_inputs\
-          \ = _to_string_list(authors)\n    for author in author_inputs:\n       \
-          \ variants = [v.lower() for v in _author_variants(author)]\n        if not\
-          \ any(v in meta_authors.lower() for v in variants):\n            return\
-          \ False\n\n    return True\n\n\ndef _sanitize_year_filter(value) -> str:\n\
-          \    text = _normalize_text(value)\n    if not text:\n        return \"\"\
-          \n    return text if re.fullmatch(r\"(19|20)\\d{2}\", text) else \"\"\n\n\
-          \ndef _sanitize_free_text_filter(value, max_len: int = 120) -> str:\n  \
-          \  text = _normalize_text(value)\n    if not text:\n        return \"\"\n\
-          \    # Extractor noise often includes full questions or long fragments.\n\
-          \    if len(text) > max_len:\n        return \"\"\n    if \"?\" in text:\n\
-          \        return \"\"\n    lower = text.lower()\n    noisy_markers = [\"\
-          which documents\", \"co-authored\", \"co-authored by\", \"authored by\"\
-          ]\n    if any(marker in lower for marker in noisy_markers):\n        return\
-          \ \"\"\n    return text\n\n\ndef _collect_documents(\n    api_base: str,\
-          \ dataset_id: str, headers: dict\n) -> tuple[list[dict], list[str]]:\n \
-          \   errors = []\n    docs = []\n\n    list_url = f\"{api_base}/datasets/{dataset_id}/documents\"\
-          \n    payload, err = _run_json_get(list_url, headers=headers)\n    if err:\n\
-          \        return [], [err]\n\n    items = _extract_items(payload)\n    for\
-          \ item in items:\n        doc_id = str((item or {}).get(\"id\") or \"\"\
-          ).strip()\n        if not doc_id:\n            continue\n\n        detail_url\
-          \ = f\"{api_base}/datasets/{dataset_id}/documents/{doc_id}?{urlencode({'metadata':\
-          \ 'all'})}\"\n        detail, detail_err = _run_json_get(detail_url, headers=headers)\n\
-          \        if detail_err:\n            errors.append(f\"Dokument {doc_id}:\
-          \ {detail_err}\")\n            continue\n\n        meta = _metadata_to_dict(detail)\n\
-          \        docs.append(\n            {\n                \"id\": doc_id,\n\
-          \                \"title\": meta.get(\"title\") or str(detail.get(\"name\"\
-          ) or \"\").strip(),\n                \"authors\": meta.get(\"authors\",\
-          \ \"\"),\n                \"year\": meta.get(\"year\", \"\"),\n        \
-          \        \"journal\": meta.get(\"journal\", \"\"),\n            }\n    \
-          \    )\n\n    return docs, errors\n\n\ndef _render_result(matches: list[dict],\
-          \ total_docs: int) -> str:\n    if not matches:\n        return (\n    \
-          \        \"Keine Dokumente gefunden.\\n\"\n            f\"Code-Version:\
-          \ {CODE_VERSION}; Dokumente geprueft: {total_docs}; Treffer: 0\"\n     \
-          \   )\n\n    lines = []\n    for idx, doc in enumerate(matches, start=1):\n\
-          \        lines.append(\n            f\"{idx}. {doc['title']} | {doc['authors']}\
-          \ | {doc['year']} | {doc['journal']}\"\n        )\n    header = (\n    \
-          \    f\"Code-Version: {CODE_VERSION}; Dokumente geprueft: {total_docs};\
-          \ \"\n        f\"Treffer: {len(matches)}\"\n    )\n    return header + \"\
-          \\n\" + \"\\n\".join(lines)\n\n\ndef main(year=None, authors=None, journal=None,\
-          \ title=None):\n    api_base = (os.getenv(\"DIFY_API_URL\") or \"http://rmap-chatbot-demo-dify/v1\"\
-          ).rstrip(\n        \"/\"\n    )\n    dataset_id = os.getenv(\"DIFY_DATASET_ID\"\
-          ) or \"227cf97a-8e56-4cd6-808d-caf57bc0d2bf\"\n    api_key = os.getenv(\"\
-          DIFY_API_KEY\") or \"dataset-z3bHkQ6eUPKN21GaLq3KXIiS\"\n\n    if not _is_set(api_base)\
-          \ or not _is_set(dataset_id) or not _is_set(api_key):\n        return {\n\
-          \            \"result\": (\n                \"Dify API Konfiguration unvollstaendig.\
-          \ \"\n                \"Erwarte DIFY_API_URL, DIFY_DATASET_ID und DIFY_API_KEY.\"\
-          \n            )\n        }\n\n    headers = _build_headers(str(api_key).strip())\n\
-          \    docs, errors = _collect_documents(str(api_base), str(dataset_id).strip(),\
-          \ headers)\n\n    year_filter = _sanitize_year_filter(year)\n    journal_filter\
-          \ = _sanitize_free_text_filter(journal, max_len=80)\n    title_filter =\
-          \ _sanitize_free_text_filter(title, max_len=160)\n\n    matches = []\n \
-          \   for doc in docs:\n        if _matches_filters(doc, year_filter, authors,\
-          \ journal_filter, title_filter):\n            matches.append(doc)\n\n  \
-          \  unique = {}\n    for doc in matches:\n        key = (\n            (doc.get(\"\
-          title\") or \"\").strip().lower(),\n            (doc.get(\"authors\") or\
-          \ \"\").strip().lower(),\n            (doc.get(\"year\") or \"\").strip(),\n\
-          \            (doc.get(\"journal\") or \"\").strip().lower(),\n        )\n\
-          \        if key not in unique:\n            unique[key] = doc\n    final_docs\
-          \ = list(unique.values())\n\n    result_text = _render_result(final_docs,\
-          \ total_docs=len(docs))\n    if errors:\n        result_text += \"\\nFehlerdetails:\\\
-          n\" + \"\\n\".join(f\"- {e}\" for e in errors[:8])\n    return {\"result\"\
-          : result_text}\n"
+        code: "import json\nimport os\nimport re\nfrom urllib.error import HTTPError, URLError\nfrom urllib.parse import urlencode\nfrom urllib.request import Request, urlopen\n\nCODE_VERSION = \"metadata_query_v2026-05-11_dify-metadata_1\"\n\n_EMPTY_TOKENS = {\n    \"\",\n    \"null\",\n    \"none\",\n    \"unknown\",\n    \"n/a\",\n    \"na\",\n    \"[]\",\n    \"{}\",\n    \"-\",\n}\n\n\ndef _is_set(value) -> bool:\n    if value is None:\n        return False\n    if isinstance(value, (int, float)) and value == 0:\n        return False\n    if isinstance(value, list):\n        return any(_is_set(item) for item in value)\n    if isinstance(value, dict):\n        return any(_is_set(v) for v in value.values())\n    text = str(value).strip()\n    return text.lower() not in _EMPTY_TOKENS\n\n\ndef _normalize_text(value) -> str:\n    if value is None:\n        return \"\"\n    text = str(value).strip()\n    return \"\" if text.lower() in _EMPTY_TOKENS else text\n\n\ndef _to_string_list(value) -> list[str]:\n    if value is None:\n        return []\n    if isinstance(value, list):\n        return [_normalize_text(v) for v in value if _is_set(v)]\n    if isinstance(value, dict):\n        candidates = []\n        for key in (\"value\", \"name\", \"author\", \"authors\", \"text\"):\n            if key in value:\n                entry = value.get(key)\n                if isinstance(entry, list):\n                    candidates.extend(_to_string_list(entry))\n                elif _is_set(entry):\n                    norm = _normalize_text(entry)\n                    if norm:\n                        candidates.append(norm)\n        if candidates:\n            return candidates\n        return [_normalize_text(v) for v in value.values() if _is_set(v)]\n    if _is_set(value):\n        normalized = _normalize_text(value)\n        return [normalized] if normalized else []\n    return []\n\n\ndef _author_variants(author: str) -> list[str]:\n    text = \" \".join(str(author).strip().split())\n    if not text:\n        return []\n\n    variants = [text]\n    parts = text.split(\" \")\n    if len(parts) >= 2:\n        first = parts[0].strip(\".\")\n        last = parts[-1].strip(\".,;\")\n        if first and last:\n            variants.append(f\"{first[0]}. {last}\")\n            variants.append(f\"{first[0]} {last}\")\n            variants.append(last)\n\n    seen = set()\n    deduped = []\n    for item in variants:\n        key = item.lower()\n        if key in seen:\n            continue\n        seen.add(key)\n        deduped.append(item)\n    return deduped\n\n\ndef _build_headers(api_key: str) -> dict:\n    return {\n        \"Authorization\": f\"Bearer {api_key}\",\n        \"Content-Type\": \"application/json\",\n    }\n\n\ndef _run_json_get(\n    url: str, headers: dict, timeout: int = 30\n) -> tuple[dict, str | None]:\n    request = Request(url=url, headers=headers, method=\"GET\")\n    try:\n        with urlopen(request, timeout=timeout) as response:\n            body = response.read().decode(\"utf-8\", errors=\"replace\")\n            status = response.getcode()\n    except HTTPError as exc:\n        body = exc.read().decode(\"utf-8\", errors=\"replace\")\n        return {}, f\"Dify API Error {exc.code}: {body}\"\n    except URLError as exc:\n        return {}, f\"Verbindungsfehler zur Dify API: {exc}\"\n    except Exception as exc:\n        return {}, f\"Unbekannter Dify API-Fehler: {exc}\"\n\n    if status != 200:\n        return {}, f\"Dify API Error {status}: {body}\"\n\n    try:\n        return json.loads(body), None\n    except ValueError:\n        return {}, f\"Ungueltige JSON-Antwort: {body}\"\n\n\ndef _extract_items(payload: dict) -> list[dict]:\n    if isinstance(payload, dict):\n        if isinstance(payload.get(\"data\"), list):\n            return payload.get(\"data\", [])\n        if isinstance(payload.get(\"documents\"), list):\n            return payload.get(\"documents\", [])\n    return []\n\n\ndef _metadata_to_dict(detail: dict) -> dict[str, str]:\n    result = {}\n    for item in detail.get(\"doc_metadata\", []) or []:\n        name = str((item or {}).get(\"name\") or \"\").strip().lower()\n        value = (item or {}).get(\"value\")\n        if name:\n            result[name] = \"\" if value is None else str(value).strip()\n    return result\n\n\ndef _matches_filters(meta: dict[str, str], year, authors, journal, title) -> bool:\n    meta_year = _normalize_text(meta.get(\"year\", \"\"))\n    meta_authors = _normalize_text(meta.get(\"authors\", \"\"))\n    meta_journal = _normalize_text(meta.get(\"journal\", \"\"))\n    meta_title = _normalize_text(meta.get(\"title\", \"\"))\n\n    year_text = _normalize_text(year)\n    journal_text = _normalize_text(journal)\n    title_text = _normalize_text(title)\n\n    if _is_set(year_text) and year_text.lower() != meta_year.lower():\n        return False\n\n    if _is_set(journal_text) and journal_text.lower() not in meta_journal.lower():\n        return False\n\n    if _is_set(title_text) and title_text.lower() not in meta_title.lower():\n        return False\n\n    author_inputs = _to_string_list(authors)\n    for author in author_inputs:\n        variants = [v.lower() for v in _author_variants(author)]\n        if not any(v in meta_authors.lower() for v in variants):\n            return False\n\n    return True\n\n\ndef _sanitize_year_filter(value) -> str:\n    text = _normalize_text(value)\n    if not text:\n        return \"\"\n    return text if re.fullmatch(r\"(19|20)\\d{2}\", text) else \"\"\n\n\ndef _sanitize_free_text_filter(value, max_len: int = 120) -> str:\n    text = _normalize_text(value)\n    if not text:\n        return \"\"\n    if len(text) > max_len:\n        return \"\"\n    if \"?\" in text:\n        return \"\"\n    lower = text.lower()\n    noisy_markers = [\"which documents\", \"co-authored\", \"co-authored by\", \"authored by\"]\n    if any(marker in lower for marker in noisy_markers):\n        return \"\"\n    return text\n\n\ndef _collect_documents(\n    api_base: str, dataset_id: str, headers: dict\n) -> tuple[list[dict], list[str]]:\n    errors = []\n    docs = []\n\n    list_url = f\"{api_base}/datasets/{dataset_id}/documents\"\n    payload, err = _run_json_get(list_url, headers=headers)\n    if err:\n        return [], [err]\n\n    items = _extract_items(payload)\n    for item in items:\n        doc_id = str((item or {}).get(\"id\") or \"\").strip()\n        if not doc_id:\n            continue\n\n        detail_url = f\"{api_base}/datasets/{dataset_id}/documents/{doc_id}?{urlencode({'metadata': 'all'})}\"\n        detail, detail_err = _run_json_get(detail_url, headers=headers)\n        if detail_err:\n            errors.append(f\"Dokument {doc_id}: {detail_err}\")\n            continue\n\n        meta = _metadata_to_dict(detail)\n        docs.append(\n            {\n                \"id\": doc_id,\n                \"title\": meta.get(\"title\") or str(detail.get(\"name\") or \"\").strip(),\n                \"authors\": meta.get(\"authors\", \"\"),\n                \"year\": meta.get(\"year\", \"\"),\n                \"journal\": meta.get(\"journal\", \"\"),\n            }\n        )\n\n    return docs, errors\n\n\ndef _render_result(matches: list[dict], total_docs: int) -> str:\n    if not matches:\n        return (\n            \"Keine Dokumente gefunden.\\n\"\n            f\"Code-Version: {CODE_VERSION}; Dokumente geprueft: {total_docs}; Treffer: 0\"\n        )\n\n    lines = []\n    for idx, doc in enumerate(matches, start=1):\n        lines.append(\n            f\"{idx}. {doc['title']} | {doc['authors']} | {doc['year']} | {doc['journal']}\"\n        )\n    header = (\n        f\"Code-Version: {CODE_VERSION}; Dokumente geprueft: {total_docs}; \"\n        f\"Treffer: {len(matches)}\"\n    )\n    return header + \"\\n\" + \"\\n\".join(lines)\n\n\ndef main(year=None, authors=None, journal=None, title=None):\n    api_base = (os.getenv(\"DIFY_API_URL\") or \"http://rmap-chatbot-demo-dify/v1\").rstrip(\n        \"/\"\n    )\n    dataset_id = os.getenv(\"DIFY_DATASET_ID\") or \"227cf97a-8e56-4cd6-808d-caf57bc0d2bf\"\n    api_key = os.getenv(\"DIFY_API_KEY\") or \"dataset-z3bHkQ6eUPKN21GaLq3KXIiS\"\n\n    if not _is_set(api_base) or not _is_set(dataset_id) or not _is_set(api_key):\n        return {\n            \"result\": (\n                \"Dify API Konfiguration unvollstaendig. \"\n                \"Erwarte DIFY_API_URL, DIFY_DATASET_ID und DIFY_API_KEY.\"\n            )\n        }\n\n    headers = _build_headers(str(api_key).strip())\n    docs, errors = _collect_documents(str(api_base), str(dataset_id).strip(), headers)\n\n    year_filter = _sanitize_year_filter(year)\n    journal_filter = _sanitize_free_text_filter(journal, max_len=80)\n    title_filter = _sanitize_free_text_filter(title, max_len=160)\n\n    matches = []\n    for doc in docs:\n        if _matches_filters(doc, year_filter, authors, journal_filter, title_filter):\n            matches.append(doc)\n\n    unique = {}\n    for doc in matches:\n        key = (\n            (doc.get(\"title\") or \"\").strip().lower(),\n            (doc.get(\"authors\") or \"\").strip().lower(),\n            (doc.get(\"year\") or \"\").strip(),\n            (doc.get(\"journal\") or \"\").strip().lower(),\n        )\n        if key not in unique:\n            unique[key] = doc\n    final_docs = list(unique.values())\n\n    result_text = _render_result(final_docs, total_docs=len(docs))\n    if errors:\n        result_text += \"\\nFehlerdetails:\\n\" + \"\\n\".join(f\"- {e}\" for e in errors[:8])\n    return {\"result\": (result_text.split(\"\\n\") if result_text else []), \"result_text\": result_text}\n"
         code_language: python3
         isInIteration: true
         isInLoop: false
         iteration_id: '1778676584534'
         outputs:
           result:
+            children: null
+            type: array[string]
+          result_text:
             children: null
             type: string
         selected: false
@@ -1125,7 +1067,7 @@ workflow:
           - title
           value_type: string
           variable: title
-      height: 51
+      height: 52
       id: '17786780698570'
       parentId: '1778676584534'
       position:
@@ -1138,8 +1080,327 @@ workflow:
       sourcePosition: right
       targetPosition: left
       type: custom
-      width: 241
+      width: 242
       zIndex: 1002
+    - data:
+        code: |-
+          import json
+          import re
+
+
+          def _to_text(value):
+              if value is None:
+                  return ''
+              if isinstance(value, list):
+                  parts = [str(v).strip() for v in value if str(v).strip()]
+                  return ', '.join(parts)[:300]
+              if isinstance(value, dict):
+                  for key in ('value', 'name', 'author', 'authors', 'text'):
+                      if key in value:
+                          return _to_text(value.get(key))
+                  parts = [str(v).strip() for v in value.values() if str(v).strip()]
+                  return ', '.join(parts)[:300]
+              return str(value).strip()[:300]
+
+
+          def _clean_obj(item):
+              if not isinstance(item, dict):
+                  return None
+              year_value = _to_text(item.get('year'))
+              return {
+                  'title': _to_text(item.get('title')),
+                  'authors': _to_text(item.get('authors') or item.get('author')),
+                  'year': year_value if re.fullmatch(r'^(19|20)[0-9]{2}$', year_value) else '',
+                  'journal': _to_text(item.get('journal')),
+              }
+
+
+          def _extract_year(value):
+              text = _to_text(value)
+              return int(text) if re.fullmatch(r'^(19|20)[0-9]{2}$', text) else -1
+
+
+          def _parse_json(extractor_text):
+              if isinstance(extractor_text, dict):
+                  return extractor_text
+              if not isinstance(extractor_text, str):
+                  return {}
+              text = extractor_text.strip()
+              if not text:
+                  return {}
+              if text.startswith('```'):
+                  text = re.sub(r'^```(?:json)?\s*', '', text)
+                  text = re.sub(r'\s*```$', '', text).strip()
+              try:
+                  parsed = json.loads(text)
+              except Exception:
+                  return {}
+              return parsed if isinstance(parsed, dict) else {}
+
+
+          def _clean_list(items):
+              cleaned = []
+              if not isinstance(items, list):
+                  return cleaned
+              for item in items:
+                  obj = _clean_obj(item)
+                  if obj is None:
+                      continue
+                  if any(obj.values()):
+                      cleaned.append(obj)
+              return cleaned
+
+
+          def _looks_like_followup(query):
+              text = str(query or '').strip().lower()
+              if not text:
+                  return False
+              patterns = [
+                  r'\bthese papers\b',
+                  r'\bthose papers\b',
+                  r'\bthese results\b',
+                  r'\bthose results\b',
+                  r'\bthe above\b',
+                  r'\bthe listed\b',
+                  r'\bprevious(ly)?\b',
+                  r'\bthem\b',
+                  r'\bone(s)?\b',
+                  r'\bsummarize\b',
+                  r'\bsummary\b',
+                  r'\bcompare\b',
+                  r'\bcontrast\b',
+                  r'\bdifference(s)?\b',
+                  r'\bsimilarit(y|ies)\b',
+                  r'\bkey findings\b',
+                  r'\bmethods\b',
+                  r'\blimitations\b',
+                  r'\bnewest\b',
+                  r'\boldest\b',
+                  r'\bmost recent\b',
+                  r'\bwhich (paper|one)\b',
+                  r'\bfirst (paper|one|two|three|\d+)\b',
+                  r'\btop (\d+)\b',
+                  r'\bfasse\b',
+                  r'\bzusammenfassen\b',
+                  r'\bvergleiche\b',
+                  r'\bunterschied(e)?\b',
+                  r'\bwelches paper\b',
+                  r'\bdiese(n|r)? (papiere|paper|ergebnisse)\b',
+                  r'\bdavor\b',
+                  r'\bvorherig\w*\b',
+              ]
+              return any(re.search(p, text) for p in patterns)
+
+
+          def _extract_limit(query):
+              text = str(query or '').strip().lower()
+              if not text:
+                  return None
+
+              for pattern in (r'\btop\s+(\d{1,2})\b', r'\bfirst\s+(\d{1,2})\b', r'\bersten?\s+(\d{1,2})\b'):
+                  m = re.search(pattern, text)
+                  if m:
+                      value = int(m.group(1))
+                      return value if value > 0 else None
+
+              if re.search(r'\bfirst\s+two\b|\bersten?\s+zwei\b', text):
+                  return 2
+              if re.search(r'\bfirst\s+three\b|\bersten?\s+drei\b', text):
+                  return 3
+              if re.search(r'\bfirst\s+one\b|\bersten?\s+eins\b', text):
+                  return 1
+              return None
+
+
+          def _sort_by_year(items, newest_first=True):
+              return sorted(items, key=lambda x: _extract_year(x.get('year')), reverse=newest_first)
+
+
+          def _apply_followup_subset(memory_items, query):
+              text = str(query or '').strip().lower()
+              items = list(memory_items)
+              if not items:
+                  return items
+
+              if re.search(r'\b(newest|latest|most recent|neueste[snrm]?)\b', text):
+                  sorted_items = _sort_by_year(items, newest_first=True)
+                  if _extract_year(sorted_items[0].get('year')) != -1:
+                      return sorted_items[:1]
+
+              if re.search(r'\b(oldest|earliest|aelteste[snrm]?|älteste[snrm]?)\b', text):
+                  sorted_items = _sort_by_year(items, newest_first=False)
+                  if _extract_year(sorted_items[0].get('year')) != -1:
+                      return sorted_items[:1]
+
+              limit = _extract_limit(text)
+              if isinstance(limit, int):
+                  return items[:limit]
+
+              return items
+
+
+          def main(extractor_text=None, memory=None, query=None):
+              data = _parse_json(extractor_text)
+
+              if isinstance(data.get('paper_list'), list):
+                  raw_items = data.get('paper_list')
+              elif any(k in data for k in ('title', 'authors', 'author', 'year', 'journal')):
+                  raw_items = [data]
+              elif isinstance(data.get('authors'), list):
+                  raw_items = [{'authors': a} for a in data.get('authors') if str(a).strip()]
+              else:
+                  raw_items = []
+
+              cleaned = _clean_list(raw_items)
+              if cleaned:
+                  return {'paper_list': cleaned}
+
+              if _looks_like_followup(query) and isinstance(memory, list):
+                  fallback = _clean_list(memory)
+                  subset = _apply_followup_subset(fallback, query)
+                  return {'paper_list': subset}
+
+              q = str(query or '').strip()
+              m = re.search(r'\b(?:by|von)\s+([A-Z][A-Za-z.-]+(?:\s+[A-Z][A-Za-z.-]+){1,4})', q)
+              if m:
+                  return {'paper_list': [{'title': '', 'authors': m.group(1).strip(' ,.;:'), 'year': '', 'journal': ''}]}
+
+              return {'paper_list': []}
+
+        code_language: python3
+        isInIteration: false
+        isInLoop: false
+        outputs:
+          paper_list:
+            children: null
+            type: array[object]
+        selected: true
+        title: Resolve Paper List
+        type: code
+        variables:
+        - value_selector:
+          - '1778676150362'
+          - text
+          value_type: string
+          variable: extractor_text
+        - value_selector:
+          - conversation
+          - memory
+          value_type: array[object]
+          variable: memory
+        - value_selector:
+          - sys
+          - query
+          value_type: string
+          variable: query
+      height: 52
+      id: '1778800001001'
+      position:
+        x: -1452.6825467404378
+        y: 3596.3800227688935
+      positionAbsolute:
+        x: -1452.6825467404378
+        y: 3596.3800227688935
+      selected: true
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 242
+    - data:
+        code: "def _normalize_obj(item):\n    if not isinstance(item, dict):\n   \
+          \     return None\n    title = str(item.get('title') or '').strip()\n  \
+          \  authors = str(item.get('authors') or item.get('author') or '').strip()\n\
+          \    year = str(item.get('year') or '').strip()\n    journal = str(item.get('journal')\
+          \ or '').strip()\n    if not any([title, authors, year, journal]):\n   \
+          \     return None\n    return {\n        'title': title,\n        'authors':\
+          \ authors,\n        'year': year,\n        'journal': journal,\n    }\n\n\
+          \ndef _parse_from_iteration_output(iteration_output):\n    parsed = []\n\
+          \    if not isinstance(iteration_output, list):\n        return parsed\n\
+          \n    for block in iteration_output:\n        if not isinstance(block, str):\n\
+          \            continue\n        for line in block.splitlines():\n       \
+          \     line = line.strip()\n            if not line:\n                continue\n\
+          \            if '|' not in line:\n                continue\n           \
+          \ if '. ' in line:\n                _, _, line = line.partition('. ')\n\
+          \            parts = [p.strip() for p in line.split('|')]\n            if\
+          \ len(parts) != 4:\n                continue\n            obj = _normalize_obj(\n\
+          \                {\n                    'title': parts[0],\n           \
+          \         'authors': parts[1],\n                    'year': parts[2],\n\
+          \                    'journal': parts[3],\n                }\n         \
+          \   )\n            if obj is not None:\n                parsed.append(obj)\n\
+          \    return parsed\n\n\ndef _dedupe(items):\n    unique = {}\n    for item\
+          \ in items:\n        obj = _normalize_obj(item)\n        if obj is None:\n\
+          \            continue\n        key = (\n            obj['title'].lower(),\n\
+          \            obj['authors'].lower(),\n            obj['year'],\n       \
+          \     obj['journal'].lower(),\n        )\n        if key not in unique:\n\
+          \            unique[key] = obj\n    return list(unique.values())\n\n\ndef\
+          \ main(iteration_output=None, memory=None):\n    parsed_docs = _dedupe(_parse_from_iteration_output(iteration_output))\n\
+          \    if parsed_docs:\n        return {'memory': parsed_docs}\n\n    existing\
+          \ = memory if isinstance(memory, list) else []\n    return {'memory': _dedupe(existing)}\n"
+        code_language: python3
+        isInIteration: false
+        isInLoop: false
+        outputs:
+          memory:
+            children: null
+            type: array[object]
+        selected: false
+        title: Update Paper Memory
+        type: code
+        variables:
+        - value_selector:
+          - '1778676584534'
+          - output
+          value_type: array[string]
+          variable: iteration_output
+        - value_selector:
+          - conversation
+          - memory
+          value_type: array[object]
+          variable: memory
+      height: 52
+      id: '1778800001002'
+      position:
+        x: 300.53776195412524
+        y: 3365.4026540081886
+      positionAbsolute:
+        x: 300.53776195412524
+        y: 3365.4026540081886
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 242
+    - data:
+        desc: ''
+        isInIteration: false
+        isInLoop: false
+        items:
+        - input_type: variable
+          operation: over-write
+          value:
+          - '1778800001002'
+          - memory
+          variable_selector:
+          - conversation
+          - memory
+          write_mode: over-write
+        selected: false
+        title: Persist Paper Memory
+        type: assigner
+        version: '2'
+      height: 84
+      id: '1778800001003'
+      position:
+        x: 275.694654794382
+        y: 3564.2797645850437
+      positionAbsolute:
+        x: 275.694654794382
+        y: 3564.2797645850437
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 242
     - data:
         isInIteration: true
         isInLoop: false
@@ -1150,120 +1411,26 @@ workflow:
         type: variable-aggregator
         variables:
         - - '17786780698570'
-          - result
+          - result_text
         - - '1778689042001'
           - text
-      height: 108
+      height: 135
       id: '1778678575789'
       parentId: '1778676584534'
       position:
-        x: 809.7083544079222
+        x: 1024
         y: 79.4518180363807
       positionAbsolute:
-        x: -217.17586194721196
+        x: -2.8842163551341855
         y: 3456.0286658104674
       selected: false
       sourcePosition: right
       targetPosition: left
       type: custom
-      width: 241
+      width: 242
       zIndex: 1002
-    - data:
-        isInIteration: true
-        isInLoop: false
-        iteration_id: '1778676584534'
-        output_type: array[object]
-        selected: false
-        title: Variable Aggregator 2
-        type: variable-aggregator
-        variables:
-        - - '17786780201700'
-          - result
-      height: 108
-      id: '1778678756135'
-      parentId: '1778676584534'
-      position:
-        x: 814.7854379520014
-        y: 222.914864879182
-      positionAbsolute:
-        x: -212.09877840313277
-        y: 3599.4917126532687
-      selected: false
-      sourcePosition: right
-      targetPosition: left
-      type: custom
-      width: 241
-      zIndex: 1002
-    - data:
-        code: "def main(paper_list=None, memory=None):\n    # Prefer current-turn extracted metadata, then fall back to conversation memory.\n    resolved = paper_list if isinstance(paper_list, list) and len(paper_list) > 0 else memory\n    if not isinstance(resolved, list):\n        resolved = []\n\n    cleaned = []\n    for item in resolved:\n        if isinstance(item, dict):\n            cleaned.append(item)\n\n    return {\"paper_list\": cleaned}\n"
-        code_language: python3
-        isInIteration: false
-        isInLoop: false
-        outputs:
-          paper_list:
-            children: null
-            type: array[object]
-        selected: false
-        title: Resolve Paper List
-        type: code
-        variables:
-        - value_selector:
-          - '1778676150362'
-          - structured_output
-          - paper_list
-          value_type: array[object]
-          variable: paper_list
-        - value_selector:
-          - conversation
-          - memory
-          value_type: array[object]
-          variable: memory
-      height: 53
-      id: '1778800001001'
-      position:
-        x: -1248.2
-        y: 3242.2
-      positionAbsolute:
-        x: -1248.2
-        y: 3242.2
-      selected: false
-      sourcePosition: right
-      targetPosition: left
-      type: custom
-      width: 241
-    - data:
-        desc: ''
-        isInIteration: false
-        isInLoop: false
-        items:
-        - input_type: variable
-          operation: over-write
-          value:
-          - '1778800001001'
-          - paper_list
-          variable_selector:
-          - conversation
-          - memory
-          write_mode: over-write
-        selected: false
-        title: Persist Paper Memory
-        type: assigner
-        version: '2'
-      height: 84
-      id: '1778800001002'
-      position:
-        x: -1248.2
-        y: 3398.2
-      positionAbsolute:
-        x: -1248.2
-        y: 3398.2
-      selected: false
-      sourcePosition: right
-      targetPosition: left
-      type: custom
-      width: 241
     viewport:
-      x: 2244.1602448170765
-      y: -2190.1808017610697
-      zoom: 0.8950250709279719
+      x: 1274.4182765994847
+      y: -2166.7217277015616
+      zoom: 0.7770072687840489
   rag_pipeline_variables: []
