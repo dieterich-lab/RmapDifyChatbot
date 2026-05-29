@@ -335,7 +335,7 @@ workflow:
         title: Start
         type: start
         variables: []
-      height: 101
+      height: 100
       id: '1711528914102'
       position:
         x: -1437.6210740006577
@@ -416,19 +416,19 @@ workflow:
         type: llm
         vision:
           enabled: false
-      height: 88
+      height: 87
       id: '1778508354995'
       position:
         x: -1445.680202203922
-        y: 3236.5065744495823
+        y: 3238.728791906892
       positionAbsolute:
         x: -1445.680202203922
-        y: 3236.5065744495823
+        y: 3238.728791906892
       selected: false
       sourcePosition: right
       targetPosition: left
       type: custom
-      width: 242
+      width: 241
     - data:
         dataset_ids:
         - 5/WcDtIuGANrAhqT255sDDblyQ7EPbz5ptEFPwuSFpIFdL2zcvi5ayyg7/+ctuJt
@@ -465,7 +465,7 @@ workflow:
         selected: false
         title: Knowledge Retrieval
         type: knowledge-retrieval
-      height: 90
+      height: 89
       id: '17785930638200'
       position:
         x: -703.2926805141044
@@ -477,7 +477,7 @@ workflow:
       sourcePosition: right
       targetPosition: left
       type: custom
-      width: 242
+      width: 241
     - data:
         context:
           enabled: false
@@ -494,13 +494,14 @@ workflow:
             size: 50
         model:
           completion_params:
-            max_tokens: 768
+            max_tokens: 1200
             temperature: 0
           mode: chat
           name: gpt-oss
           provider: langgenius/ollama/ollama
         prompt_template:
         - id: 400aef06-66bf-4730-a1f4-3dd418d2d48e
+          reasoning_format: separated
           role: system
           text: 'You are the reduce step of a map-reduce academic assistant.
 
@@ -555,8 +556,8 @@ workflow:
             paper 1 and section 2 must map to requested paper 2.
 
 
-            - For fixed-size subset requests, always use numbered markdown headers in
-            this exact style: "**1. <paper title>**", "**2. <paper title>**", etc.
+            - For fixed-size subset requests, always use numbered markdown headers
+            in this exact style: "**1. <paper title>**", "**2. <paper title>**", etc.
             Never replace these with labels like "Paper 1" or "Paper 2".
 
 
@@ -565,17 +566,16 @@ workflow:
             1/2/3 presence deterministically.
 
 
-            - If mapped context is insufficient for a requested paper, still keep that
-            paper title/authors/year/journal from requested identities and clearly mark
-            "insufficient textual context".
+            - If mapped context is insufficient for a requested paper, still keep
+            that paper title/authors/year/journal from requested identities and clearly
+            mark "insufficient textual context".
 
 
             - Keep each paper section compact: at most 3 bullets per paper and no
             more than 2 short sentences per bullet.
 
 
-            - Output final answer text only. Never output <think> tags or hidden
-            reasoning.
+            - Output final answer text only. Never output <think> tags or hidden reasoning.
 
 
             - If context includes only document list outputs, present count first
@@ -597,13 +597,12 @@ workflow:
 
             - Do not mention internal nodes, GraphQL, or system internals unless the
             user explicitly asks for technical details.'
-          reasoning_format: separated
         selected: false
         title: Metadata LLM
         type: llm
         vision:
           enabled: false
-      height: 88
+      height: 87
       id: '17785945324000'
       position:
         x: 280.1165016528621
@@ -615,7 +614,7 @@ workflow:
       sourcePosition: right
       targetPosition: left
       type: custom
-      width: 242
+      width: 241
     - data:
         context:
           enabled: true
@@ -641,6 +640,7 @@ workflow:
           provider: langgenius/ollama/ollama
         prompt_template:
         - id: 943448fa-b145-4ae7-a485-d77e4a2cc77b
+          reasoning_format: separated
           role: system
           text: 'You are a strict academic assistant. You must summarize the requested
             papers based ONLY on the provided {{#context#}}.
@@ -670,7 +670,6 @@ workflow:
 
 
             Answer in the language of the user.'
-          reasoning_format: separated
         retry_config:
           max_retries: 3
           retry_enabled: false
@@ -681,7 +680,7 @@ workflow:
         variables: []
         vision:
           enabled: false
-      height: 132
+      height: 131
       id: '17785945559750'
       position:
         x: -351.34191535249096
@@ -693,7 +692,7 @@ workflow:
       sourcePosition: right
       targetPosition: left
       type: custom
-      width: 242
+      width: 241
     - data:
         answer: '{{#1778800001013.cleaned_text#}}'
         desc: Send the final response back to the user.
@@ -703,40 +702,28 @@ workflow:
         title: Answer
         type: answer
         variables: []
-      height: 164
+      height: 145
       id: '17785946070360'
       position:
-        x: 779.5169914498899
-        y: 3218.456266080841
+        x: 632.0593006425706
+        y: 3167.9324888643364
       positionAbsolute:
-        x: 779.5169914498899
-        y: 3218.456266080841
+        x: 632.0593006425706
+        y: 3167.9324888643364
       selected: false
       sourcePosition: right
       targetPosition: left
       type: custom
-      width: 242
+      width: 241
     - data:
-        code: |
-          import re
-
-
-          def _strip_think(text):
-              cleaned = str(text or "")
-              cleaned = re.sub(r"<think>.*?</think>", "", cleaned, flags=re.S | re.I)
-              return cleaned.strip()
-
-
-          def main(knowledge_text=None, metadata_text=None):
-              parts = []
-              first = _strip_think(knowledge_text)
-              second = _strip_think(metadata_text)
-              if first:
-                  parts.append(first)
-              if second:
-                  parts.append(second)
-              merged = "\n\n".join(parts).strip()
-              return {"cleaned_text": merged}
+        code: "import re\n\n\ndef _strip_think(text):\n    cleaned = str(text or \"\
+          \")\n    # Remove well-formed think blocks first.\n    cleaned = re.sub(r\"<think>.*?</think>\",\
+          \ \"\", cleaned, flags=re.S | re.I)\n    # Also handle truncated outputs where\
+          \ </think> is missing.\n    cleaned = re.sub(r\"<think>.*$\", \"\", cleaned, flags=re.S\
+          \ | re.I)\n    return cleaned.strip()\n\n\ndef main(knowledge_text=None, metadata_text=None):\n\
+          \    parts = []\n    first = _strip_think(knowledge_text)\n    second = _strip_think(metadata_text)\n\
+          \    if first:\n        parts.append(first)\n    if second:\n        parts.append(second)\n\
+          \    merged = \"\\n\\n\".join(parts).strip()\n    return {\"cleaned_text\": merged}\n"
         code_language: python3
         isInIteration: false
         isInLoop: false
@@ -758,19 +745,19 @@ workflow:
           - text
           value_type: string
           variable: metadata_text
-      height: 52
+      height: 51
       id: '1778800001013'
       position:
-        x: 541.1165016528621
-        y: 3530.249791699162
+        x: 632.0593006425706
+        y: 3066.4242757229285
       positionAbsolute:
-        x: 541.1165016528621
-        y: 3530.249791699162
+        x: 632.0593006425706
+        y: 3066.4242757229285
       selected: false
       sourcePosition: right
       targetPosition: left
       type: custom
-      width: 242
+      width: 241
     - data:
         context:
           enabled: false
@@ -787,14 +774,13 @@ workflow:
             size: 12
         model:
           completion_params:
-            max_tokens: 256
+            max_tokens: 512
             temperature: 0
           mode: chat
           name: gpt-oss
           provider: langgenius/ollama/ollama
         prompt_template:
         - id: a9fe8803-7835-42ac-95b4-b46cd7ac5917
-          reasoning_format: separated
           role: system
           text: 'Extract a normalized paper list for downstream iterative retrieval.
 
@@ -846,7 +832,7 @@ workflow:
 
 
             - Never output <think> tags or reasoning text.'
-        selected: false
+        selected: true
         structured_output:
           schema:
             additionalProperties: false
@@ -876,24 +862,24 @@ workflow:
             required:
             - paper_list
             type: object
-        structured_output_enabled: false
+        structured_output_enabled: true
         title: JSON Metadata Extractor
         type: llm
         vision:
           enabled: false
-      height: 88
+      height: 87
       id: '1778676150362'
       position:
         x: -1452.6825467404378
-        y: 3420.550852922454
+        y: 3392.471620008217
       positionAbsolute:
         x: -1452.6825467404378
-        y: 3420.550852922454
-      selected: false
+        y: 3392.471620008217
+      selected: true
       sourcePosition: right
       targetPosition: left
       type: custom
-      width: 242
+      width: 241
     - data:
         error_handle_mode: terminated
         flatten_output: false
@@ -916,11 +902,11 @@ workflow:
       height: 482
       id: '1778676584534'
       position:
-        x: -1044.827266575406
-        y: 3383.3206693163497
+        x: -1125.4636882208124
+        y: 3334.938816329106
       positionAbsolute:
-        x: -1044.827266575406
-        y: 3383.3206693163497
+        x: -1125.4636882208124
+        y: 3334.938816329106
       selected: false
       sourcePosition: right
       targetPosition: left
@@ -941,8 +927,8 @@ workflow:
         x: 24
         y: 68
       positionAbsolute:
-        x: -1020.8272665754059
-        y: 3451.3206693163497
+        x: -1101.4636882208124
+        y: 3402.938816329106
       selectable: false
       sourcePosition: right
       targetPosition: left
@@ -965,7 +951,7 @@ workflow:
         selected: false
         title: IF/ELSE
         type: if-else
-      height: 140
+      height: 139
       id: '1778677927006'
       position:
         x: -1135.6757608426387
@@ -977,7 +963,7 @@ workflow:
       sourcePosition: right
       targetPosition: left
       type: custom
-      width: 242
+      width: 241
     - data:
         classes:
         - id: '1'
@@ -1011,20 +997,20 @@ workflow:
         type: question-classifier
         vision:
           enabled: false
-      height: 170
+      height: 169
       id: '17786780005730'
       parentId: '1778676584534'
       position:
         x: 199.39726098682888
         y: 72.69752138655213
       positionAbsolute:
-        x: -845.430005588577
-        y: 3456.018190702902
+        x: -926.0664272339835
+        y: 3407.636337715658
       selected: false
       sourcePosition: right
       targetPosition: left
       type: custom
-      width: 242
+      width: 241
       zIndex: 1002
     - data:
         dataset_ids:
@@ -1077,20 +1063,20 @@ workflow:
         selected: false
         title: KR with filter
         type: knowledge-retrieval
-      height: 90
+      height: 89
       id: '17786780201700'
       parentId: '1778676584534'
       position:
         x: 476.7177575921488
         y: 270.6720532494692
       positionAbsolute:
-        x: -568.1095089832571
-        y: 3653.992722565819
+        x: -648.7459306286636
+        y: 3605.610869578575
       selected: false
       sourcePosition: right
       targetPosition: left
       type: custom
-      width: 242
+      width: 241
       zIndex: 1002
     - data:
         context:
@@ -1156,20 +1142,20 @@ workflow:
         type: llm
         vision:
           enabled: false
-      height: 88
+      height: 87
       id: '1778689042001'
       parentId: '1778676584534'
       position:
         x: 768.3819979808457
         y: 269.5134357817924
       positionAbsolute:
-        x: -276.4452685945603
-        y: 3652.834105098142
+        x: -357.08169023996675
+        y: 3604.4522521108984
       selected: false
       sourcePosition: right
       targetPosition: left
       type: custom
-      width: 242
+      width: 241
       zIndex: 1002
     - data:
         code: "import json\nimport os\nimport re\nfrom urllib.error import HTTPError,\
@@ -1341,94 +1327,52 @@ workflow:
           - title
           value_type: string
           variable: title
-      height: 52
+      height: 51
       id: '17786780698570'
       parentId: '1778676584534'
       position:
         x: 507.70835440792223
         y: 82.02579653098337
       positionAbsolute:
-        x: -537.1189121674837
-        y: 3465.346465847333
+        x: -617.7553338128902
+        y: 3416.9646128600893
       selected: false
       sourcePosition: right
       targetPosition: left
       type: custom
-      width: 242
+      width: 241
       zIndex: 1002
     - data:
-        code: |
-          import json
-          import re
-
-
-          def _to_text(value):
-              if value is None:
-                  return ""
-              if isinstance(value, list):
-                  return ", ".join(str(v).strip() for v in value if str(v).strip())[:300]
-              if isinstance(value, dict):
-                  for key in ("value", "name", "author", "authors", "text"):
-                      if key in value:
-                          return _to_text(value.get(key))
-                  return ", ".join(str(v).strip() for v in value.values() if str(v).strip())[:300]
-              return str(value).strip()[:300]
-
-
-          def _clean_obj(item):
-              if not isinstance(item, dict):
-                  return None
-              year_value = _to_text(item.get("year"))
-              return {
-                  "title": _to_text(item.get("title")),
-                  "authors": _to_text(item.get("authors") or item.get("author")),
-                  "year": year_value if re.fullmatch(r"^(19|20)[0-9]{2}$", year_value) else "",
-                  "journal": _to_text(item.get("journal")),
-              }
-
-
-          def _parse_json(extractor_text):
-              if isinstance(extractor_text, dict):
-                  return extractor_text
-              if not isinstance(extractor_text, str):
-                  return {}
-              text = extractor_text.strip()
-              if not text:
-                  return {}
-              if text.startswith("```"):
-                  text = re.sub(r"^```(?:json)?\s*", "", text)
-                  text = re.sub(r"\s*```$", "", text).strip()
-              try:
-                  parsed = json.loads(text)
-              except Exception:
-                  return {}
-              return parsed if isinstance(parsed, dict) else {}
-
-
-          def _clean_list(items):
-              cleaned = []
-              if not isinstance(items, list):
-                  return cleaned
-              for item in items:
-                  obj = _clean_obj(item)
-                  if obj is not None and any(obj.values()):
-                      cleaned.append(obj)
-              return cleaned
-
-
-          def main(extractor_text=None):
-              data = _parse_json(extractor_text)
-
-              if isinstance(data.get("paper_list"), list):
-                  raw_items = data.get("paper_list")
-              elif any(k in data for k in ("title", "authors", "author", "year", "journal")):
-                  raw_items = [data]
-              elif isinstance(data.get("authors"), list):
-                  raw_items = [{"authors": a} for a in data.get("authors") if str(a).strip()]
-              else:
-                  raw_items = []
-
-              return {"extracted_paper_list": _clean_list(raw_items)}
+        code: "import json\nimport re\n\n\ndef _to_text(value):\n    if value is None:\n\
+          \        return \"\"\n    if isinstance(value, list):\n        return \"\
+          , \".join(str(v).strip() for v in value if str(v).strip())[:300]\n    if\
+          \ isinstance(value, dict):\n        for key in (\"value\", \"name\", \"\
+          author\", \"authors\", \"text\"):\n            if key in value:\n      \
+          \          return _to_text(value.get(key))\n        return \", \".join(str(v).strip()\
+          \ for v in value.values() if str(v).strip())[:300]\n    return str(value).strip()[:300]\n\
+          \n\ndef _clean_obj(item):\n    if not isinstance(item, dict):\n        return\
+          \ None\n    year_value = _to_text(item.get(\"year\"))\n    return {\n  \
+          \      \"title\": _to_text(item.get(\"title\")),\n        \"authors\": _to_text(item.get(\"\
+          authors\") or item.get(\"author\")),\n        \"year\": year_value if re.fullmatch(r\"\
+          ^(19|20)[0-9]{2}$\", year_value) else \"\",\n        \"journal\": _to_text(item.get(\"\
+          journal\")),\n    }\n\n\ndef _parse_json(extractor_text):\n    if isinstance(extractor_text,\
+          \ dict):\n        return extractor_text\n    if not isinstance(extractor_text,\
+          \ str):\n        return {}\n    text = extractor_text.strip()\n    if not\
+          \ text:\n        return {}\n    if text.startswith(\"```\"):\n        text\
+          \ = re.sub(r\"^```(?:json)?\\s*\", \"\", text)\n        text = re.sub(r\"\
+          \\s*```$\", \"\", text).strip()\n    try:\n        parsed = json.loads(text)\n\
+          \    except Exception:\n        return {}\n    return parsed if isinstance(parsed,\
+          \ dict) else {}\n\n\ndef _clean_list(items):\n    cleaned = []\n    if not\
+          \ isinstance(items, list):\n        return cleaned\n    for item in items:\n\
+          \        obj = _clean_obj(item)\n        if obj is not None and any(obj.values()):\n\
+          \            cleaned.append(obj)\n    return cleaned\n\n\ndef main(extractor_text=None, extractor_structured_output=None):\n\
+          \    data = extractor_structured_output if isinstance(extractor_structured_output, dict) else _parse_json(extractor_text)\n\n    if isinstance(data.get(\"\
+          paper_list\"), list):\n        raw_items = data.get(\"paper_list\")\n  \
+          \  elif any(k in data for k in (\"title\", \"authors\", \"author\", \"year\"\
+          , \"journal\")):\n        raw_items = [data]\n    elif isinstance(data.get(\"\
+          authors\"), list):\n        raw_items = [{\"authors\": a} for a in data.get(\"\
+          authors\") if str(a).strip()]\n    else:\n        raw_items = []\n\n   \
+          \ return {\"extracted_paper_list\": _clean_list(raw_items)}\n"
         code_language: python3
         isInIteration: false
         isInLoop: false
@@ -1445,7 +1389,12 @@ workflow:
           - text
           value_type: string
           variable: extractor_text
-      height: 52
+        - value_selector:
+          - '1778676150362'
+          - structured_output
+          value_type: object
+          variable: extractor_structured_output
+      height: 51
       id: '1778800001010'
       position:
         x: -1452.6825467404378
@@ -1457,37 +1406,20 @@ workflow:
       sourcePosition: right
       targetPosition: left
       type: custom
-      width: 242
+      width: 241
     - data:
-        code: |
-          import re
-
-
-          def main(query=None):
-              text = str(query or "").strip().lower()
-              if not text:
-                  return {"is_followup": False}
-
-              patterns = [
-                  r"\bthese papers\b",
-                  r"\bthose papers\b",
-                  r"\bthe listed\b",
-                  r"\bprevious(ly)?\b",
-                  r"\bthem\b",
-                  r"\bone(s)?\b",
-                  r"\bsummarize\b",
-                  r"\bsummary\b",
-                  r"\bcompare\b",
-                  r"\bcontrast\b",
-                  r"\bdifference(s)?\b",
-                  r"\bfirst (paper|one|two|three|\d+)\b",
-                  r"\btop (\d+)\b",
-                  r"\bfasse\b",
-                  r"\bzusammenfassen\b",
-                  r"\bdiese(n|r)? (papiere|paper|ergebnisse)\b",
-                  r"\bvorherig\w*\b",
-              ]
-              return {"is_followup": any(re.search(p, text) for p in patterns)}
+        code: "import re\n\n\ndef main(query=None):\n    text = str(query or \"\"\
+          ).strip().lower()\n    if not text:\n        return {\"is_followup\": False}\n\
+          \n    patterns = [\n        r\"\\bthese papers\\b\",\n        r\"\\bthose\
+          \ papers\\b\",\n        r\"\\bthe listed\\b\",\n        r\"\\bprevious(ly)?\\\
+          b\",\n        r\"\\bthem\\b\",\n        r\"\\bone(s)?\\b\",\n        r\"\
+          \\bsummarize\\b\",\n        r\"\\bsummary\\b\",\n        r\"\\bcompare\\\
+          b\",\n        r\"\\bcontrast\\b\",\n        r\"\\bdifference(s)?\\b\",\n\
+          \        r\"\\bfirst (paper|one|two|three|\\d+)\\b\",\n        r\"\\btop\
+          \ (\\d+)\\b\",\n        r\"\\bfasse\\b\",\n        r\"\\bzusammenfassen\\\
+          b\",\n        r\"\\bdiese(n|r)? (papiere|paper|ergebnisse)\\b\",\n     \
+          \   r\"\\bvorherig\\w*\\b\",\n    ]\n    return {\"is_followup\": any(re.search(p,\
+          \ text) for p in patterns)}\n"
         code_language: python3
         isInIteration: false
         isInLoop: false
@@ -1504,7 +1436,7 @@ workflow:
           - query
           value_type: string
           variable: query
-      height: 52
+      height: 51
       id: '1778800001011'
       position:
         x: -1452.6825467404378
@@ -1516,95 +1448,47 @@ workflow:
       sourcePosition: right
       targetPosition: left
       type: custom
-      width: 242
+      width: 241
     - data:
-        code: |
-          import re
-
-
-          def _to_text(value):
-              if value is None:
-                  return ""
-              if isinstance(value, list):
-                  return ", ".join(str(v).strip() for v in value if str(v).strip())[:300]
-              if isinstance(value, dict):
-                  for key in ("value", "name", "author", "authors", "text"):
-                      if key in value:
-                          return _to_text(value.get(key))
-                  return ", ".join(str(v).strip() for v in value.values() if str(v).strip())[:300]
-              return str(value).strip()[:300]
-
-
-          def _clean_obj(item):
-              if not isinstance(item, dict):
-                  return None
-              year_value = _to_text(item.get("year"))
-              return {
-                  "title": _to_text(item.get("title")),
-                  "authors": _to_text(item.get("authors") or item.get("author")),
-                  "year": year_value if re.fullmatch(r"^(19|20)[0-9]{2}$", year_value) else "",
-                  "journal": _to_text(item.get("journal")),
-              }
-
-
-          def _clean_list(items):
-              cleaned = []
-              if not isinstance(items, list):
-                  return cleaned
-              for item in items:
-                  obj = _clean_obj(item)
-                  if obj is not None and any(obj.values()):
-                      cleaned.append(obj)
-              return cleaned
-
-
-          def _extract_limit(query):
-              text = str(query or "").strip().lower()
-              if not text:
-                  return None
-              for pattern in (r"\btop\s+(\d{1,2})\b", r"\bfirst\s+(\d{1,2})\b", r"\bersten?\s+(\d{1,2})\b"):
-                  m = re.search(pattern, text)
-                  if m:
-                      n = int(m.group(1))
-                      return n if n > 0 else None
-              if re.search(r"\bfirst\s+two\b|\bersten?\s+zwei\b", text):
-                  return 2
-              if re.search(r"\bfirst\s+three\b|\bersten?\s+drei\b", text):
-                  return 3
-              if re.search(r"\bfirst\s+one\b|\bersten?\s+eins\b", text):
-                  return 1
-              return None
-
-
-          def _extract_year(item):
-              text = _to_text((item or {}).get("year"))
-              return int(text) if re.fullmatch(r"^(19|20)[0-9]{2}$", text) else -1
-
-
-          def main(memory=None, query=None, is_followup=False):
-              if not is_followup:
-                  return {"memory_subset": []}
-
-              items = _clean_list(memory)
-              if not items:
-                  return {"memory_subset": []}
-
-              text = str(query or "").strip().lower()
-              if re.search(r"\b(newest|latest|most recent|neueste[snrm]?)\b", text):
-                  sorted_items = sorted(items, key=_extract_year, reverse=True)
-                  if _extract_year(sorted_items[0]) != -1:
-                      return {"memory_subset": sorted_items[:1]}
-
-              if re.search(r"\b(oldest|earliest|aelteste[snrm]?|älteste[snrm]?)\b", text):
-                  sorted_items = sorted(items, key=_extract_year, reverse=False)
-                  if _extract_year(sorted_items[0]) != -1:
-                      return {"memory_subset": sorted_items[:1]}
-
-              limit = _extract_limit(text)
-              if isinstance(limit, int):
-                  return {"memory_subset": items[:limit]}
-
-              return {"memory_subset": items}
+        code: "import re\n\n\ndef _to_text(value):\n    if value is None:\n      \
+          \  return \"\"\n    if isinstance(value, list):\n        return \", \".join(str(v).strip()\
+          \ for v in value if str(v).strip())[:300]\n    if isinstance(value, dict):\n\
+          \        for key in (\"value\", \"name\", \"author\", \"authors\", \"text\"\
+          ):\n            if key in value:\n                return _to_text(value.get(key))\n\
+          \        return \", \".join(str(v).strip() for v in value.values() if str(v).strip())[:300]\n\
+          \    return str(value).strip()[:300]\n\n\ndef _clean_obj(item):\n    if\
+          \ not isinstance(item, dict):\n        return None\n    year_value = _to_text(item.get(\"\
+          year\"))\n    return {\n        \"title\": _to_text(item.get(\"title\")),\n\
+          \        \"authors\": _to_text(item.get(\"authors\") or item.get(\"author\"\
+          )),\n        \"year\": year_value if re.fullmatch(r\"^(19|20)[0-9]{2}$\"\
+          , year_value) else \"\",\n        \"journal\": _to_text(item.get(\"journal\"\
+          )),\n    }\n\n\ndef _clean_list(items):\n    cleaned = []\n    if not isinstance(items,\
+          \ list):\n        return cleaned\n    for item in items:\n        obj =\
+          \ _clean_obj(item)\n        if obj is not None and any(obj.values()):\n\
+          \            cleaned.append(obj)\n    return cleaned\n\n\ndef _extract_limit(query):\n\
+          \    text = str(query or \"\").strip().lower()\n    if not text:\n     \
+          \   return None\n    for pattern in (r\"\\btop\\s+(\\d{1,2})\\b\", r\"\\\
+          bfirst\\s+(\\d{1,2})\\b\", r\"\\bersten?\\s+(\\d{1,2})\\b\"):\n        m\
+          \ = re.search(pattern, text)\n        if m:\n            n = int(m.group(1))\n\
+          \            return n if n > 0 else None\n    if re.search(r\"\\bfirst\\\
+          s+two\\b|\\bersten?\\s+zwei\\b\", text):\n        return 2\n    if re.search(r\"\
+          \\bfirst\\s+three\\b|\\bersten?\\s+drei\\b\", text):\n        return 3\n\
+          \    if re.search(r\"\\bfirst\\s+one\\b|\\bersten?\\s+eins\\b\", text):\n\
+          \        return 1\n    return None\n\n\ndef _extract_year(item):\n    text\
+          \ = _to_text((item or {}).get(\"year\"))\n    return int(text) if re.fullmatch(r\"\
+          ^(19|20)[0-9]{2}$\", text) else -1\n\n\ndef main(memory=None, query=None,\
+          \ is_followup=False):\n    if not is_followup:\n        return {\"memory_subset\"\
+          : []}\n\n    items = _clean_list(memory)\n    if not items:\n        return\
+          \ {\"memory_subset\": []}\n\n    text = str(query or \"\").strip().lower()\n\
+          \    if re.search(r\"\\b(newest|latest|most recent|neueste[snrm]?)\\b\"\
+          , text):\n        sorted_items = sorted(items, key=_extract_year, reverse=True)\n\
+          \        if _extract_year(sorted_items[0]) != -1:\n            return {\"\
+          memory_subset\": sorted_items[:1]}\n\n    if re.search(r\"\\b(oldest|earliest|aelteste[snrm]?|älteste[snrm]?)\\\
+          b\", text):\n        sorted_items = sorted(items, key=_extract_year, reverse=False)\n\
+          \        if _extract_year(sorted_items[0]) != -1:\n            return {\"\
+          memory_subset\": sorted_items[:1]}\n\n    limit = _extract_limit(text)\n\
+          \    if isinstance(limit, int):\n        return {\"memory_subset\": items[:limit]}\n\
+          \n    return {\"memory_subset\": items}\n"
         code_language: python3
         isInIteration: false
         isInLoop: false
@@ -1631,7 +1515,7 @@ workflow:
           - is_followup
           value_type: boolean
           variable: is_followup
-      height: 52
+      height: 51
       id: '1778800001012'
       position:
         x: -1452.6825467404378
@@ -1643,73 +1527,34 @@ workflow:
       sourcePosition: right
       targetPosition: left
       type: custom
-      width: 242
+      width: 241
     - data:
-        code: |
-          import re
-
-
-          def _to_text(value):
-              if value is None:
-                  return ""
-              if isinstance(value, list):
-                  return ", ".join(str(v).strip() for v in value if str(v).strip())[:300]
-              if isinstance(value, dict):
-                  for key in ("value", "name", "author", "authors", "text"):
-                      if key in value:
-                          return _to_text(value.get(key))
-                  return ", ".join(str(v).strip() for v in value.values() if str(v).strip())[:300]
-              return str(value).strip()[:300]
-
-
-          def _clean_obj(item):
-              if not isinstance(item, dict):
-                  return None
-              year_value = _to_text(item.get("year"))
-              return {
-                  "title": _to_text(item.get("title")),
-                  "authors": _to_text(item.get("authors") or item.get("author")),
-                  "year": year_value if re.fullmatch(r"^(19|20)[0-9]{2}$", year_value) else "",
-                  "journal": _to_text(item.get("journal")),
-              }
-
-
-          def _clean_list(items):
-              cleaned = []
-              if not isinstance(items, list):
-                  return cleaned
-              for item in items:
-                  obj = _clean_obj(item)
-                  if obj is not None and any(obj.values()):
-                      cleaned.append(obj)
-              return cleaned
-
-
-          def main(extracted_paper_list=None, memory_subset=None, is_followup=False, query=None):
-              extracted = _clean_list(extracted_paper_list)
-              subset = _clean_list(memory_subset)
-
-              if is_followup and subset:
-                  return {"paper_list": subset}
-
-              if extracted:
-                  return {"paper_list": extracted}
-
-              q = str(query or "").strip()
-              m = re.search(r"\b(?:by|von)\s+([A-Z][A-Za-z.-]+(?:\s+[A-Z][A-Za-z.-]+){1,4})", q)
-              if m:
-                  return {
-                      "paper_list": [
-                          {
-                              "title": "",
-                              "authors": m.group(1).strip(" ,.;:"),
-                              "year": "",
-                              "journal": "",
-                          }
-                      ]
-                  }
-
-              return {"paper_list": []}
+        code: "import re\n\n\ndef _to_text(value):\n    if value is None:\n      \
+          \  return \"\"\n    if isinstance(value, list):\n        return \", \".join(str(v).strip()\
+          \ for v in value if str(v).strip())[:300]\n    if isinstance(value, dict):\n\
+          \        for key in (\"value\", \"name\", \"author\", \"authors\", \"text\"\
+          ):\n            if key in value:\n                return _to_text(value.get(key))\n\
+          \        return \", \".join(str(v).strip() for v in value.values() if str(v).strip())[:300]\n\
+          \    return str(value).strip()[:300]\n\n\ndef _clean_obj(item):\n    if\
+          \ not isinstance(item, dict):\n        return None\n    year_value = _to_text(item.get(\"\
+          year\"))\n    return {\n        \"title\": _to_text(item.get(\"title\")),\n\
+          \        \"authors\": _to_text(item.get(\"authors\") or item.get(\"author\"\
+          )),\n        \"year\": year_value if re.fullmatch(r\"^(19|20)[0-9]{2}$\"\
+          , year_value) else \"\",\n        \"journal\": _to_text(item.get(\"journal\"\
+          )),\n    }\n\n\ndef _clean_list(items):\n    cleaned = []\n    if not isinstance(items,\
+          \ list):\n        return cleaned\n    for item in items:\n        obj =\
+          \ _clean_obj(item)\n        if obj is not None and any(obj.values()):\n\
+          \            cleaned.append(obj)\n    return cleaned\n\n\ndef main(extracted_paper_list=None,\
+          \ memory_subset=None, is_followup=False, query=None):\n    extracted = _clean_list(extracted_paper_list)\n\
+          \    subset = _clean_list(memory_subset)\n\n    if is_followup and subset:\n\
+          \        return {\"paper_list\": subset}\n\n    if extracted:\n        return\
+          \ {\"paper_list\": extracted}\n\n    q = str(query or \"\").strip()\n  \
+          \  m = re.search(r\"\\b(?:by|von)\\s+([A-Z][A-Za-z.-]+(?:\\s+[A-Z][A-Za-z.-]+){1,4})\"\
+          , q)\n    if m:\n        return {\n            \"paper_list\": [\n     \
+          \           {\n                    \"title\": \"\",\n                  \
+          \  \"authors\": m.group(1).strip(\" ,.;:\"),\n                    \"year\"\
+          : \"\",\n                    \"journal\": \"\",\n                }\n   \
+          \         ]\n        }\n\n    return {\"paper_list\": []}\n"
         code_language: python3
         isInIteration: false
         isInLoop: false
@@ -1741,7 +1586,7 @@ workflow:
           - query
           value_type: string
           variable: query
-      height: 52
+      height: 51
       id: '1778800001001'
       position:
         x: -1452.6825467404378
@@ -1753,7 +1598,7 @@ workflow:
       sourcePosition: right
       targetPosition: left
       type: custom
-      width: 242
+      width: 241
     - data:
         code: "def _normalize_obj(item):\n    if not isinstance(item, dict):\n   \
           \     return None\n    title = str(item.get('title') or '').strip()\n  \
@@ -1805,19 +1650,19 @@ workflow:
           - memory
           value_type: array[object]
           variable: memory
-      height: 52
+      height: 51
       id: '1778800001002'
       position:
-        x: 300.53776195412524
-        y: 3365.4026540081886
+        x: 268.53936971700534
+        y: 3334.938816329106
       positionAbsolute:
-        x: 300.53776195412524
-        y: 3365.4026540081886
+        x: 268.53936971700534
+        y: 3334.938816329106
       selected: false
       sourcePosition: right
       targetPosition: left
       type: custom
-      width: 242
+      width: 241
     - data:
         desc: ''
         isInIteration: false
@@ -1836,19 +1681,19 @@ workflow:
         title: Persist Paper Memory
         type: assigner
         version: '2'
-      height: 84
+      height: 83
       id: '1778800001003'
       position:
-        x: 275.694654794382
-        y: 3564.2797645850437
+        x: 280.1165016528621
+        y: 3535.649624162357
       positionAbsolute:
-        x: 275.694654794382
-        y: 3564.2797645850437
+        x: 280.1165016528621
+        y: 3535.649624162357
       selected: false
       sourcePosition: right
       targetPosition: left
       type: custom
-      width: 242
+      width: 241
     - data:
         isInIteration: true
         isInLoop: false
@@ -1862,23 +1707,23 @@ workflow:
           - result_text
         - - '1778689042001'
           - text
-      height: 135
+      height: 134
       id: '1778678575789'
       parentId: '1778676584534'
       position:
         x: 1024
         y: 79.4518180363807
       positionAbsolute:
-        x: -20.82726657540593
-        y: 3462.7724873527304
+        x: -101.4636882208124
+        y: 3414.3906343654867
       selected: false
       sourcePosition: right
       targetPosition: left
       type: custom
-      width: 242
+      width: 241
       zIndex: 1002
     viewport:
-      x: 1396.0557931977214
-      y: -2184.4422937751874
-      zoom: 0.7834971869493406
+      x: 1026.046329052152
+      y: -936.6163653787685
+      zoom: 0.3917485934746706
   rag_pipeline_variables: []
