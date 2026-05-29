@@ -3,6 +3,13 @@
 RmapDifyChatbot is a production-oriented Python project for operating a Dify-based
 academic assistant with explicit metadata routing.
 
+## Status Snapshot (2026-05-29)
+
+1. Iterative map/reduce workflow is stable for core two-turn handover: paper list -> summarize selected papers.
+2. Structured-output extractor handoff is now robust (parser prefers extractor JSON over raw free text).
+3. Final answer sanitation strips leaked `<think>` blocks, including malformed or unclosed variants.
+4. Two-pass bulk upload is integrated for local and SLURM execution paths via Python module invocation.
+
 ## Overview
 
 The project has two responsibilities:
@@ -27,7 +34,7 @@ flowchart LR
 		I --> H
 ```
 
-Planned iterative retrieval workflow (`config/RMAP Chatbot Iterative Retrieval.yml`):
+Current iterative retrieval workflow (`config/RMAP Chatbot Iterative Retrieval.yml`):
 
 ```mermaid
 flowchart LR
@@ -136,7 +143,7 @@ Expected routes:
 1. Content questions -> `Knowledge Route`
 2. Count/list/filter questions -> `Metadata Route`
 
-## Planned Use-Case: Iterative Map/Reduce Routing
+## Main Use-Case: Iterative Map/Reduce Routing
 
 Import the iterative workflow config:
 
@@ -184,6 +191,14 @@ Notes:
 	- Enforced deterministic fixed-subset formatting (`**1.` / `**2.` headers) even under sparse text context, so demo checks remain stable.
 	- Re-tested two-turn draft flow (`author list` -> `summarize first two`) with HTTP 200 on both turns, no `<think>` in final answer, and both section markers present.
 
+8. Milestone 2026-05-29 (structured-output and sanitizer hardening):
+	- JSON Metadata Extractor switched to structured output as primary machine-readable contract.
+	- Parser node updated to accept both `extractor_text` and `extractor_structured_output`, with structured output taking precedence.
+	- Extractor max token budget increased to reduce truncation risk in larger author-paper lists.
+	- Metadata LLM max token budget increased (`768 -> 1200`) to improve long-answer completeness.
+	- Final sanitizer hardened for both closed and unclosed `<think>` segments.
+	- Validated two-turn runs with HTTP 200 on both turns and no `<think>` content in final answer.
+
 ## Secondary Service: Metadata Extraction And Paper Upload
 
 Use the CLI entrypoint:
@@ -225,6 +240,18 @@ poetry run dify-upload bulk-two-pass --folder "RMaP papers first funding period"
 poetry run dify-upload author-quality --folder "RMaP papers first funding period"
 ```
 
+SLURM/GPU execution (recommended for full-folder runs with LLM fallback):
+
+```bash
+sbatch scripts/slurm_bulk_two_pass_ollama.sh
+```
+
+The SLURM script explicitly uses the Python module path to avoid wrapper ambiguity:
+
+```bash
+.venv/bin/python -m dify_uploader bulk-two-pass --folder "RMaP papers first funding period"
+```
+
 Hybrid extraction behavior in `dify_uploader/author_extraction.py`:
 
 1. Fast regex and heuristics.
@@ -237,3 +264,10 @@ export BAML_OLLAMA_BASE_URL="http://127.0.0.1:11434/v1"
 export BAML_OLLAMA_MODEL="qwen3:32b"
 export AUTHOR_EXTRACTION_ENABLE_LLM_FALLBACK="true"
 ```
+
+## Next Steps (Execution Plan)
+
+1. Finish and verify the full 2-pass run for all PDFs in `RMaP papers first funding period` and capture success/failure counts in a run log.
+2. Add a concise post-run summary artifact (processed files, retries, failures, elapsed time) under `reports/slurm/`.
+3. Introduce a lightweight regression check for the two-turn path (`list papers` -> `summarize those papers`) after each workflow import.
+4. Add a small acceptance checklist for stakeholder demos (HTTP status, sanitizer check, section mapping check).
