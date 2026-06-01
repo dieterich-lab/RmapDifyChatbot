@@ -378,6 +378,11 @@ workflow:
             user query and have access to the recent conversation history.
 
 
+            Authoritative resolved paper memory from prior turns:
+
+            {{#conversation.memory#}}
+
+
             Your only task is to rewrite the new user query so that it is completely
             understandable in isolation, without needing the conversation history.
 
@@ -386,6 +391,9 @@ workflow:
             papers'', ''them'', ''this author'', ''those findings''), replace these
             pronouns with the exact names, titles, or specific context from the conversation
             history.
+
+
+            Prefer the authoritative resolved paper memory above when available.
 
 
             Also resolve follow-up intents that refer to subsets or relations of previous
@@ -406,6 +414,11 @@ workflow:
 
             Keep user intent and constraints unchanged. Only make references explicit
             and standalone.
+
+
+            If exact paper identities are not available from conversation context,
+            do not invent placeholders such as "Paper 1", "Paper 2", or fake titles.
+            In that case, keep the original user wording unchanged.
 
 
             Do not answer the question! Output ONLY the rewritten, standalone query.
@@ -785,6 +798,11 @@ workflow:
           text: 'Extract a normalized paper list for downstream iterative retrieval.
 
 
+            Authoritative resolved paper memory from prior turns:
+
+            {{#conversation.memory#}}
+
+
             Return valid JSON only via structured output.
 
 
@@ -810,6 +828,13 @@ workflow:
 
             - If user references prior turns (for example: "those papers"), resolve
             them from conversation context and emit explicit paper items.
+
+
+            - Prefer the authoritative resolved paper memory above when available.
+
+
+            - If prior paper identities cannot be resolved exactly, return an empty
+            paper_list and do not emit placeholders like "Paper 1".
 
 
             - If the rewritten query asks for a subset of previously listed papers
