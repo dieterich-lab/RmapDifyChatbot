@@ -122,19 +122,8 @@ workflow:
         isInLoop: false
         sourceType: code
         targetType: code
-      id: 1778800001010-source-1778800001011-target
+      id: 1778800001010-source-1778800001012-target
       source: '1778800001010'
-      sourceHandle: source
-      target: '1778800001011'
-      targetHandle: target
-      type: custom
-      zIndex: 0
-    - data:
-        isInLoop: false
-        sourceType: code
-        targetType: code
-      id: 1778800001011-source-1778800001012-target
-      source: '1778800001011'
       sourceHandle: source
       target: '1778800001012'
       targetHandle: target
@@ -1502,7 +1491,7 @@ workflow:
           \        return 1\n    return None\n\n\ndef _extract_year(item):\n    text\
           \ = _to_text((item or {}).get(\"year\"))\n    return int(text) if re.fullmatch(r\"\
           ^(19|20)[0-9]{2}$\", text) else -1\n\n\ndef main(memory=None, query=None,\
-          \ is_followup=False):\n    if not is_followup:\n        return {\"memory_subset\"\
+          \ is_followup=True):\n    if not is_followup:\n        return {\"memory_subset\"\
           : []}\n\n    items = _clean_list(memory)\n    if not items:\n        return\
           \ {\"memory_subset\": []}\n\n    text = str(query or \"\").strip().lower()\n\
           \    if re.search(r\"\\b(newest|latest|most recent|neueste[snrm]?)\\b\"\
@@ -1535,11 +1524,6 @@ workflow:
           - query
           value_type: string
           variable: query
-        - value_selector:
-          - '1778800001011'
-          - is_followup
-          value_type: boolean
-          variable: is_followup
       height: 51
       id: '1778800001012'
       position:
@@ -1570,8 +1554,8 @@ workflow:
           \ list):\n        return cleaned\n    for item in items:\n        obj =\
           \ _clean_obj(item)\n        if obj is not None and any(obj.values()):\n\
           \            cleaned.append(obj)\n    return cleaned\n\n\ndef main(extracted_paper_list=None,\
-          \ memory_subset=None, is_followup=False, query=None):\n    extracted = _clean_list(extracted_paper_list)\n\
-          \    subset = _clean_list(memory_subset)\n\n    if is_followup and subset:\n\
+          \ memory_subset=None, is_followup=True, query=None):\n    extracted = _clean_list(extracted_paper_list)\n\
+          \    subset = _clean_list(memory_subset)\n\n    if subset:\n\
           \        return {\"paper_list\": subset}\n\n    if extracted:\n        return\
           \ {\"paper_list\": extracted}\n\n    q = str(query or \"\").strip()\n  \
           \  m = re.search(r\"\\b(?:by|von)\\s+([A-Z][A-Za-z.-]+(?:\\s+[A-Z][A-Za-z.-]+){1,4})\"\
@@ -1601,11 +1585,6 @@ workflow:
           - memory_subset
           value_type: array[object]
           variable: memory_subset
-        - value_selector:
-          - '1778800001011'
-          - is_followup
-          value_type: boolean
-          variable: is_followup
         - value_selector:
           - sys
           - query
