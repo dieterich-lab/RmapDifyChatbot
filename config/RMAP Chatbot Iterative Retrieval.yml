@@ -1322,9 +1322,7 @@ app:
           \    if re.search(r\"\\bfirst\\s+one\\b|\\bersten?\\s+eins\\b\", text):\n\
           \        return 1\n    return None\n\n\ndef _extract_year(item):\n    text\
           \ = _to_text((item or {}).get(\"year\"))\n    return int(text) if re.fullmatch(r\"\
-          ^(19|20)[0-9]{2}$\", text) else -1\n\n\ndef main(memory=None, query=None,\
-          \ is_followup=True):\n    if not is_followup:\n        return {\"memory_subset\"\
-          : []}\n\n    items = _clean_list(memory)\n    if not items:\n        return\
+          ^(19|20)[0-9]{2}$\", text) else -1\n\n\ndef main(memory=None, query=None):\n    items = _clean_list(memory)\n    if not items:\n        return\
           \ {\"memory_subset\": []}\n\n    text = str(query or \"\").strip().lower()\n\
           \    if re.search(r\"\\b(newest|latest|most recent|neueste[snrm]?)\\b\"\
           , text):\n        sorted_items = sorted(items, key=_extract_year, reverse=True)\n\
@@ -1386,7 +1384,7 @@ app:
           \ list):\n        return cleaned\n    for item in items:\n        obj =\
           \ _clean_obj(item)\n        if obj is not None and any(obj.values()):\n\
           \            cleaned.append(obj)\n    return cleaned\n\n\ndef main(extracted_paper_list=None,\
-          \ memory_subset=None, is_followup=True, query=None):\n    extracted = _clean_list(extracted_paper_list)\n\
+          \ memory_subset=None, query=None):\n    extracted = _clean_list(extracted_paper_list)\n\
           \    subset = _clean_list(memory_subset)\n\n    if subset:\n\
           \        return {\"paper_list\": subset}\n\n    if extracted:\n        return\
           \ {\"paper_list\": extracted}\n\n    q = str(query or \"\").strip()\n  \
