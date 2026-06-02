@@ -55,10 +55,15 @@ done
 [[ ${#QUERIES[@]} -gt 0 ]] || { echo "At least one --query is required"; exit 1; }
 
 # Guardrail: app runtime keys (usually prefix app-) do not authorize console endpoints.
+# Do not hard-fail when cookie fallback is explicitly allowed or already configured.
 if [[ -n "${DIFY_API_KEY:-}" && -z "${DIFY_CONSOLE_API_KEY:-}" ]]; then
-  echo "Detected DIFY_API_KEY but missing DIFY_CONSOLE_API_KEY."
-  echo "For draft console endpoints (/console/api), use DIFY_CONSOLE_API_KEY or --allow-cookie-auth with DIFY_CONSOLE_COOKIE + DIFY_CSRF_TOKEN."
-  exit 1
+  if [[ "$ALLOW_COOKIE_AUTH" == "1" || ( -n "${DIFY_CONSOLE_COOKIE:-}" && -n "${DIFY_CSRF_TOKEN:-}" ) ]]; then
+    echo "Detected DIFY_API_KEY without DIFY_CONSOLE_API_KEY; continuing with cookie fallback for /console/api endpoints."
+  else
+    echo "Detected DIFY_API_KEY but missing DIFY_CONSOLE_API_KEY."
+    echo "For draft console endpoints (/console/api), use DIFY_CONSOLE_API_KEY or --allow-cookie-auth with DIFY_CONSOLE_COOKIE + DIFY_CSRF_TOKEN."
+    exit 1
+  fi
 fi
 
 BASE_URL="${DIFY_BASE_URL%/}"
