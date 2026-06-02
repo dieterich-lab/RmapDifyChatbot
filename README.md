@@ -143,6 +143,24 @@ Expected routes:
 1. Content questions -> `Knowledge Route`
 2. Count/list/filter questions -> `Metadata Route`
 
+### 3. Cookie-free runtime check (`/v1`, app key)
+
+Use this when you want to test the published app without console cookie/token handling.
+
+```bash
+DIFY_BASE_URL="http://your-dify-host" \
+DIFY_APP_API_KEY="<app_key_with_app_prefix>" \
+scripts/debug_route_runtime.sh \
+	--query "Which papers have been (co-)authored by Christoph Dieterich?" \
+	--query "Please summarize those papers."
+```
+
+Notes:
+
+1. `scripts/debug_route_runtime.sh` uses `/v1/meta` and `/v1/chat-messages` with `Authorization: Bearer <app-key>`.
+2. `/v1` executes the published app configuration, not the console draft.
+3. Use `DIFY_APP_API_KEY` (recommended). `DIFY_API_KEY` is only used as a backward-compatible fallback variable.
+
 ## Main Use-Case: Iterative Map/Reduce Routing
 
 Import the iterative workflow config:

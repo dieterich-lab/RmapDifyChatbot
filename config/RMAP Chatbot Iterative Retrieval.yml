@@ -216,12 +216,90 @@ workflow:
         isInIteration: true
         isInLoop: false
         iteration_id: '1778676584534'
+        sourceType: code
+        targetType: code
+      id: 1778800001014-source-1778800001015-target
+      source: '1778800001014'
+      sourceHandle: source
+      target: '1778800001015'
+      targetHandle: target
+      type: custom
+      zIndex: 1002
+    - data:
+        isInIteration: true
+        isInLoop: false
+        iteration_id: '1778676584534'
+        sourceType: code
+        targetType: knowledge-retrieval
+      id: 1778800001015-source-1778800001016-target
+      source: '1778800001015'
+      sourceHandle: source
+      target: '1778800001016'
+      targetHandle: target
+      type: custom
+      zIndex: 1002
+    - data:
+        isInIteration: true
+        isInLoop: false
+        iteration_id: '1778676584534'
         sourceType: knowledge-retrieval
-        targetType: llm
-      id: 17786780201700-source-1778689042001-target
+        targetType: code
+      id: 17786780201700-source-1778800001017-target
       source: '17786780201700'
       sourceHandle: source
+      target: '1778800001017'
+      targetHandle: target
+      type: custom
+      zIndex: 1002
+    - data:
+        isInIteration: true
+        isInLoop: false
+        iteration_id: '1778676584534'
+        sourceType: knowledge-retrieval
+        targetType: code
+      id: 1778800001016-source-1778800001017-target
+      source: '1778800001016'
+      sourceHandle: source
+      target: '1778800001017'
+      targetHandle: target
+      type: custom
+      zIndex: 1002
+    - data:
+        isInIteration: true
+        isInLoop: false
+        iteration_id: '1778676584534'
+        sourceType: code
+        targetType: llm
+      id: 1778800001019-source-1778689042001-target
+      source: '1778800001019'
+      sourceHandle: source
       target: '1778689042001'
+      targetHandle: target
+      type: custom
+      zIndex: 1002
+    - data:
+        isInIteration: true
+        isInLoop: false
+        iteration_id: '1778676584534'
+        sourceType: code
+        targetType: code
+      id: 1778800001017-source-1778800001018-target
+      source: '1778800001017'
+      sourceHandle: source
+      target: '1778800001018'
+      targetHandle: target
+      type: custom
+      zIndex: 1002
+    - data:
+        isInIteration: true
+        isInLoop: false
+        iteration_id: '1778676584534'
+        sourceType: code
+        targetType: code
+      id: 1778800001018-source-1778800001019-target
+      source: '1778800001018'
+      sourceHandle: source
+      target: '1778800001019'
       targetHandle: target
       type: custom
       zIndex: 1002
@@ -607,6 +685,20 @@ workflow:
             ask for full text, re-index documents, or relax filters).
 
 
+            - STRICT GROUNDING GUARD: For each requested paper, if the mapped result
+            for that paper contains phrases like "insufficient textual context" or
+            indicates metadata-only evidence, you MUST NOT write concrete methods/results/findings
+            claims for that paper.
+
+
+            - In that case, output only verified metadata (title/authors/year/journal)
+            plus an explicit insufficiency note.
+
+
+            - Never transfer claims from one paper section to another paper section,
+            even if topics are similar.
+
+
             - Do not invent papers, counts, methods, or findings.
 
 
@@ -732,13 +824,15 @@ workflow:
       width: 241
     - data:
         code: "import re\n\n\ndef _strip_think(text):\n    cleaned = str(text or \"\
-          \")\n    # Remove well-formed think blocks first.\n    cleaned = re.sub(r\"<think>.*?</think>\",\
-          \ \"\", cleaned, flags=re.S | re.I)\n    # Also handle truncated outputs where\
-          \ </think> is missing.\n    cleaned = re.sub(r\"<think>.*$\", \"\", cleaned, flags=re.S\
-          \ | re.I)\n    return cleaned.strip()\n\n\ndef main(knowledge_text=None, metadata_text=None):\n\
-          \    parts = []\n    first = _strip_think(knowledge_text)\n    second = _strip_think(metadata_text)\n\
+          \")\n    # Remove well-formed think blocks first.\n    cleaned = re.sub(r\"\
+          <think>.*?</think>\", \"\", cleaned, flags=re.S | re.I)\n    # Also handle\
+          \ truncated outputs where </think> is missing.\n    cleaned = re.sub(r\"\
+          <think>.*$\", \"\", cleaned, flags=re.S | re.I)\n    return cleaned.strip()\n\
+          \n\ndef main(knowledge_text=None, metadata_text=None):\n    parts = []\n\
+          \    first = _strip_think(knowledge_text)\n    second = _strip_think(metadata_text)\n\
           \    if first:\n        parts.append(first)\n    if second:\n        parts.append(second)\n\
-          \    merged = \"\\n\\n\".join(parts).strip()\n    return {\"cleaned_text\": merged}\n"
+          \    merged = \"\\n\\n\".join(parts).strip()\n    return {\"cleaned_text\"\
+          : merged}\n"
         code_language: python3
         isInIteration: false
         isInLoop: false
@@ -859,7 +953,7 @@ workflow:
 
 
             - Never output <think> tags or reasoning text.'
-        selected: true
+        selected: false
         structured_output:
           schema:
             additionalProperties: false
@@ -902,7 +996,7 @@ workflow:
       positionAbsolute:
         x: -1452.6825467404378
         y: 3392.471620008217
-      selected: true
+      selected: false
       sourcePosition: right
       targetPosition: left
       type: custom
@@ -929,11 +1023,11 @@ workflow:
       height: 482
       id: '1778676584534'
       position:
-        x: -1125.4636882208124
-        y: 3334.938816329106
+        x: -1135.6757608426387
+        y: 3323.2669569601585
       positionAbsolute:
-        x: -1125.4636882208124
-        y: 3334.938816329106
+        x: -1135.6757608426387
+        y: 3323.2669569601585
       selected: false
       sourcePosition: right
       targetPosition: left
@@ -954,8 +1048,8 @@ workflow:
         x: 24
         y: 68
       positionAbsolute:
-        x: -1101.4636882208124
-        y: 3402.938816329106
+        x: -1111.6757608426387
+        y: 3391.2669569601585
       selectable: false
       sourcePosition: right
       targetPosition: left
@@ -978,7 +1072,7 @@ workflow:
         selected: false
         title: IF/ELSE
         type: if-else
-      height: 139
+      height: 123
       id: '1778677927006'
       position:
         x: -1135.6757608426387
@@ -1028,11 +1122,11 @@ workflow:
       id: '17786780005730'
       parentId: '1778676584534'
       position:
-        x: 199.39726098682888
-        y: 72.69752138655213
+        x: 91.43256182406503
+        y: 69.7795565443148
       positionAbsolute:
-        x: -926.0664272339835
-        y: 3407.636337715658
+        x: -1044.2431990185737
+        y: 3393.0465135044733
       selected: false
       sourcePosition: right
       targetPosition: left
@@ -1040,7 +1134,7 @@ workflow:
       width: 241
       zIndex: 1002
     - data:
-        code: "def _clean(value):\n    if value is None:\n        return \"\"\n    return str(value).strip()\n\n\ndef _build_disambiguation(title, authors, year, journal):\n    parts = []\n    if title:\n        parts.append(f'title: {title}')\n    if authors:\n        parts.append(f'authors: {authors}')\n    if year:\n        parts.append(f'year: {year}')\n    if journal:\n        parts.append(f'journal: {journal}')\n    return '; '.join(parts)\n\n\ndef _is_summary_intent(query):\n    q = (query or '').lower()\n    markers = [\n        'summarize', 'summary', 'zusammenfassung', 'fasse', 'fassen',\n        'overview', 'explain briefly', 'kurz', 'short summary'\n    ]\n    return any(m in q for m in markers)\n\n\ndef _focus_clause():\n    return (\n        'Prefer chunks containing abstract/introduction/methods/results/discussion '\n        'and avoid references, author lists, copyright/license text, and supplemental notices.'\n    )\n\n\ndef main(title=None, authors=None, year=None, journal=None, user_query=None):\n    title = _clean(title)\n    authors = _clean(authors)\n    year = _clean(year)\n    journal = _clean(journal)\n    user_query = _clean(user_query)\n\n    disambiguation = _build_disambiguation(title, authors, year, journal)\n    focus = _focus_clause()\n\n    if _is_summary_intent(user_query):\n        if title:\n            query = (\n                f'Find abstract, methods, key results, and conclusions for the paper \"{title}\". '\n                f'{focus} Use metadata only for disambiguation: {disambiguation}'\n            )\n        elif authors:\n            query = (\n                f'Find abstract, methods, key results, and conclusions for papers by {authors}. '\n                f'{focus}'\n            )\n        else:\n            query = f'Find abstract, methods, key results, and conclusions for the target paper. {focus}'\n    else:\n        question = user_query or 'What are the key contributions of this paper?'\n        if title:\n            query = (\n                f'Answer this question for the paper \"{title}\": {question}. '\n                f'{focus} Use metadata only for disambiguation: {disambiguation}'\n            )\n        elif authors:\n            query = (\n                f'Answer this question for papers by {authors}: {question}. {focus}'\n            )\n        else:\n            query = f'{question} {focus}'\n\n    return {'semantic_query': query}\n"
+        code: "def _clean(value):\n    if value is None:\n        return \"\"\n    return str(value).strip()\n\n\ndef _is_summary_intent(query):\n    q = (query or '').lower()\n    markers = [\n        'summarize', 'summary', 'zusammenfassung', 'fasse', 'fassen',\n        'overview', 'explain briefly', 'kurz', 'short summary'\n    ]\n    return any(m in q for m in markers)\n\n\ndef _section_tokens():\n    # Keep retrieval terms compact and high-signal for hybrid (keyword+vector) search.\n    return 'abstract methods results conclusions key findings'\n\n\ndef _meta_suffix(authors, year, journal):\n    parts = []\n    if authors:\n        parts.append(f'authors: {authors}')\n    if year:\n        parts.append(f'year: {year}')\n    if journal:\n        parts.append(f'journal: {journal}')\n    return '; '.join(parts)\n\n\ndef main(title=None, authors=None, year=None, journal=None, user_query=None):\n    title = _clean(title)\n    authors = _clean(authors)\n    year = _clean(year)\n    journal = _clean(journal)\n    user_query = _clean(user_query)\n\n    sections = _section_tokens()\n    meta = _meta_suffix(authors, year, journal)\n\n    if _is_summary_intent(user_query):\n        if title:\n            query = f'{title} {sections}'\n        elif authors:\n            query = f'{authors} {sections}'\n        else:\n            query = sections\n    else:\n        question = user_query or 'What are the key contributions of this paper?'\n        if title:\n            query = f'{title} {question} {sections}'\n        elif authors:\n            query = f'{authors} {question} {sections}'\n        else:\n            query = f'{question} {sections}'\n\n    if meta:\n        query = f'{query} {meta}'\n\n    return {'semantic_query': query.strip()}\n"
         code_language: python3
         isInIteration: true
         isInLoop: false
@@ -1049,7 +1143,7 @@ workflow:
           semantic_query:
             children: null
             type: string
-        selected: false
+        selected: true
         title: Build Paper Semantic Query
         type: code
         variables:
@@ -1086,12 +1180,12 @@ workflow:
       id: '1778800001014'
       parentId: '1778676584534'
       position:
-        x: 190
-        y: -10
+        x: 104.40636462771886
+        y: 304.16754801416846
       positionAbsolute:
-        x: -935.4636882208124
-        y: 3324.938816329106
-      selected: false
+        x: -1031.2693962149199
+        y: 3627.434504974327
+      selected: true
       sourcePosition: right
       targetPosition: left
       type: custom
@@ -1155,8 +1249,280 @@ workflow:
         x: 476.7177575921488
         y: 270.6720532494692
       positionAbsolute:
-        x: -648.7459306286636
-        y: 3605.610869578575
+        x: -658.9580032504899
+        y: 3593.9390102096277
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 241
+      zIndex: 1002
+    - data:
+        code: "def _clean(value):\n    if value is None:\n        return ''\n    return str(value).strip()\n\n\ndef main(title=None, authors=None, year=None, journal=None):\n    title = _clean(title)\n    authors = _clean(authors)\n    year = _clean(year)\n    journal = _clean(journal)\n\n    core = title or authors or 'target paper'\n    sections = 'abstract introduction methods results discussion conclusion limitations'\n    query = f'{core} full text {sections}'\n\n    meta = []\n    if authors:\n        meta.append(f'authors: {authors}')\n    if year:\n        meta.append(f'year: {year}')\n    if journal:\n        meta.append(f'journal: {journal}')\n\n    if meta:\n        query = f'{query} ' + '; '.join(meta)\n\n    return {'broad_query': query.strip()}\n"
+        code_language: python3
+        isInIteration: true
+        isInLoop: false
+        iteration_id: '1778676584534'
+        outputs:
+          broad_query:
+            children: null
+            type: string
+        selected: false
+        title: Build Broad Paper Query
+        type: code
+        variables:
+        - value_selector:
+          - '1778676584534'
+          - item
+          - title
+          value_type: string
+          variable: title
+        - value_selector:
+          - '1778676584534'
+          - item
+          - authors
+          value_type: string
+          variable: authors
+        - value_selector:
+          - '1778676584534'
+          - item
+          - year
+          value_type: string
+          variable: year
+        - value_selector:
+          - '1778676584534'
+          - item
+          - journal
+          value_type: string
+          variable: journal
+      height: 51
+      id: '1778800001015'
+      parentId: '1778676584534'
+      position:
+        x: 100
+        y: 378
+      positionAbsolute:
+        x: -1035.6757608426387
+        y: 3701.2669569601585
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 241
+      zIndex: 1002
+    - data:
+        dataset_ids:
+        - 5/WcDtIuGANrAhqT255sDDblyQ7EPbz5ptEFPwuSFpIFdL2zcvi5ayyg7/+ctuJt
+        isInIteration: true
+        isInLoop: false
+        iteration_id: '1778676584534'
+        metadata_filtering_conditions:
+          conditions:
+          - comparison_operator: contains
+            id: 796a8a70-32a2-4a12-89fc-f09454c4f649
+            metadata_id: 8b2e5e43-2323-4bd0-9c70-a92256486501
+            name: year
+            value: '{{#1778676584534.item.year#}}'
+          - comparison_operator: contains
+            id: a98ae230-8c73-4d3c-aad0-9e065486de12
+            metadata_id: c66d9446-d2a6-4bb8-84cd-909a76ba3052
+            name: journal
+            value: '{{#1778676584534.item.journal#}}'
+          - comparison_operator: contains
+            id: dc67b41e-81dd-49ad-83e5-eec7223a791f
+            metadata_id: a0a36fb9-793b-4c0b-9373-f9a1797601f9
+            name: title
+            value: '{{#1778676584534.item.title#}}'
+          - comparison_operator: contains
+            id: a5aabe49-3207-495e-bac5-f96ae579a31e
+            metadata_id: f0738e8c-9ba7-46a4-8b01-355afa8cdc9b
+            name: authors
+            value: '{{#1778676584534.item.authors#}}'
+          logical_operator: and
+        metadata_filtering_mode: manual
+        multiple_retrieval_config:
+          reranking_enable: false
+          reranking_mode: weighted_score
+          score_threshold: null
+          top_k: 20
+          weights:
+            keyword_setting:
+              keyword_weight: 0.3
+            vector_setting:
+              embedding_model_name: nomic-embed-text-v2-moe
+              embedding_provider_name: langgenius/ollama/ollama
+              vector_weight: 0.7
+            weight_type: customized
+        query_attachment_selector: []
+        query_variable_selector:
+        - '1778800001015'
+        - broad_query
+        retrieval_mode: multiple
+        selected: false
+        title: KR broad fallback
+        type: knowledge-retrieval
+      height: 89
+      id: '1778800001016'
+      parentId: '1778676584534'
+      position:
+        x: 470
+        y: 390
+      positionAbsolute:
+        x: -665.6757608426387
+        y: 3713.2669569601585
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 241
+      zIndex: 1002
+    - data:
+        code: "def _is_summary_intent(query):\n    q = (query or '').lower()\n    markers = [\n        'summarize', 'summary', 'zusammenfassung', 'fasse', 'fassen',\n        'overview', 'explain briefly', 'kurz', 'short summary'\n    ]\n    return any(m in q for m in markers)\n\n\ndef _coverage_score(result):\n    if not isinstance(result, list):\n        return {'sections': 0, 'junk': 0, 'count': 0}\n\n    section_terms = ['abstract', 'introduction', 'method', 'result', 'discussion', 'conclusion']\n    junk_terms = ['references', 'license', 'downloaded from', 'email alerting', 'supplemental', 'copyright']\n\n    section_hits = 0\n    junk_hits = 0\n    examined = 0\n\n    for item in result[:6]:\n        text = str((item or {}).get('content') or '').lower()\n        if not text:\n            continue\n        examined += 1\n        if any(t in text for t in section_terms):\n            section_hits += 1\n        if any(t in text for t in junk_terms):\n            junk_hits += 1\n\n    return {'sections': section_hits, 'junk': junk_hits, 'count': examined}\n\n\ndef main(primary_result=None, fallback_result=None, user_query=None):\n    primary = primary_result if isinstance(primary_result, list) else []\n    fallback = fallback_result if isinstance(fallback_result, list) else []\n\n    summary = _is_summary_intent(user_query or '')\n    p = _coverage_score(primary)\n    f = _coverage_score(fallback)\n\n    use_fallback = False\n    reason = 'primary-ok'\n\n    if summary:\n        primary_good = p['sections'] >= 2 and p['junk'] <= max(1, p['count'] // 2)\n        fallback_good = f['sections'] >= p['sections'] or (f['sections'] >= 2 and f['junk'] <= p['junk'])\n\n        if (not primary_good) and fallback and fallback_good:\n            use_fallback = True\n            reason = 'fallback-better-coverage'\n        elif (not primary_good) and fallback and not primary:\n            use_fallback = True\n            reason = 'primary-empty'\n\n    selected = fallback if use_fallback else primary\n    if not selected:\n        selected = primary or fallback\n\n    return {\n        'selected_result': selected,\n        'selection_reason': reason,\n        'primary_sections': p['sections'],\n        'fallback_sections': f['sections']\n    }\n"
+        code_language: python3
+        isInIteration: true
+        isInLoop: false
+        iteration_id: '1778676584534'
+        outputs:
+          fallback_sections:
+            children: null
+            type: number
+          primary_sections:
+            children: null
+            type: number
+          selected_result:
+            children: null
+            type: array[object]
+          selection_reason:
+            children: null
+            type: string
+        selected: false
+        title: Select Retrieval Context
+        type: code
+        variables:
+        - value_selector:
+          - '17786780201700'
+          - result
+          value_type: array[object]
+          variable: primary_result
+        - value_selector:
+          - '1778800001016'
+          - result
+          value_type: array[object]
+          variable: fallback_result
+        - value_selector:
+          - sys
+          - query
+          value_type: string
+          variable: user_query
+      height: 51
+      id: '1778800001017'
+      parentId: '1778676584534'
+      position:
+        x: 760
+        y: 390
+      positionAbsolute:
+        x: -375.67576084263874
+        y: 3713.2669569601585
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 241
+      zIndex: 1002
+    - data:
+        code: "import json\nimport os\nfrom urllib.error import HTTPError, URLError\nfrom urllib.parse import urlencode\nfrom urllib.request import Request, urlopen\n\n\ndef _is_summary_intent(query):\n    q = (query or '').lower()\n    markers = [\n        'summarize', 'summary', 'zusammenfassung', 'fasse', 'fassen',\n        'overview', 'explain briefly', 'kurz', 'short summary'\n    ]\n    return any(m in q for m in markers)\n\n\ndef _norm(text):\n    return str(text or '').strip()\n\n\ndef _run_json_get(url, headers, timeout=30):\n    req = Request(url=url, headers=headers, method='GET')\n    try:\n        with urlopen(req, timeout=timeout) as resp:\n            body = resp.read().decode('utf-8', errors='replace')\n            status = resp.getcode()\n    except HTTPError as exc:\n        body = exc.read().decode('utf-8', errors='replace')\n        return {}, f'HTTPError {exc.code}: {body}'\n    except URLError as exc:\n        return {}, f'URLError: {exc}'\n    except Exception as exc:\n        return {}, f'Error: {exc}'\n\n    if status != 200:\n        return {}, f'HTTP {status}: {body}'\n\n    try:\n        return json.loads(body), None\n    except Exception:\n        return {}, f'Invalid JSON: {body[:500]}'\n\n\ndef _extract_doc_id_from_result(result):\n    if not isinstance(result, list):\n        return ''\n    for item in result:\n        md = (item or {}).get('metadata') or {}\n        doc_id = _norm(md.get('document_id'))\n        if doc_id:\n            return doc_id\n    return ''\n\n\ndef _extract_items(payload):\n    if isinstance(payload, dict):\n        if isinstance(payload.get('data'), list):\n            return payload.get('data')\n        if isinstance(payload.get('segments'), list):\n            return payload.get('segments')\n    return []\n\n\ndef _segment_content(seg):\n    if not isinstance(seg, dict):\n        return ''\n    for key in ('content', 'text', 'segment', 'segment_text'):\n        value = seg.get(key)\n        if isinstance(value, str) and value.strip():\n            return value\n        if isinstance(value, dict):\n            nested = value.get('content') or value.get('text')\n            if isinstance(nested, str) and nested.strip():\n                return nested\n    return ''\n\n\ndef _segment_position(seg):\n    if not isinstance(seg, dict):\n        return 10**9\n    for key in ('position', 'segment_position', 'index', 'order'):\n        val = seg.get(key)\n        if isinstance(val, (int, float)):\n            return int(val)\n    return 10**9\n\n\ndef _fetch_all_segments(api_base, dataset_id, document_id, headers):\n    all_segments = []\n    seen = set()\n\n    for page in range(1, 31):\n        q = urlencode({'page': page, 'limit': 100})\n        url = f'{api_base}/datasets/{dataset_id}/documents/{document_id}/segments?{q}'\n        payload, err = _run_json_get(url, headers=headers, timeout=30)\n        if err:\n            if page == 1:\n                return [], err\n            break\n\n        items = _extract_items(payload)\n        if not items:\n            break\n\n        for seg in items:\n            content = _segment_content(seg)\n            if not content:\n                continue\n            sid = _norm((seg or {}).get('id'))\n            key = sid or content[:200]\n            if key in seen:\n                continue\n            seen.add(key)\n            all_segments.append({'position': _segment_position(seg), 'content': content})\n\n        if len(items) < 100:\n            break\n\n    all_segments.sort(key=lambda x: x['position'])\n    joined = '\\n\\n'.join(s['content'] for s in all_segments if s['content'])\n    return joined, None\n\n\ndef main(selected_result=None, selection_reason=None, user_query=None):\n    if not _is_summary_intent(user_query or ''):\n        return {\n            'whole_paper_text': '',\n            'use_whole_paper': False,\n            'whole_paper_doc_id': '',\n            'whole_paper_error': 'non-summary-intent'\n        }\n\n    doc_id = _extract_doc_id_from_result(selected_result)\n    if not doc_id:\n        return {\n            'whole_paper_text': '',\n            'use_whole_paper': False,\n            'whole_paper_doc_id': '',\n            'whole_paper_error': 'no-document-id'\n        }\n\n    api_base = (_norm(os.getenv('DIFY_API_URL')) or 'http://rmap-chatbot-demo-dify/v1').rstrip('/')\n    dataset_id = _norm(os.getenv('DIFY_DATASET_ID')) or '227cf97a-8e56-4cd6-808d-caf57bc0d2bf'\n    api_key = _norm(os.getenv('DIFY_API_KEY')) or 'dataset-z3bHkQ6eUPKN21GaLq3KXIiS'\n\n    if not api_base or not dataset_id or not api_key:\n        return {\n            'whole_paper_text': '',\n            'use_whole_paper': False,\n            'whole_paper_doc_id': doc_id,\n            'whole_paper_error': 'missing-api-config'\n        }\n\n    headers = {'Authorization': f'Bearer {api_key}', 'Content-Type': 'application/json'}\n    text, err = _fetch_all_segments(api_base, dataset_id, doc_id, headers)\n    if err:\n        return {\n            'whole_paper_text': '',\n            'use_whole_paper': False,\n            'whole_paper_doc_id': doc_id,\n            'whole_paper_error': err\n        }\n\n    if not text:\n        return {\n            'whole_paper_text': '',\n            'use_whole_paper': False,\n            'whole_paper_doc_id': doc_id,\n            'whole_paper_error': 'no-segments'\n        }\n\n    max_chars = 140000\n    clipped = text[:max_chars]\n    return {\n        'whole_paper_text': clipped,\n        'use_whole_paper': True,\n        'whole_paper_doc_id': doc_id,\n        'whole_paper_error': ''\n    }\n"
+        code_language: python3
+        isInIteration: true
+        isInLoop: false
+        iteration_id: '1778676584534'
+        outputs:
+          use_whole_paper:
+            children: null
+            type: boolean
+          whole_paper_doc_id:
+            children: null
+            type: string
+          whole_paper_error:
+            children: null
+            type: string
+          whole_paper_text:
+            children: null
+            type: string
+        selected: false
+        title: Load Whole Paper Fallback
+        type: code
+        variables:
+        - value_selector:
+          - '1778800001017'
+          - selected_result
+          value_type: array[object]
+          variable: selected_result
+        - value_selector:
+          - '1778800001017'
+          - selection_reason
+          value_type: string
+          variable: selection_reason
+        - value_selector:
+          - sys
+          - query
+          value_type: string
+          variable: user_query
+      height: 51
+      id: '1778800001018'
+      parentId: '1778676584534'
+      position:
+        x: 1020
+        y: 390
+      positionAbsolute:
+        x: -115.67576084263874
+        y: 3713.2669569601585
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 241
+      zIndex: 1002
+    - data:
+        code: "def _as_chunk_text(selected_result):\n    if not isinstance(selected_result, list):\n        return ''\n\n    parts = []\n    for item in selected_result:\n        text = str((item or {}).get('content') or '').strip()\n        if text:\n            parts.append(text)\n\n    return '\\n\\n'.join(parts)\n\n\ndef main(selected_result=None, whole_paper_text=None, use_whole_paper=False):\n    if bool(use_whole_paper) and str(whole_paper_text or '').strip():\n        return {\n            'map_context': str(whole_paper_text),\n            'map_context_mode': 'whole-paper'\n        }\n\n    return {\n        'map_context': _as_chunk_text(selected_result),\n        'map_context_mode': 'retrieval-chunks'\n    }\n"
+        code_language: python3
+        isInIteration: true
+        isInLoop: false
+        iteration_id: '1778676584534'
+        outputs:
+          map_context:
+            children: null
+            type: string
+          map_context_mode:
+            children: null
+            type: string
+        selected: false
+        title: Compose Map Context
+        type: code
+        variables:
+        - value_selector:
+          - '1778800001017'
+          - selected_result
+          value_type: array[object]
+          variable: selected_result
+        - value_selector:
+          - '1778800001018'
+          - whole_paper_text
+          value_type: string
+          variable: whole_paper_text
+        - value_selector:
+          - '1778800001018'
+          - use_whole_paper
+          value_type: boolean
+          variable: use_whole_paper
+      height: 51
+      id: '1778800001019'
+      parentId: '1778676584534'
+      position:
+        x: 1260
+        y: 390
+      positionAbsolute:
+        x: 124.32423915736126
+        y: 3713.2669569601585
       selected: false
       sourcePosition: right
       targetPosition: left
@@ -1167,8 +1533,8 @@ workflow:
         context:
           enabled: true
           variable_selector:
-          - '17786780201700'
-          - result
+          - '1778800001019'
+          - map_context
         isInIteration: true
         isInLoop: false
         iteration_id: '1778676584534'
@@ -1191,10 +1557,32 @@ workflow:
         prompt_template:
         - id: 4eaf6992-1e89-4a94-97ac-a7f6f2f6a151
           role: system
-          text: 'You are the map step for one paper candidate.
+          text: 'You are the map step for exactly one target paper.
+
+
+            Target paper metadata for this iteration:
+
+            - title: {{#1778676584534.item.title#}}
+
+            - authors: {{#1778676584534.item.authors#}}
+
+            - year: {{#1778676584534.item.year#}}
+
+            - journal: {{#1778676584534.item.journal#}}
 
 
             Use only {{#context#}} from the filtered retrieval of this single iteration.
+
+
+            STRICT SCOPE RULES:
+
+            - Summarize only the target paper above.
+
+            - Never summarize other papers, even if they appear in context.
+
+            - If context appears to refer primarily to another paper, output "insufficient textual context" for this target paper.
+
+            - Never transfer claims from another paper to this target paper.
 
 
             Output exactly 2 short sections:
@@ -1234,8 +1622,8 @@ workflow:
         x: 768.3819979808457
         y: 269.5134357817924
       positionAbsolute:
-        x: -357.08169023996675
-        y: 3604.4522521108984
+        x: -367.2937628617931
+        y: 3592.780392741951
       selected: false
       sourcePosition: right
       targetPosition: left
@@ -1419,8 +1807,8 @@ workflow:
         x: 507.70835440792223
         y: 82.02579653098337
       positionAbsolute:
-        x: -617.7553338128902
-        y: 3416.9646128600893
+        x: -627.9674064347165
+        y: 3405.292753491142
       selected: false
       sourcePosition: right
       targetPosition: left
@@ -1450,14 +1838,16 @@ workflow:
           \ dict) else {}\n\n\ndef _clean_list(items):\n    cleaned = []\n    if not\
           \ isinstance(items, list):\n        return cleaned\n    for item in items:\n\
           \        obj = _clean_obj(item)\n        if obj is not None and any(obj.values()):\n\
-          \            cleaned.append(obj)\n    return cleaned\n\n\ndef main(extractor_text=None, extractor_structured_output=None):\n\
-          \    data = extractor_structured_output if isinstance(extractor_structured_output, dict) else _parse_json(extractor_text)\n\n    if isinstance(data.get(\"\
-          paper_list\"), list):\n        raw_items = data.get(\"paper_list\")\n  \
-          \  elif any(k in data for k in (\"title\", \"authors\", \"author\", \"year\"\
-          , \"journal\")):\n        raw_items = [data]\n    elif isinstance(data.get(\"\
-          authors\"), list):\n        raw_items = [{\"authors\": a} for a in data.get(\"\
-          authors\") if str(a).strip()]\n    else:\n        raw_items = []\n\n   \
-          \ return {\"extracted_paper_list\": _clean_list(raw_items)}\n"
+          \            cleaned.append(obj)\n    return cleaned\n\n\ndef main(extractor_text=None,\
+          \ extractor_structured_output=None):\n    data = extractor_structured_output\
+          \ if isinstance(extractor_structured_output, dict) else _parse_json(extractor_text)\n\
+          \n    if isinstance(data.get(\"paper_list\"), list):\n        raw_items\
+          \ = data.get(\"paper_list\")\n    elif any(k in data for k in (\"title\"\
+          , \"authors\", \"author\", \"year\", \"journal\")):\n        raw_items =\
+          \ [data]\n    elif isinstance(data.get(\"authors\"), list):\n        raw_items\
+          \ = [{\"authors\": a} for a in data.get(\"authors\") if str(a).strip()]\n\
+          \    else:\n        raw_items = []\n\n    return {\"extracted_paper_list\"\
+          : _clean_list(raw_items)}\n"
         code_language: python3
         isInIteration: false
         isInLoop: false
@@ -1482,11 +1872,11 @@ workflow:
       height: 51
       id: '1778800001010'
       position:
-        x: -1452.6825467404378
-        y: 3510.3800227688935
+        x: -1468.2450258990343
+        y: 3544.4229459283233
       positionAbsolute:
-        x: -1452.6825467404378
-        y: 3510.3800227688935
+        x: -1468.2450258990343
+        y: 3544.4229459283233
       selected: false
       sourcePosition: right
       targetPosition: left
@@ -1584,15 +1974,15 @@ workflow:
           \ _clean_obj(item)\n        if obj is not None and any(obj.values()):\n\
           \            cleaned.append(obj)\n    return cleaned\n\n\ndef main(extracted_paper_list=None,\
           \ memory_subset=None, is_followup=True, query=None):\n    extracted = _clean_list(extracted_paper_list)\n\
-          \    subset = _clean_list(memory_subset)\n\n    if subset:\n\
-          \        return {\"paper_list\": subset}\n\n    if extracted:\n        return\
-          \ {\"paper_list\": extracted}\n\n    q = str(query or \"\").strip()\n  \
-          \  m = re.search(r\"\\b(?:by|von)\\s+([A-Z][A-Za-z.-]+(?:\\s+[A-Z][A-Za-z.-]+){1,4})\"\
-          , q)\n    if m:\n        return {\n            \"paper_list\": [\n     \
-          \           {\n                    \"title\": \"\",\n                  \
-          \  \"authors\": m.group(1).strip(\" ,.;:\"),\n                    \"year\"\
-          : \"\",\n                    \"journal\": \"\",\n                }\n   \
-          \         ]\n        }\n\n    return {\"paper_list\": []}\n"
+          \    subset = _clean_list(memory_subset)\n\n    if subset:\n        return\
+          \ {\"paper_list\": subset}\n\n    if extracted:\n        return {\"paper_list\"\
+          : extracted}\n\n    q = str(query or \"\").strip()\n    m = re.search(r\"\
+          \\b(?:by|von)\\s+([A-Z][A-Za-z.-]+(?:\\s+[A-Z][A-Za-z.-]+){1,4})\", q)\n\
+          \    if m:\n        return {\n            \"paper_list\": [\n          \
+          \      {\n                    \"title\": \"\",\n                    \"authors\"\
+          : m.group(1).strip(\" ,.;:\"),\n                    \"year\": \"\",\n  \
+          \                  \"journal\": \"\",\n                }\n            ]\n\
+          \        }\n\n    return {\"paper_list\": []}\n"
         code_language: python3
         isInIteration: false
         isInLoop: false
@@ -1747,8 +2137,8 @@ workflow:
         x: 1024
         y: 79.4518180363807
       positionAbsolute:
-        x: -101.4636882208124
-        y: 3414.3906343654867
+        x: -111.67576084263874
+        y: 3402.718774996539
       selected: false
       sourcePosition: right
       targetPosition: left
@@ -1756,7 +2146,7 @@ workflow:
       width: 241
       zIndex: 1002
     viewport:
-      x: 1026.046329052152
-      y: -936.6163653787685
-      zoom: 0.3917485934746706
+      x: 1886.137463404193
+      y: -3138.4376184795237
+      zoom: 1.028113826656066
   rag_pipeline_variables: []
