@@ -176,6 +176,19 @@ workflow:
       type: custom
       zIndex: 1002
     - data:
+        isInIteration: true
+        isInLoop: false
+        iteration_id: '1778676584534'
+        sourceType: question-classifier
+        targetType: code
+      id: 17786780005730-2-1778800001014-target
+      source: '17786780005730'
+      sourceHandle: '2'
+      target: '1778800001014'
+      targetHandle: target
+      type: custom
+      zIndex: 1002
+    - data:
         isInLoop: false
         sourceType: if-else
         targetType: iteration
@@ -190,11 +203,11 @@ workflow:
         isInIteration: true
         isInLoop: false
         iteration_id: '1778676584534'
-        sourceType: question-classifier
+        sourceType: code
         targetType: knowledge-retrieval
-      id: 17786780005730-2-17786780201700-target
-      source: '17786780005730'
-      sourceHandle: '2'
+      id: 1778800001014-source-17786780201700-target
+      source: '1778800001014'
+      sourceHandle: source
       target: '17786780201700'
       targetHandle: target
       type: custom
@@ -1027,6 +1040,64 @@ workflow:
       width: 241
       zIndex: 1002
     - data:
+        code: "def _clean(value):\n    if value is None:\n        return \"\"\n    return str(value).strip()\n\n\ndef _build_disambiguation(title, authors, year, journal):\n    parts = []\n    if title:\n        parts.append(f'title: {title}')\n    if authors:\n        parts.append(f'authors: {authors}')\n    if year:\n        parts.append(f'year: {year}')\n    if journal:\n        parts.append(f'journal: {journal}')\n    return '; '.join(parts)\n\n\ndef _is_summary_intent(query):\n    q = (query or '').lower()\n    markers = [\n        'summarize', 'summary', 'zusammenfassung', 'fasse', 'fassen',\n        'overview', 'explain briefly', 'kurz', 'short summary'\n    ]\n    return any(m in q for m in markers)\n\n\ndef _focus_clause():\n    return (\n        'Prefer chunks containing abstract/introduction/methods/results/discussion '\n        'and avoid references, author lists, copyright/license text, and supplemental notices.'\n    )\n\n\ndef main(title=None, authors=None, year=None, journal=None, user_query=None):\n    title = _clean(title)\n    authors = _clean(authors)\n    year = _clean(year)\n    journal = _clean(journal)\n    user_query = _clean(user_query)\n\n    disambiguation = _build_disambiguation(title, authors, year, journal)\n    focus = _focus_clause()\n\n    if _is_summary_intent(user_query):\n        if title:\n            query = (\n                f'Find abstract, methods, key results, and conclusions for the paper \"{title}\". '\n                f'{focus} Use metadata only for disambiguation: {disambiguation}'\n            )\n        elif authors:\n            query = (\n                f'Find abstract, methods, key results, and conclusions for papers by {authors}. '\n                f'{focus}'\n            )\n        else:\n            query = f'Find abstract, methods, key results, and conclusions for the target paper. {focus}'\n    else:\n        question = user_query or 'What are the key contributions of this paper?'\n        if title:\n            query = (\n                f'Answer this question for the paper \"{title}\": {question}. '\n                f'{focus} Use metadata only for disambiguation: {disambiguation}'\n            )\n        elif authors:\n            query = (\n                f'Answer this question for papers by {authors}: {question}. {focus}'\n            )\n        else:\n            query = f'{question} {focus}'\n\n    return {'semantic_query': query}\n"
+        code_language: python3
+        isInIteration: true
+        isInLoop: false
+        iteration_id: '1778676584534'
+        outputs:
+          semantic_query:
+            children: null
+            type: string
+        selected: false
+        title: Build Paper Semantic Query
+        type: code
+        variables:
+        - value_selector:
+          - '1778676584534'
+          - item
+          - title
+          value_type: string
+          variable: title
+        - value_selector:
+          - '1778676584534'
+          - item
+          - authors
+          value_type: string
+          variable: authors
+        - value_selector:
+          - '1778676584534'
+          - item
+          - year
+          value_type: string
+          variable: year
+        - value_selector:
+          - '1778676584534'
+          - item
+          - journal
+          value_type: string
+          variable: journal
+        - value_selector:
+          - sys
+          - query
+          value_type: string
+          variable: user_query
+      height: 51
+      id: '1778800001014'
+      parentId: '1778676584534'
+      position:
+        x: 190
+        y: -10
+      positionAbsolute:
+        x: -935.4636882208124
+        y: 3324.938816329106
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 241
+      zIndex: 1002
+    - data:
         dataset_ids:
         - 5/WcDtIuGANrAhqT255sDDblyQ7EPbz5ptEFPwuSFpIFdL2zcvi5ayyg7/+ctuJt
         isInIteration: true
@@ -1071,8 +1142,8 @@ workflow:
             weight_type: customized
         query_attachment_selector: []
         query_variable_selector:
-        - '1778508354995'
-        - text
+        - '1778800001014'
+        - semantic_query
         retrieval_mode: multiple
         selected: false
         title: KR with filter

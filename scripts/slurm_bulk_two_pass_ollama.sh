@@ -1,6 +1,6 @@
 #!/bin/bash
 #SBATCH --job-name=rmap_bulk_2pass
-#SBATCH --output=/beegfs/homes/pwiesenbach/rmap-chatbot/reports/slurm/rmap_bulk_2pass_%j.log
+#SBATCH --output=/beegfs/homes/pwiesenbach/rmap-chatbot/reports/rmap_bulk_2pass_%j.log
 #SBATCH --partition=gpu
 #SBATCH --gres=gpu:ampere:1
 #SBATCH --nodelist=gpu-g4-1
