@@ -6,17 +6,20 @@ set -euo pipefail
 #   DIFY_BASE_URL=... DIFY_CONSOLE_API_KEY='...' scripts/import_dify_dsl.sh <dsl.yml>
 # Optional cookie fallback (explicit opt-in only):
 #   DIFY_BASE_URL=... DIFY_CONSOLE_COOKIE='...' DIFY_CSRF_TOKEN='...' scripts/import_dify_dsl.sh <dsl.yml> --allow-cookie-auth
+# Optional login-based token refresh (for deployments without static console API keys):
+#   DIFY_CONSOLE_EMAIL='...' DIFY_CONSOLE_PASSWORD_B64='...' scripts/import_dify_dsl.sh <dsl.yml> --auto-login
 # Update existing app (avoid duplicates):
 #   DIFY_APP_ID=<existing-app-id> scripts/import_dify_dsl.sh <dsl.yml>
 
 if [[ $# -lt 1 ]]; then
-  echo "Usage: $0 <dsl-yaml-path> [--app-id <app-id>] [--allow-cookie-auth]"
+  echo "Usage: $0 <dsl-yaml-path> [--app-id <app-id>] [--allow-cookie-auth] [--auto-login]"
   exit 1
 fi
 
 DSL_PATH="$1"
 shift
 ALLOW_COOKIE_AUTH=0
+AUTO_LOGIN=0
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
@@ -30,9 +33,13 @@ while [[ $# -gt 0 ]]; do
       ALLOW_COOKIE_AUTH=1
       shift
       ;;
+    --auto-login)
+      AUTO_LOGIN=1
+      shift
+      ;;
     *)
       echo "Unknown argument: $1"
-      echo "Usage: $0 <dsl-yaml-path> [--app-id <app-id>] [--allow-cookie-auth]"
+      echo "Usage: $0 <dsl-yaml-path> [--app-id <app-id>] [--allow-cookie-auth] [--auto-login]"
       exit 1
       ;;
   esac
@@ -54,6 +61,7 @@ fi
 
 SESSION_DIR=".secrets"
 SESSION_FILE="$SESSION_DIR/dify_console_session.env"
+LOGIN_FILE="$SESSION_DIR/dify_console_login.env"
 mkdir -p "$SESSION_DIR"
 chmod 700 "$SESSION_DIR"
 
@@ -65,6 +73,13 @@ IN_DIFY_APP_ID="${DIFY_APP_ID-}"
 IN_DIFY_APP_ID_IS_SET=0
 [[ ${DIFY_APP_ID+x} ]] && IN_DIFY_APP_ID_IS_SET=1
 IN_DIFY_CONSOLE_API_KEY="${DIFY_CONSOLE_API_KEY-}"
+IN_DIFY_CONSOLE_EMAIL="${DIFY_CONSOLE_EMAIL-}"
+IN_DIFY_CONSOLE_PASSWORD_B64="${DIFY_CONSOLE_PASSWORD_B64-}"
+IN_DIFY_CONSOLE_LOGIN_LANGUAGE="${DIFY_CONSOLE_LOGIN_LANGUAGE-}"
+IN_DIFY_CONSOLE_REMEMBER_ME="${DIFY_CONSOLE_REMEMBER_ME-}"
+if [[ "${DIFY_CONSOLE_AUTO_LOGIN:-0}" == "1" ]]; then
+  AUTO_LOGIN=1
+fi
 BOOTSTRAP_REQUESTED=0
 [[ -n "$IN_DIFY_CONSOLE_COOKIE" ]] && BOOTSTRAP_REQUESTED=1
 
@@ -72,6 +87,12 @@ BOOTSTRAP_REQUESTED=0
 if [[ -f "$SESSION_FILE" ]]; then
   # shellcheck source=/dev/null
   source "$SESSION_FILE"
+fi
+
+# Load persisted login credentials (separate file so cookie bootstrap does not overwrite them).
+if [[ -f "$LOGIN_FILE" ]]; then
+  # shellcheck source=/dev/null
+  source "$LOGIN_FILE"
 fi
 
 # Restore explicit run-time values so they override persisted session state.
@@ -82,6 +103,10 @@ if [[ "$IN_DIFY_APP_ID_IS_SET" == "1" ]]; then
   DIFY_APP_ID="$IN_DIFY_APP_ID"
 fi
 [[ -n "$IN_DIFY_CONSOLE_API_KEY" ]] && DIFY_CONSOLE_API_KEY="$IN_DIFY_CONSOLE_API_KEY"
+[[ -n "$IN_DIFY_CONSOLE_EMAIL" ]] && DIFY_CONSOLE_EMAIL="$IN_DIFY_CONSOLE_EMAIL"
+[[ -n "$IN_DIFY_CONSOLE_PASSWORD_B64" ]] && DIFY_CONSOLE_PASSWORD_B64="$IN_DIFY_CONSOLE_PASSWORD_B64"
+[[ -n "$IN_DIFY_CONSOLE_LOGIN_LANGUAGE" ]] && DIFY_CONSOLE_LOGIN_LANGUAGE="$IN_DIFY_CONSOLE_LOGIN_LANGUAGE"
+[[ -n "$IN_DIFY_CONSOLE_REMEMBER_ME" ]] && DIFY_CONSOLE_REMEMBER_ME="$IN_DIFY_CONSOLE_REMEMBER_ME"
 
 : "${DIFY_BASE_URL:?DIFY_BASE_URL is required}"
 
@@ -118,6 +143,92 @@ PY
 TMP_IMPORT=$(mktemp)
 USED_AUTH_MODE=""
 
+run_console_auto_login() {
+  : "${DIFY_CONSOLE_EMAIL:?DIFY_CONSOLE_EMAIL is required for --auto-login}"
+
+  if [[ -z "${DIFY_CONSOLE_PASSWORD_B64:-}" ]]; then
+    : "${DIFY_CONSOLE_PASSWORD:?DIFY_CONSOLE_PASSWORD or DIFY_CONSOLE_PASSWORD_B64 is required for --auto-login}"
+    DIFY_CONSOLE_PASSWORD_B64=$(printf '%s' "$DIFY_CONSOLE_PASSWORD" | base64 | tr -d '\n')
+  fi
+
+  local login_url="${DIFY_BASE_URL%/}/console/api/login"
+  local login_lang="${DIFY_CONSOLE_LOGIN_LANGUAGE:-en-US}"
+  local remember_me="${DIFY_CONSOLE_REMEMBER_ME:-true}"
+  local login_payload
+  login_payload=$(DIFY_CONSOLE_EMAIL="$DIFY_CONSOLE_EMAIL" DIFY_CONSOLE_PASSWORD_B64="$DIFY_CONSOLE_PASSWORD_B64" DIFY_CONSOLE_LOGIN_LANGUAGE="$login_lang" DIFY_CONSOLE_REMEMBER_ME="$remember_me" /home/pwiesenbach/rmap-chatbot/.venv/bin/python - <<'PY'
+import json
+import os
+
+remember = str(os.environ.get("DIFY_CONSOLE_REMEMBER_ME", "true")).strip().lower() in {"1", "true", "yes", "on"}
+payload = {
+  "email": os.environ["DIFY_CONSOLE_EMAIL"],
+  "password": os.environ["DIFY_CONSOLE_PASSWORD_B64"],
+  "language": os.environ.get("DIFY_CONSOLE_LOGIN_LANGUAGE", "en-US"),
+  "remember_me": remember,
+}
+print(json.dumps(payload, ensure_ascii=False))
+PY
+)
+
+  local tmp_login
+  tmp_login=$(mktemp)
+  local login_http
+  login_http=$(curl -sS -o "$tmp_login" -w "%{http_code}" -X POST "$login_url" \
+    -H "Content-Type: application/json" \
+    --data "$login_payload")
+
+  if [[ "$login_http" != "200" ]]; then
+    echo "Console login failed (HTTP=$login_http)."
+    cat "$tmp_login"
+    return 1
+  fi
+
+  local token
+  token=$(TMP_FILE="$tmp_login" /home/pwiesenbach/rmap-chatbot/.venv/bin/python - <<'PY'
+import json
+import os
+
+obj = json.load(open(os.environ["TMP_FILE"], encoding="utf-8"))
+
+def pick(*paths):
+    cur = obj
+    for p in paths:
+        if isinstance(cur, dict) and p in cur:
+            cur = cur[p]
+        else:
+            return None
+    return cur
+
+candidates = [
+    pick("data", "access_token"),
+    pick("access_token"),
+    pick("data", "token"),
+    pick("token"),
+    pick("data", "value"),
+    pick("value"),
+  pick("result"),
+  pick("result", "access_token"),
+  pick("result", "token"),
+  pick("result", "value"),
+]
+for c in candidates:
+    if isinstance(c, str) and c.strip():
+        print(c.strip())
+        break
+PY
+)
+
+  if [[ -z "$token" ]]; then
+    echo "Console login succeeded but no access token found in response."
+    cat "$tmp_login"
+    return 1
+  fi
+
+  DIFY_CONSOLE_API_KEY="$token"
+  export DIFY_CONSOLE_API_KEY
+  echo "Obtained console access token via /console/api/login."
+}
+
 run_import_with_api_key() {
   curl -sS -o "$TMP_IMPORT" -w "%{http_code}" -X POST "$IMPORT_URL" \
     -H "Authorization: Bearer ${DIFY_CONSOLE_API_KEY}" \
@@ -135,12 +246,24 @@ run_import_with_cookie() {
     --data "$PAYLOAD"
 }
 
+if [[ -z "${DIFY_CONSOLE_API_KEY:-}" && "$AUTO_LOGIN" == "1" ]]; then
+  echo "Auth mode: auto-login"
+  run_console_auto_login
+fi
+
 if [[ -n "${DIFY_CONSOLE_API_KEY:-}" ]]; then
   echo "Auth mode: API key"
   HTTP_CODE=$(run_import_with_api_key)
   USED_AUTH_MODE="api_key"
 
   if [[ "$HTTP_CODE" == "401" ]] && grep -qi 'Invalid token' "$TMP_IMPORT"; then
+    if [[ "$AUTO_LOGIN" == "1" ]]; then
+      echo "Console token invalid; refreshing via /console/api/login."
+      run_console_auto_login
+      HTTP_CODE=$(run_import_with_api_key)
+      USED_AUTH_MODE="api_key"
+    fi
+
     if [[ "$ALLOW_COOKIE_AUTH" == "1" || ( -n "${DIFY_CONSOLE_COOKIE:-}" && -n "${DIFY_CSRF_TOKEN:-}" ) ]]; then
       echo "API key not valid for console API on this deployment; retrying with cookie session."
       HTTP_CODE=$(run_import_with_cookie)
