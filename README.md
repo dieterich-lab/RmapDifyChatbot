@@ -77,6 +77,27 @@ Optional local environment file (for import/debug scripts):
 source .secrets/dify_console_session.env
 ```
 
+Optional persistent login secrets (for `--auto-login`):
+
+```bash
+cat > .secrets/dify_console_login.env <<'EOF'
+DIFY_CONSOLE_EMAIL="you@example.org"
+# Option A (recommended): base64-encoded password string
+DIFY_CONSOLE_PASSWORD_B64="<base64_password>"
+# Option B (alternative): plaintext password
+# DIFY_CONSOLE_PASSWORD="<plaintext_password>"
+DIFY_CONSOLE_LOGIN_LANGUAGE="en-US"
+DIFY_CONSOLE_REMEMBER_ME="true"
+EOF
+chmod 600 .secrets/dify_console_login.env
+```
+
+Notes:
+
+1. Both `scripts/import_dify_dsl.sh` and `scripts/debug_route_draft.sh` auto-load `.secrets/dify_console_login.env` when present.
+2. `.secrets/` is git-ignored in this repo, so this file is not committed.
+3. Prefer `DIFY_CONSOLE_PASSWORD_B64`; it avoids shell quoting pitfalls but is not cryptographic protection.
+
 ### API credential map
 
 Use different keys for different endpoint families:
@@ -114,6 +135,16 @@ AUTO_CONFIRM=true \
 scripts/import_dify_dsl.sh "config/RMAP Chatbot Meta Routing.yml" --app-id "<app_id>" --allow-cookie-auth
 ```
 
+Auto-login (refresh short-lived console token via `/console/api/login`):
+
+```bash
+DIFY_BASE_URL="http://your-dify-host" \
+DIFY_CONSOLE_EMAIL="you@example.org" \
+DIFY_CONSOLE_PASSWORD_B64="<base64_password>" \
+AUTO_CONFIRM=true \
+scripts/import_dify_dsl.sh "config/RMAP Chatbot Meta Routing.yml" --app-id "<app_id>" --auto-login
+```
+
 ### 2. Validate routing behavior
 
 ```bash
@@ -135,6 +166,18 @@ DIFY_BASE_URL="http://your-dify-host" \
 DIFY_CONSOLE_API_KEY="<console_api_key>" \
 scripts/debug_route_draft.sh \
 	--app-id "<app_id>" \
+	--query "What are the main methods and findings of Sci-ModoM?"
+```
+
+Or with auto-login token refresh:
+
+```bash
+DIFY_BASE_URL="http://your-dify-host" \
+DIFY_CONSOLE_EMAIL="you@example.org" \
+DIFY_CONSOLE_PASSWORD_B64="<base64_password>" \
+scripts/debug_route_draft.sh \
+	--app-id "<app_id>" \
+	--auto-login \
 	--query "What are the main methods and findings of Sci-ModoM?"
 ```
 
@@ -182,6 +225,20 @@ DIFY_CSRF_TOKEN="..." \
 scripts/debug_route_draft.sh \
 	--app-id "<app_id>" \
 	--allow-cookie-auth \
+	--classifier-node-id "17786780005730" \
+	--query "What papers did Christoph Dieterich author?" \
+	--query "Can you summarize these papers?"
+```
+
+Auto-login alternative for the same draft flow:
+
+```bash
+DIFY_BASE_URL="http://your-dify-host" \
+DIFY_CONSOLE_EMAIL="you@example.org" \
+DIFY_CONSOLE_PASSWORD_B64="<base64_password>" \
+scripts/debug_route_draft.sh \
+	--app-id "<app_id>" \
+	--auto-login \
 	--classifier-node-id "17786780005730" \
 	--query "What papers did Christoph Dieterich author?" \
 	--query "Can you summarize these papers?"
