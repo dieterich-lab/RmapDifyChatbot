@@ -43,6 +43,21 @@ if [[ -f "$SESSION_FILE" ]]; then
   set +a
 fi
 
+# Normalize dataset auth to avoid accidental app-key usage in dataset endpoints.
+if [[ -n "${DIFY_DATASET_API_KEY:-}" ]]; then
+  if [[ "${DIFY_DATASET_API_KEY}" != dataset-* ]]; then
+    echo "ERROR: DIFY_DATASET_API_KEY must start with 'dataset-'."
+    exit 1
+  fi
+elif [[ -n "${DIFY_API_KEY:-}" ]]; then
+  if [[ "${DIFY_API_KEY}" == dataset-* ]]; then
+    export DIFY_DATASET_API_KEY="$DIFY_API_KEY"
+  else
+    echo "WARN: Ignoring DIFY_API_KEY because it is not a dataset key."
+    unset DIFY_API_KEY
+  fi
+fi
+
 export OLLAMA_HOST
 export OLLAMA_KEEP_ALIVE="${OLLAMA_KEEP_ALIVE:-1h}"
 export OLLAMA_NUM_PARALLEL="${OLLAMA_NUM_PARALLEL:-1}"
