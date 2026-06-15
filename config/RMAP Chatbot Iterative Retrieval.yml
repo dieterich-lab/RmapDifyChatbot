@@ -181,6 +181,19 @@ workflow:
         iteration_id: '1778676584534'
         sourceType: question-classifier
         targetType: code
+      id: 17786780005730-1-17786780698570-target
+      source: '17786780005730'
+      sourceHandle: '1'
+      target: '17786780698570'
+      targetHandle: target
+      type: custom
+      zIndex: 1002
+    - data:
+        isInIteration: true
+        isInLoop: false
+        iteration_id: '1778676584534'
+        sourceType: question-classifier
+        targetType: code
       id: 17786780005730-2-1778800001014-target
       source: '17786780005730'
       sourceHandle: '2'
@@ -216,12 +229,12 @@ workflow:
         isInIteration: true
         isInLoop: false
         iteration_id: '1778676584534'
-        sourceType: code
-        targetType: code
-      id: 1778800001014-source-1778800001015-target
-      source: '1778800001014'
+        sourceType: knowledge-retrieval
+        targetType: if-else
+      id: 17786780201700-source-1778800001021-target
+      source: '17786780201700'
       sourceHandle: source
-      target: '1778800001015'
+      target: '1778800001021'
       targetHandle: target
       type: custom
       zIndex: 1002
@@ -242,12 +255,25 @@ workflow:
         isInIteration: true
         isInLoop: false
         iteration_id: '1778676584534'
-        sourceType: knowledge-retrieval
+        sourceType: if-else
         targetType: code
-      id: 17786780201700-source-1778800001017-target
-      source: '17786780201700'
-      sourceHandle: source
+      id: 1778800001021-false-1778800001017-target
+      source: '1778800001021'
+      sourceHandle: 'false'
       target: '1778800001017'
+      targetHandle: target
+      type: custom
+      zIndex: 1002
+    - data:
+        isInIteration: true
+        isInLoop: false
+        iteration_id: '1778676584534'
+        sourceType: if-else
+        targetType: code
+      id: 1778800001021-true-1778800001015-target
+      source: '1778800001021'
+      sourceHandle: 'true'
+      target: '1778800001015'
       targetHandle: target
       type: custom
       zIndex: 1002
@@ -300,19 +326,6 @@ workflow:
       source: '1778800001018'
       sourceHandle: source
       target: '1778800001019'
-      targetHandle: target
-      type: custom
-      zIndex: 1002
-    - data:
-        isInIteration: true
-        isInLoop: false
-        iteration_id: '1778676584534'
-        sourceType: question-classifier
-        targetType: code
-      id: 17786780005730-1-17786780698570-target
-      source: '17786780005730'
-      sourceHandle: '1'
-      target: '17786780698570'
       targetHandle: target
       type: custom
       zIndex: 1002
@@ -529,8 +542,8 @@ workflow:
         isInLoop: false
         metadata_filtering_conditions:
           conditions: []
-          logical_operator: and
-        metadata_filtering_mode: automatic
+          logical_operator: or
+        metadata_filtering_mode: manual
         metadata_model_config:
           completion_params:
             temperature: 0.7
@@ -983,7 +996,7 @@ workflow:
             required:
             - paper_list
             type: object
-        structured_output_enabled: true
+        structured_output_enabled: false
         title: JSON Metadata Extractor
         type: llm
         vision:
@@ -1198,28 +1211,8 @@ workflow:
         isInLoop: false
         iteration_id: '1778676584534'
         metadata_filtering_conditions:
-          conditions:
-          - comparison_operator: contains
-            id: 796a8a70-32a2-4a12-89fc-f09454c4f649
-            metadata_id: 8b2e5e43-2323-4bd0-9c70-a92256486501
-            name: year
-            value: '{{#1778676584534.item.year#}}'
-          - comparison_operator: contains
-            id: a98ae230-8c73-4d3c-aad0-9e065486de12
-            metadata_id: c66d9446-d2a6-4bb8-84cd-909a76ba3052
-            name: journal
-            value: '{{#1778676584534.item.journal#}}'
-          - comparison_operator: contains
-            id: dc67b41e-81dd-49ad-83e5-eec7223a791f
-            metadata_id: a0a36fb9-793b-4c0b-9373-f9a1797601f9
-            name: title
-            value: '{{#1778676584534.item.title#}}'
-          - comparison_operator: contains
-            id: a5aabe49-3207-495e-bac5-f96ae579a31e
-            metadata_id: f0738e8c-9ba7-46a4-8b01-355afa8cdc9b
-            name: authors
-            value: '{{#1778676584534.item.authors#}}'
-          logical_operator: and
+          conditions: []
+          logical_operator: or
         metadata_filtering_mode: manual
         multiple_retrieval_config:
           reranking_enable: false
@@ -1251,6 +1244,40 @@ workflow:
       positionAbsolute:
         x: -658.9580032504899
         y: 3593.9390102096277
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 241
+      zIndex: 1002
+    - data:
+        cases:
+        - case_id: 'true'
+          conditions:
+          - comparison_operator: empty
+            id: 5d5cf218-6a70-4c40-bf39-9da77657a104
+            value: '[]'
+            varType: array[object]
+            variable_selector:
+            - '17786780201700'
+            - result
+          id: 'true'
+          logical_operator: and
+        isInIteration: true
+        isInLoop: false
+        iteration_id: '1778676584534'
+        selected: false
+        title: Primary Retrieval Empty?
+        type: if-else
+      height: 123
+      id: '1778800001021'
+      parentId: '1778676584534'
+      position:
+        x: 470
+        y: 300
+      positionAbsolute:
+        x: -665.6757608426387
+        y: 3623.2669569601585
       selected: false
       sourcePosition: right
       targetPosition: left
@@ -1338,7 +1365,7 @@ workflow:
             metadata_id: f0738e8c-9ba7-46a4-8b01-355afa8cdc9b
             name: authors
             value: '{{#1778676584534.item.authors#}}'
-          logical_operator: and
+          logical_operator: or
         metadata_filtering_mode: manual
         multiple_retrieval_config:
           reranking_enable: false
@@ -1864,11 +1891,6 @@ workflow:
           - text
           value_type: string
           variable: extractor_text
-        - value_selector:
-          - '1778676150362'
-          - structured_output
-          value_type: object
-          variable: extractor_structured_output
       height: 51
       id: '1778800001010'
       position:
