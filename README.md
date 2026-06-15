@@ -335,7 +335,7 @@ Hybrid extraction behavior in `dify_uploader/author_extraction.py`:
 BAML runtime example:
 
 ```bash
-export BAML_OLLAMA_BASE_URL="http://127.0.0.1:11434/v1"
+export BAML_OLLAMA_BASE_URL="http://app01.internal:21434/v1"
 export BAML_OLLAMA_MODEL="qwen3:32b"
 export AUTHOR_EXTRACTION_ENABLE_LLM_FALLBACK="true"
 ```
