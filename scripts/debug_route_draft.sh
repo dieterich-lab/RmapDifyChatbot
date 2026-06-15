@@ -144,8 +144,10 @@ PY
 
   local tmp_login
   tmp_login=$(mktemp)
+  local tmp_login_headers
+  tmp_login_headers=$(mktemp)
   local login_http
-  login_http=$(curl -sS -o "$tmp_login" -w "%{http_code}" -X POST "$login_url" \
+  login_http=$(curl -sS -D "$tmp_login_headers" -o "$tmp_login" -w "%{http_code}" -X POST "$login_url" \
     -H "Content-Type: application/json" \
     --data "$login_payload")
 
@@ -198,6 +200,54 @@ PY
 
   DIFY_CONSOLE_API_KEY="$token"
   export DIFY_CONSOLE_API_KEY
+
+  local cookie_bundle csrf_cookie
+  cookie_bundle=$(TMP_HEADERS="$tmp_login_headers" /home/pwiesenbach/rmap-chatbot/.venv/bin/python - <<'PY'
+import os
+from http.cookies import SimpleCookie
+
+headers_path = os.environ["TMP_HEADERS"]
+cookie = SimpleCookie()
+
+with open(headers_path, encoding="utf-8") as fh:
+    for line in fh:
+        if line.lower().startswith("set-cookie:"):
+            raw = line.split(":", 1)[1].strip()
+            cookie.load(raw)
+
+parts = []
+for name in ("access_token", "refresh_token", "csrf_token"):
+    morsel = cookie.get(name)
+    if morsel is not None:
+        parts.append(f"{name}={morsel.value}")
+
+print("; ".join(parts))
+PY
+)
+
+csrf_cookie=$(TMP_HEADERS="$tmp_login_headers" /home/pwiesenbach/rmap-chatbot/.venv/bin/python - <<'PY'
+import os
+from http.cookies import SimpleCookie
+
+headers_path = os.environ["TMP_HEADERS"]
+cookie = SimpleCookie()
+
+with open(headers_path, encoding="utf-8") as fh:
+    for line in fh:
+        if line.lower().startswith("set-cookie:"):
+            raw = line.split(":", 1)[1].strip()
+            cookie.load(raw)
+
+m = cookie.get("csrf_token")
+print(m.value if m is not None else "")
+PY
+)
+
+  if [[ -n "$cookie_bundle" && -n "$csrf_cookie" ]]; then
+    DIFY_CONSOLE_COOKIE="$cookie_bundle"
+    DIFY_CSRF_TOKEN="$csrf_cookie"
+  fi
+
   auth_mode="api-key"
   AUTH_HEADERS=(-H "Authorization: Bearer ${DIFY_CONSOLE_API_KEY}")
   echo "Obtained console access token via /console/api/login."
@@ -245,13 +295,22 @@ for q in "${QUERIES[@]}"; do
     -H "Content-Type: application/json" \
     --data "$payload")
 
-  if [[ "$http_code" == "401" ]] && [[ "$AUTO_LOGIN" == "1" ]] && grep -qi 'Invalid token' "$tmp_out"; then
-    echo "Console token invalid; refreshing via /console/api/login."
+  if [[ "$http_code" == "401" ]] && [[ "$AUTO_LOGIN" == "1" ]]; then
+    echo "Console auth failed (401); refreshing via /console/api/login."
     run_console_auto_login
     http_code=$(curl -sS -o "$tmp_out" -w "%{http_code}" -X POST "$RUN_URL" \
       "${AUTH_HEADERS[@]}" \
       -H "Content-Type: application/json" \
       --data "$payload")
+
+    if [[ "$http_code" == "401" ]] && [[ -n "${DIFY_CONSOLE_COOKIE:-}" ]] && [[ -n "${DIFY_CSRF_TOKEN:-}" ]]; then
+      echo "API key auth still unauthorized; retrying with refreshed cookie session."
+      http_code=$(curl -sS -o "$tmp_out" -w "%{http_code}" -X POST "$RUN_URL" \
+        -H "Cookie: ${DIFY_CONSOLE_COOKIE}" \
+        -H "x-csrf-token: ${DIFY_CSRF_TOKEN}" \
+        -H "Content-Type: application/json" \
+        --data "$payload")
+    fi
   fi
 
   echo "HTTP: $http_code"
