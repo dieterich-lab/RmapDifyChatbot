@@ -6,6 +6,20 @@ _WARNED_IMPORT = False
 _WARNED_CALL = False
 
 
+def _trace_enabled() -> bool:
+    return os.getenv("AUTHOR_EXTRACTION_TRACE", "").strip().lower() in {
+        "1",
+        "true",
+        "yes",
+        "on",
+    }
+
+
+def _trace(message: str) -> None:
+    if _trace_enabled():
+        print(f"[author-baml-trace] {message}", file=sys.stderr)
+
+
 def _as_list(value: Any) -> list[str]:
     if value is None:
         return []
@@ -24,9 +38,15 @@ def parse_authors_with_baml(header_text: str) -> list[str]:
     if enabled in {"0", "false", "no", "off"}:
         return []
 
-    # Defaults are aligned with the Slurm helper script in this repository.
-    os.environ.setdefault("BAML_OLLAMA_BASE_URL", "http://127.0.0.1:11434/v1")
+    # Do not pin a host here; use externally configured runtime defaults.
     os.environ.setdefault("BAML_OLLAMA_MODEL", "qwen3:32b")
+
+    _trace(
+        "authors-call: enabled=true, "
+        f"base_url={os.getenv('BAML_OLLAMA_BASE_URL', '<unset>')}, "
+        f"model={os.getenv('BAML_OLLAMA_MODEL', '<unset>')}, "
+        f"chars={len(str(header_text or ''))}"
+    )
 
     try:
         from dify_uploader.baml_client.sync_client import b  # type: ignore
@@ -50,6 +70,8 @@ def parse_authors_with_baml(header_text: str) -> list[str]:
             _WARNED_CALL = True
         return []
 
+    _trace("authors-call: success")
+
     # BAML pydantic object or dict-like fallback.
     if hasattr(result, "authors"):
         return _as_list(getattr(result, "authors"))
@@ -68,8 +90,15 @@ def parse_title_with_baml(header_text: str) -> str | None:
     if enabled in {"0", "false", "no", "off"}:
         return None
 
-    os.environ.setdefault("BAML_OLLAMA_BASE_URL", "http://127.0.0.1:11434/v1")
+    # Do not pin a host here; use externally configured runtime defaults.
     os.environ.setdefault("BAML_OLLAMA_MODEL", "qwen3:32b")
+
+    _trace(
+        "title-call: enabled=true, "
+        f"base_url={os.getenv('BAML_OLLAMA_BASE_URL', '<unset>')}, "
+        f"model={os.getenv('BAML_OLLAMA_MODEL', '<unset>')}, "
+        f"chars={len(str(header_text or ''))}"
+    )
 
     try:
         from dify_uploader.baml_client.sync_client import b  # type: ignore
@@ -92,6 +121,8 @@ def parse_title_with_baml(header_text: str) -> str | None:
             )
             _WARNED_CALL = True
         return None
+
+    _trace("title-call: success")
 
     if hasattr(result, "title"):
         text = str(getattr(result, "title") or "").strip()

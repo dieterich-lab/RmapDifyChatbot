@@ -92,7 +92,7 @@ def wait_for_indexing(
         display_status = doc.get("display_status")
         word_count = doc.get("word_count")
         error = doc.get("error")
-        doc_metadata = doc.get("doc_metadata", [])
+        doc_metadata = doc.get("doc_metadata") or []
 
         print(
             f"   Status={status}, Display={display_status}, Words={word_count}, "
@@ -100,14 +100,31 @@ def wait_for_indexing(
         )
 
         if status in {"completed", "error", "failed"}:
+            segment_count = doc.get("segment_count")
+            tokens = doc.get("tokens")
+            parsing_status = doc.get("parsing_status")
+
+            # Dify may report completed even when extraction/chunking produced no content.
+            # Surface this explicitly so ingestion failures are not mistaken for success.
+            if status == "completed" and (segment_count in (0, None)):
+                zero_segment_error = (
+                    "completed_with_zero_segments: extraction/chunking likely failed; "
+                    "check Dify API/worker logs and model provider health"
+                )
+                print(f"⚠️ {zero_segment_error}")
+                if not error:
+                    error = zero_segment_error
+
             print(f"   Final document response: {json.dumps(doc, ensure_ascii=False)}")
             return {
                 "indexing_status": status,
                 "display_status": display_status,
                 "word_count": word_count,
-                "segment_count": doc.get("segment_count"),
+                "segment_count": segment_count,
                 "metadata_count": len(doc_metadata),
                 "error": error,
+                "tokens": tokens,
+                "parsing_status": parsing_status,
             }
 
         time.sleep(poll_seconds)
