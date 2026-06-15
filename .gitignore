@@ -17,3 +17,4 @@ slurm/*.log
 
 # Local corpus / large input data (not part of source repository)
 RMaP papers first funding period/
+*_probe_*.txt
