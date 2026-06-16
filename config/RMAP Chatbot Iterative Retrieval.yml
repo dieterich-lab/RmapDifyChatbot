@@ -537,7 +537,7 @@ workflow:
       width: 241
     - data:
         dataset_ids:
-        - 5/WcDtIuGANrAhqT255sDDblyQ7EPbz5ptEFPwuSFpIFdL2zcvi5ayyg7/+ctuJt
+        - <your-dataset-id>
         isInIteration: false
         isInLoop: false
         metadata_filtering_conditions:
@@ -601,6 +601,7 @@ workflow:
         model:
           completion_params:
             max_tokens: 1200
+            num_ctx: 12288
             temperature: 0
           mode: chat
           name: gpt-oss
@@ -896,7 +897,7 @@ workflow:
             size: 12
         model:
           completion_params:
-            max_tokens: 512
+            max_tokens: 2048
             temperature: 0
           mode: chat
           name: gpt-oss
@@ -1206,7 +1207,7 @@ workflow:
       zIndex: 1002
     - data:
         dataset_ids:
-        - 5/WcDtIuGANrAhqT255sDDblyQ7EPbz5ptEFPwuSFpIFdL2zcvi5ayyg7/+ctuJt
+        - <your-dataset-id>
         isInIteration: true
         isInLoop: false
         iteration_id: '1778676584534'
@@ -1339,7 +1340,7 @@ workflow:
       zIndex: 1002
     - data:
         dataset_ids:
-        - 5/WcDtIuGANrAhqT255sDDblyQ7EPbz5ptEFPwuSFpIFdL2zcvi5ayyg7/+ctuJt
+        - <your-dataset-id>
         isInIteration: true
         isInLoop: false
         iteration_id: '1778676584534'
@@ -1457,7 +1458,7 @@ workflow:
       width: 241
       zIndex: 1002
     - data:
-        code: "import json\nimport os\nfrom urllib.error import HTTPError, URLError\nfrom urllib.parse import urlencode\nfrom urllib.request import Request, urlopen\n\n\ndef _is_summary_intent(query):\n    q = (query or '').lower()\n    markers = [\n        'summarize', 'summary', 'zusammenfassung', 'fasse', 'fassen',\n        'overview', 'explain briefly', 'kurz', 'short summary'\n    ]\n    return any(m in q for m in markers)\n\n\ndef _norm(text):\n    return str(text or '').strip()\n\n\ndef _run_json_get(url, headers, timeout=30):\n    req = Request(url=url, headers=headers, method='GET')\n    try:\n        with urlopen(req, timeout=timeout) as resp:\n            body = resp.read().decode('utf-8', errors='replace')\n            status = resp.getcode()\n    except HTTPError as exc:\n        body = exc.read().decode('utf-8', errors='replace')\n        return {}, f'HTTPError {exc.code}: {body}'\n    except URLError as exc:\n        return {}, f'URLError: {exc}'\n    except Exception as exc:\n        return {}, f'Error: {exc}'\n\n    if status != 200:\n        return {}, f'HTTP {status}: {body}'\n\n    try:\n        return json.loads(body), None\n    except Exception:\n        return {}, f'Invalid JSON: {body[:500]}'\n\n\ndef _extract_doc_id_from_result(result):\n    if not isinstance(result, list):\n        return ''\n    for item in result:\n        md = (item or {}).get('metadata') or {}\n        doc_id = _norm(md.get('document_id'))\n        if doc_id:\n            return doc_id\n    return ''\n\n\ndef _extract_items(payload):\n    if isinstance(payload, dict):\n        if isinstance(payload.get('data'), list):\n            return payload.get('data')\n        if isinstance(payload.get('segments'), list):\n            return payload.get('segments')\n    return []\n\n\ndef _segment_content(seg):\n    if not isinstance(seg, dict):\n        return ''\n    for key in ('content', 'text', 'segment', 'segment_text'):\n        value = seg.get(key)\n        if isinstance(value, str) and value.strip():\n            return value\n        if isinstance(value, dict):\n            nested = value.get('content') or value.get('text')\n            if isinstance(nested, str) and nested.strip():\n                return nested\n    return ''\n\n\ndef _segment_position(seg):\n    if not isinstance(seg, dict):\n        return 10**9\n    for key in ('position', 'segment_position', 'index', 'order'):\n        val = seg.get(key)\n        if isinstance(val, (int, float)):\n            return int(val)\n    return 10**9\n\n\ndef _fetch_all_segments(api_base, dataset_id, document_id, headers):\n    all_segments = []\n    seen = set()\n\n    for page in range(1, 31):\n        q = urlencode({'page': page, 'limit': 100})\n        url = f'{api_base}/datasets/{dataset_id}/documents/{document_id}/segments?{q}'\n        payload, err = _run_json_get(url, headers=headers, timeout=30)\n        if err:\n            if page == 1:\n                return [], err\n            break\n\n        items = _extract_items(payload)\n        if not items:\n            break\n\n        for seg in items:\n            content = _segment_content(seg)\n            if not content:\n                continue\n            sid = _norm((seg or {}).get('id'))\n            key = sid or content[:200]\n            if key in seen:\n                continue\n            seen.add(key)\n            all_segments.append({'position': _segment_position(seg), 'content': content})\n\n        if len(items) < 100:\n            break\n\n    all_segments.sort(key=lambda x: x['position'])\n    joined = '\\n\\n'.join(s['content'] for s in all_segments if s['content'])\n    return joined, None\n\n\ndef main(selected_result=None, selection_reason=None, user_query=None):\n    if not _is_summary_intent(user_query or ''):\n        return {\n            'whole_paper_text': '',\n            'use_whole_paper': False,\n            'whole_paper_doc_id': '',\n            'whole_paper_error': 'non-summary-intent'\n        }\n\n    doc_id = _extract_doc_id_from_result(selected_result)\n    if not doc_id:\n        return {\n            'whole_paper_text': '',\n            'use_whole_paper': False,\n            'whole_paper_doc_id': '',\n            'whole_paper_error': 'no-document-id'\n        }\n\n    api_base = (_norm(os.getenv('DIFY_API_URL')) or 'http://rmap-chatbot-demo-dify/v1').rstrip('/')\n    dataset_id = _norm(os.getenv('DIFY_DATASET_ID')) or '227cf97a-8e56-4cd6-808d-caf57bc0d2bf'\n    api_key = _norm(os.getenv('DIFY_API_KEY')) or 'REDACTED'\n\n    if not api_base or not dataset_id or not api_key:\n        return {\n            'whole_paper_text': '',\n            'use_whole_paper': False,\n            'whole_paper_doc_id': doc_id,\n            'whole_paper_error': 'missing-api-config'\n        }\n\n    headers = {'Authorization': f'Bearer {api_key}', 'Content-Type': 'application/json'}\n    text, err = _fetch_all_segments(api_base, dataset_id, doc_id, headers)\n    if err:\n        return {\n            'whole_paper_text': '',\n            'use_whole_paper': False,\n            'whole_paper_doc_id': doc_id,\n            'whole_paper_error': err\n        }\n\n    if not text:\n        return {\n            'whole_paper_text': '',\n            'use_whole_paper': False,\n            'whole_paper_doc_id': doc_id,\n            'whole_paper_error': 'no-segments'\n        }\n\n    max_chars = 140000\n    clipped = text[:max_chars]\n    return {\n        'whole_paper_text': clipped,\n        'use_whole_paper': True,\n        'whole_paper_doc_id': doc_id,\n        'whole_paper_error': ''\n    }\n"
+        code: "import json\nimport os\nfrom urllib.error import HTTPError, URLError\nfrom urllib.parse import urlencode\nfrom urllib.request import Request, urlopen\n\n\ndef _is_summary_intent(query):\n    q = (query or '').lower()\n    markers = [\n        'summarize', 'summary', 'zusammenfassung', 'fasse', 'fassen',\n        'overview', 'explain briefly', 'kurz', 'short summary'\n    ]\n    return any(m in q for m in markers)\n\n\ndef _norm(text):\n    return str(text or '').strip()\n\n\ndef _run_json_get(url, headers, timeout=30):\n    req = Request(url=url, headers=headers, method='GET')\n    try:\n        with urlopen(req, timeout=timeout) as resp:\n            body = resp.read().decode('utf-8', errors='replace')\n            status = resp.getcode()\n    except HTTPError as exc:\n        body = exc.read().decode('utf-8', errors='replace')\n        return {}, f'HTTPError {exc.code}: {body}'\n    except URLError as exc:\n        return {}, f'URLError: {exc}'\n    except Exception as exc:\n        return {}, f'Error: {exc}'\n\n    if status != 200:\n        return {}, f'HTTP {status}: {body}'\n\n    try:\n        return json.loads(body), None\n    except Exception:\n        return {}, f'Invalid JSON: {body[:500]}'\n\n\ndef _extract_doc_id_from_result(result):\n    if not isinstance(result, list):\n        return ''\n    counts = {}\n    order = []\n    for item in result:\n        md = (item or {}).get('metadata') or {}\n        doc_id = _norm(md.get('document_id'))\n        if not doc_id:\n            continue\n        if doc_id not in counts:\n            order.append(doc_id)\n        counts[doc_id] = counts.get(doc_id, 0) + 1\n    if not order:\n        return ''\n    return max(order, key=lambda d: counts[d])\n\n\ndef _extract_items(payload):\n    if isinstance(payload, dict):\n        if isinstance(payload.get('data'), list):\n            return payload.get('data')\n        if isinstance(payload.get('segments'), list):\n            return payload.get('segments')\n    return []\n\n\ndef _segment_content(seg):\n    if not isinstance(seg, dict):\n        return ''\n    for key in ('content', 'text', 'segment', 'segment_text'):\n        value = seg.get(key)\n        if isinstance(value, str) and value.strip():\n            return value\n        if isinstance(value, dict):\n            nested = value.get('content') or value.get('text')\n            if isinstance(nested, str) and nested.strip():\n                return nested\n    return ''\n\n\ndef _segment_position(seg):\n    if not isinstance(seg, dict):\n        return 10**9\n    for key in ('position', 'segment_position', 'index', 'order'):\n        val = seg.get(key)\n        if isinstance(val, (int, float)):\n            return int(val)\n    return 10**9\n\n\ndef _fetch_all_segments(api_base, dataset_id, document_id, headers):\n    all_segments = []\n    seen = set()\n\n    for page in range(1, 31):\n        q = urlencode({'page': page, 'limit': 100})\n        url = f'{api_base}/datasets/{dataset_id}/documents/{document_id}/segments?{q}'\n        payload, err = _run_json_get(url, headers=headers, timeout=30)\n        if err:\n            if page == 1:\n                return [], err\n            break\n\n        items = _extract_items(payload)\n        if not items:\n            break\n\n        for seg in items:\n            content = _segment_content(seg)\n            if not content:\n                continue\n            sid = _norm((seg or {}).get('id'))\n            key = sid or content[:200]\n            if key in seen:\n                continue\n            seen.add(key)\n            all_segments.append({'position': _segment_position(seg), 'content': content})\n\n        if len(items) < 100:\n            break\n\n    all_segments.sort(key=lambda x: x['position'])\n    joined = '\\n\\n'.join(s['content'] for s in all_segments if s['content'])\n    return joined, None\n\n\ndef main(selected_result=None, selection_reason=None, user_query=None):\n    if not _is_summary_intent(user_query or ''):\n        return {\n            'whole_paper_text': '',\n            'use_whole_paper': False,\n            'whole_paper_doc_id': '',\n            'whole_paper_error': 'non-summary-intent'\n        }\n\n    doc_id = _extract_doc_id_from_result(selected_result)\n    if not doc_id:\n        return {\n            'whole_paper_text': '',\n            'use_whole_paper': False,\n            'whole_paper_doc_id': '',\n            'whole_paper_error': 'no-document-id'\n        }\n\n    api_base = (_norm(os.getenv('DIFY_API_URL')) or 'http://rmap-chatbot-demo-dify/v1').rstrip('/')\n    dataset_id = _norm(os.getenv('DIFY_DATASET_ID')) or '<your-dataset-id>'\n    api_key = _norm(os.getenv('DIFY_API_KEY')) or 'REDACTED'\n\n    if not api_base or not dataset_id or not api_key:\n        return {\n            'whole_paper_text': '',\n            'use_whole_paper': False,\n            'whole_paper_doc_id': doc_id,\n            'whole_paper_error': 'missing-api-config'\n        }\n\n    headers = {'Authorization': f'Bearer {api_key}', 'Content-Type': 'application/json'}\n    text, err = _fetch_all_segments(api_base, dataset_id, doc_id, headers)\n    if err:\n        return {\n            'whole_paper_text': '',\n            'use_whole_paper': False,\n            'whole_paper_doc_id': doc_id,\n            'whole_paper_error': err\n        }\n\n    if not text:\n        return {\n            'whole_paper_text': '',\n            'use_whole_paper': False,\n            'whole_paper_doc_id': doc_id,\n            'whole_paper_error': 'no-segments'\n        }\n\n    max_chars = 24000\n    clipped = text[:max_chars]\n    return {\n        'whole_paper_text': clipped,\n        'use_whole_paper': True,\n        'whole_paper_doc_id': doc_id,\n        'whole_paper_error': ''\n    }\n"
         code_language: python3
         isInIteration: true
         isInLoop: false
@@ -1577,6 +1578,8 @@ workflow:
             size: 10
         model:
           completion_params:
+            max_tokens: 2048
+            num_ctx: 12288
             temperature: 0.2
           mode: chat
           name: gpt-oss
@@ -1661,133 +1664,139 @@ workflow:
         code: "import json\nimport os\nimport re\nfrom urllib.error import HTTPError,\
           \ URLError\nfrom urllib.parse import urlencode\nfrom urllib.request import\
           \ Request, urlopen\n\nCODE_VERSION = \"metadata_query_v2026-05-11_dify-metadata_1\"\
-          \n\n_EMPTY_TOKENS = {\n    \"\",\n    \"null\",\n    \"none\",\n    \"unknown\"\
-          ,\n    \"n/a\",\n    \"na\",\n    \"[]\",\n    \"{}\",\n    \"-\",\n}\n\n\
-          \ndef _is_set(value) -> bool:\n    if value is None:\n        return False\n\
-          \    if isinstance(value, (int, float)) and value == 0:\n        return\
-          \ False\n    if isinstance(value, list):\n        return any(_is_set(item)\
-          \ for item in value)\n    if isinstance(value, dict):\n        return any(_is_set(v)\
-          \ for v in value.values())\n    text = str(value).strip()\n    return text.lower()\
-          \ not in _EMPTY_TOKENS\n\n\ndef _normalize_text(value) -> str:\n    if value\
-          \ is None:\n        return \"\"\n    text = str(value).strip()\n    return\
-          \ \"\" if text.lower() in _EMPTY_TOKENS else text\n\n\ndef _to_string_list(value)\
+          \n\n_EMPTY_TOKENS = {\n    \"\",\n    \"null\",\n    \"none\",\n    \"\
+          unknown\",\n    \"n/a\",\n    \"na\",\n    \"[]\",\n    \"{}\",\n    \"\
+          -\",\n}\n\n\ndef _is_set(value) -> bool:\n    if value is None:\n    \
+          \    return False\n    if isinstance(value, (int, float)) and value ==\
+          \ 0:\n        return False\n    if isinstance(value, list):\n        return\
+          \ any(_is_set(item) for item in value)\n    if isinstance(value, dict):\n\
+          \        return any(_is_set(v) for v in value.values())\n    text = str(value).strip()\n\
+          \    return text.lower() not in _EMPTY_TOKENS\n\n\ndef _normalize_text(value)\
+          \ -> str:\n    if value is None:\n        return \"\"\n    text = str(value).strip()\n\
+          \    return \"\" if text.lower() in _EMPTY_TOKENS else text\n\n\ndef _to_string_list(value)\
           \ -> list[str]:\n    if value is None:\n        return []\n    if isinstance(value,\
           \ list):\n        return [_normalize_text(v) for v in value if _is_set(v)]\n\
-          \    if isinstance(value, dict):\n        candidates = []\n        for key\
-          \ in (\"value\", \"name\", \"author\", \"authors\", \"text\"):\n       \
-          \     if key in value:\n                entry = value.get(key)\n       \
-          \         if isinstance(entry, list):\n                    candidates.extend(_to_string_list(entry))\n\
+          \    if isinstance(value, dict):\n        candidates = []\n        for\
+          \ key in (\"value\", \"name\", \"author\", \"authors\", \"text\"):\n \
+          \           if key in value:\n                entry = value.get(key)\n\
+          \                if isinstance(entry, list):\n                    candidates.extend(_to_string_list(entry))\n\
           \                elif _is_set(entry):\n                    norm = _normalize_text(entry)\n\
           \                    if norm:\n                        candidates.append(norm)\n\
-          \        if candidates:\n            return candidates\n        return [_normalize_text(v)\
-          \ for v in value.values() if _is_set(v)]\n    if _is_set(value):\n     \
-          \   normalized = _normalize_text(value)\n        return [normalized] if\
-          \ normalized else []\n    return []\n\n\ndef _author_variants(author: str)\
-          \ -> list[str]:\n    text = \" \".join(str(author).strip().split())\n  \
-          \  if not text:\n        return []\n\n    variants = [text]\n    parts =\
-          \ text.split(\" \")\n    if len(parts) >= 2:\n        first = parts[0].strip(\"\
+          \        if candidates:\n            return candidates\n        return\
+          \ [_normalize_text(v) for v in value.values() if _is_set(v)]\n    if _is_set(value):\n\
+          \        normalized = _normalize_text(value)\n        return [normalized]\
+          \ if normalized else []\n    return []\n\n\ndef _author_variants(author:\
+          \ str) -> list[str]:\n    text = \" \".join(str(author).strip().split())\n\
+          \    if not text:\n        return []\n\n    variants = [text]\n    parts\
+          \ = text.split(\" \")\n    if len(parts) >= 2:\n        first = parts[0].strip(\"\
           .\")\n        last = parts[-1].strip(\".,;\")\n        if first and last:\n\
           \            variants.append(f\"{first[0]}. {last}\")\n            variants.append(f\"\
-          {first[0]} {last}\")\n            variants.append(last)\n\n    seen = set()\n\
-          \    deduped = []\n    for item in variants:\n        key = item.lower()\n\
+          {first[0]} {last}\")\n            variants.append(last)\n\n    seen =\
+          \ set()\n    deduped = []\n    for item in variants:\n        key = item.lower()\n\
           \        if key in seen:\n            continue\n        seen.add(key)\n\
           \        deduped.append(item)\n    return deduped\n\n\ndef _build_headers(api_key:\
           \ str) -> dict:\n    return {\n        \"Authorization\": f\"Bearer {api_key}\"\
           ,\n        \"Content-Type\": \"application/json\",\n    }\n\n\ndef _run_json_get(\n\
-          \    url: str, headers: dict, timeout: int = 30\n) -> tuple[dict, str |\
-          \ None]:\n    request = Request(url=url, headers=headers, method=\"GET\"\
-          )\n    try:\n        with urlopen(request, timeout=timeout) as response:\n\
+          \    url: str, headers: dict, timeout: int = 30\n) -> tuple[dict, str\
+          \ | None]:\n    request = Request(url=url, headers=headers, method=\"\
+          GET\")\n    try:\n        with urlopen(request, timeout=timeout) as response:\n\
           \            body = response.read().decode(\"utf-8\", errors=\"replace\"\
           )\n            status = response.getcode()\n    except HTTPError as exc:\n\
-          \        body = exc.read().decode(\"utf-8\", errors=\"replace\")\n     \
-          \   return {}, f\"Dify API Error {exc.code}: {body}\"\n    except URLError\
+          \        body = exc.read().decode(\"utf-8\", errors=\"replace\")\n   \
+          \     return {}, f\"Dify API Error {exc.code}: {body}\"\n    except URLError\
           \ as exc:\n        return {}, f\"Verbindungsfehler zur Dify API: {exc}\"\
-          \n    except Exception as exc:\n        return {}, f\"Unbekannter Dify API-Fehler:\
-          \ {exc}\"\n\n    if status != 200:\n        return {}, f\"Dify API Error\
-          \ {status}: {body}\"\n\n    try:\n        return json.loads(body), None\n\
-          \    except ValueError:\n        return {}, f\"Ungueltige JSON-Antwort:\
-          \ {body}\"\n\n\ndef _extract_items(payload: dict) -> list[dict]:\n    if\
-          \ isinstance(payload, dict):\n        if isinstance(payload.get(\"data\"\
-          ), list):\n            return payload.get(\"data\", [])\n        if isinstance(payload.get(\"\
-          documents\"), list):\n            return payload.get(\"documents\", [])\n\
-          \    return []\n\n\ndef _metadata_to_dict(detail: dict) -> dict[str, str]:\n\
-          \    result = {}\n    for item in detail.get(\"doc_metadata\", []) or []:\n\
-          \        name = str((item or {}).get(\"name\") or \"\").strip().lower()\n\
-          \        value = (item or {}).get(\"value\")\n        if name:\n       \
-          \     result[name] = \"\" if value is None else str(value).strip()\n   \
-          \ return result\n\n\ndef _matches_filters(meta: dict[str, str], year, authors,\
-          \ journal, title) -> bool:\n    meta_year = _normalize_text(meta.get(\"\
-          year\", \"\"))\n    meta_authors = _normalize_text(meta.get(\"authors\"\
-          , \"\"))\n    meta_journal = _normalize_text(meta.get(\"journal\", \"\"\
-          ))\n    meta_title = _normalize_text(meta.get(\"title\", \"\"))\n\n    year_text\
-          \ = _normalize_text(year)\n    journal_text = _normalize_text(journal)\n\
-          \    title_text = _normalize_text(title)\n\n    if _is_set(year_text) and\
-          \ year_text.lower() != meta_year.lower():\n        return False\n\n    if\
-          \ _is_set(journal_text) and journal_text.lower() not in meta_journal.lower():\n\
+          \n    except Exception as exc:\n        return {}, f\"Unbekannter Dify\
+          \ API-Fehler: {exc}\"\n\n    if status != 200:\n        return {}, f\"\
+          Dify API Error {status}: {body}\"\n\n    try:\n        return json.loads(body),\
+          \ None\n    except ValueError:\n        return {}, f\"Ungueltige JSON-Antwort:\
+          \ {body}\"\n\n\ndef _extract_items(payload: dict) -> list[dict]:\n   \
+          \ if isinstance(payload, dict):\n        if isinstance(payload.get(\"\
+          data\"), list):\n            return payload.get(\"data\", [])\n      \
+          \  if isinstance(payload.get(\"documents\"), list):\n            return\
+          \ payload.get(\"documents\", [])\n    return []\n\n\ndef _metadata_to_dict(detail:\
+          \ dict) -> dict[str, str]:\n    result = {}\n    for item in detail.get(\"\
+          doc_metadata\", []) or []:\n        name = str((item or {}).get(\"name\"\
+          ) or \"\").strip().lower()\n        value = (item or {}).get(\"value\"\
+          )\n        if name:\n            result[name] = \"\" if value is None\
+          \ else str(value).strip()\n    return result\n\n\ndef _matches_filters(meta:\
+          \ dict[str, str], year, authors, journal, title) -> bool:\n    meta_year\
+          \ = _normalize_text(meta.get(\"year\", \"\"))\n    meta_authors = _normalize_text(meta.get(\"\
+          authors\", \"\"))\n    meta_journal = _normalize_text(meta.get(\"journal\"\
+          , \"\"))\n    meta_title = _normalize_text(meta.get(\"title\", \"\"))\n\
+          \n    year_text = _normalize_text(year)\n    journal_text = _normalize_text(journal)\n\
+          \    title_text = _normalize_text(title)\n\n    if _is_set(year_text)\
+          \ and year_text.lower() != meta_year.lower():\n        return False\n\n\
+          \    if _is_set(journal_text) and journal_text.lower() not in meta_journal.lower():\n\
           \        return False\n\n    if _is_set(title_text) and title_text.lower()\
           \ not in meta_title.lower():\n        return False\n\n    author_inputs\
-          \ = _to_string_list(authors)\n    for author in author_inputs:\n       \
-          \ variants = [v.lower() for v in _author_variants(author)]\n        if not\
-          \ any(v in meta_authors.lower() for v in variants):\n            return\
-          \ False\n\n    return True\n\n\ndef _sanitize_year_filter(value) -> str:\n\
-          \    text = _normalize_text(value)\n    if not text:\n        return \"\"\
-          \n    return text if re.fullmatch(r\"(19|20)\\d{2}\", text) else \"\"\n\n\
-          \ndef _sanitize_free_text_filter(value, max_len: int = 120) -> str:\n  \
-          \  text = _normalize_text(value)\n    if not text:\n        return \"\"\n\
-          \    if len(text) > max_len:\n        return \"\"\n    if \"?\" in text:\n\
-          \        return \"\"\n    lower = text.lower()\n    noisy_markers = [\"\
-          which documents\", \"co-authored\", \"co-authored by\", \"authored by\"\
-          ]\n    if any(marker in lower for marker in noisy_markers):\n        return\
-          \ \"\"\n    return text\n\n\ndef _collect_documents(\n    api_base: str,\
-          \ dataset_id: str, headers: dict\n) -> tuple[list[dict], list[str]]:\n \
-          \   errors = []\n    docs = []\n\n    list_url = f\"{api_base}/datasets/{dataset_id}/documents\"\
-          \n    payload, err = _run_json_get(list_url, headers=headers)\n    if err:\n\
-          \        return [], [err]\n\n    items = _extract_items(payload)\n    for\
-          \ item in items:\n        doc_id = str((item or {}).get(\"id\") or \"\"\
-          ).strip()\n        if not doc_id:\n            continue\n\n        detail_url\
-          \ = f\"{api_base}/datasets/{dataset_id}/documents/{doc_id}?{urlencode({'metadata':\
+          \ = _to_string_list(authors)\n    for author in author_inputs:\n     \
+          \   variants = [v.lower() for v in _author_variants(author)]\n       \
+          \ if not any(v in meta_authors.lower() for v in variants):\n         \
+          \   return False\n\n    return True\n\n\ndef _sanitize_year_filter(value)\
+          \ -> str:\n    text = _normalize_text(value)\n    if not text:\n     \
+          \   return \"\"\n    return text if re.fullmatch(r\"(19|20)\\d{2}\", text)\
+          \ else \"\"\n\n\ndef _sanitize_free_text_filter(value, max_len: int =\
+          \ 120) -> str:\n    text = _normalize_text(value)\n    if not text:\n\
+          \        return \"\"\n    if len(text) > max_len:\n        return \"\"\
+          \n    if \"?\" in text:\n        return \"\"\n    lower = text.lower()\n\
+          \    noisy_markers = [\"which documents\", \"co-authored\", \"co-authored\
+          \ by\", \"authored by\"]\n    if any(marker in lower for marker in noisy_markers):\n\
+          \        return \"\"\n    return text\n\n\ndef _collect_documents(\n \
+          \   api_base: str, dataset_id: str, headers: dict\n) -> tuple[list[dict],\
+          \ list[str]]:\n    errors = []\n    docs = []\n\n    all_items = []\n\
+          \    for page in range(1, 21):\n        q = urlencode({\"page\": page,\
+          \ \"limit\": 100})\n        list_url = f\"{api_base}/datasets/{dataset_id}/documents?{q}\"\
+          \n        payload, err = _run_json_get(list_url, headers=headers)\n  \
+          \      if err:\n            if page == 1:\n                return [],\
+          \ [err]\n            break\n\n        items = _extract_items(payload)\n\
+          \        if not items:\n            break\n        all_items.extend(items)\n\
+          \        if len(items) < 100:\n            break\n\n    for item in all_items:\n\
+          \        doc_id = str((item or {}).get(\"id\") or \"\").strip()\n    \
+          \    if not doc_id:\n            continue\n\n        detail_url = f\"\
+          {api_base}/datasets/{dataset_id}/documents/{doc_id}?{urlencode({'metadata':\
           \ 'all'})}\"\n        detail, detail_err = _run_json_get(detail_url, headers=headers)\n\
           \        if detail_err:\n            errors.append(f\"Dokument {doc_id}:\
           \ {detail_err}\")\n            continue\n\n        meta = _metadata_to_dict(detail)\n\
           \        docs.append(\n            {\n                \"id\": doc_id,\n\
           \                \"title\": meta.get(\"title\") or str(detail.get(\"name\"\
-          ) or \"\").strip(),\n                \"authors\": meta.get(\"authors\",\
-          \ \"\"),\n                \"year\": meta.get(\"year\", \"\"),\n        \
-          \        \"journal\": meta.get(\"journal\", \"\"),\n            }\n    \
-          \    )\n\n    return docs, errors\n\n\ndef _render_result(matches: list[dict],\
-          \ total_docs: int) -> str:\n    if not matches:\n        return (\n    \
-          \        \"Keine Dokumente gefunden.\\n\"\n            f\"Code-Version:\
-          \ {CODE_VERSION}; Dokumente geprueft: {total_docs}; Treffer: 0\"\n     \
-          \   )\n\n    lines = []\n    for idx, doc in enumerate(matches, start=1):\n\
+          ) or \"\").strip(),\n                \"authors\": meta.get(\"authors\"\
+          , \"\"),\n                \"year\": meta.get(\"year\", \"\"),\n      \
+          \          \"journal\": meta.get(\"journal\", \"\"),\n            }\n\
+          \        )\n\n    return docs, errors\n\n\ndef _render_result(matches:\
+          \ list[dict], total_docs: int) -> str:\n    if not matches:\n        return\
+          \ (\n            \"Keine Dokumente gefunden.\\n\"\n            f\"Code-Version:\
+          \ {CODE_VERSION}; Dokumente geprueft: {total_docs}; Treffer: 0\"\n   \
+          \     )\n\n    lines = []\n    for idx, doc in enumerate(matches, start=1):\n\
           \        lines.append(\n            f\"{idx}. {doc['title']} | {doc['authors']}\
-          \ | {doc['year']} | {doc['journal']}\"\n        )\n    header = (\n    \
-          \    f\"Code-Version: {CODE_VERSION}; Dokumente geprueft: {total_docs};\
-          \ \"\n        f\"Treffer: {len(matches)}\"\n    )\n    return header + \"\
-          \\n\" + \"\\n\".join(lines)\n\n\ndef main(year=None, authors=None, journal=None,\
-          \ title=None):\n    api_base = (os.getenv(\"DIFY_API_URL\") or \"http://rmap-chatbot-demo-dify/v1\"\
-          ).rstrip(\n        \"/\"\n    )\n    dataset_id = os.getenv(\"DIFY_DATASET_ID\"\
-          ) or \"227cf97a-8e56-4cd6-808d-caf57bc0d2bf\"\n    api_key = os.getenv(\"\
-          DIFY_API_KEY\") or \"REDACTED\"\n\n    if not _is_set(api_base)\
-          \ or not _is_set(dataset_id) or not _is_set(api_key):\n        return {\n\
-          \            \"result\": (\n                \"Dify API Konfiguration unvollstaendig.\
-          \ \"\n                \"Erwarte DIFY_API_URL, DIFY_DATASET_ID und DIFY_API_KEY.\"\
-          \n            )\n        }\n\n    headers = _build_headers(str(api_key).strip())\n\
-          \    docs, errors = _collect_documents(str(api_base), str(dataset_id).strip(),\
-          \ headers)\n\n    year_filter = _sanitize_year_filter(year)\n    journal_filter\
-          \ = _sanitize_free_text_filter(journal, max_len=80)\n    title_filter =\
-          \ _sanitize_free_text_filter(title, max_len=160)\n\n    matches = []\n \
-          \   for doc in docs:\n        if _matches_filters(doc, year_filter, authors,\
-          \ journal_filter, title_filter):\n            matches.append(doc)\n\n  \
-          \  unique = {}\n    for doc in matches:\n        key = (\n            (doc.get(\"\
-          title\") or \"\").strip().lower(),\n            (doc.get(\"authors\") or\
-          \ \"\").strip().lower(),\n            (doc.get(\"year\") or \"\").strip(),\n\
-          \            (doc.get(\"journal\") or \"\").strip().lower(),\n        )\n\
-          \        if key not in unique:\n            unique[key] = doc\n    final_docs\
-          \ = list(unique.values())\n\n    result_text = _render_result(final_docs,\
+          \ | {doc['year']} | {doc['journal']}\"\n        )\n    header = (\n  \
+          \      f\"Code-Version: {CODE_VERSION}; Dokumente geprueft: {total_docs};\
+          \ \"\n        f\"Treffer: {len(matches)}\"\n    )\n    return header +\
+          \ \"\\n\" + \"\\n\".join(lines)\n\n\ndef main(year=None, authors=None,\
+          \ journal=None, title=None):\n    api_base = (os.getenv(\"DIFY_API_URL\"\
+          ) or \"http://rmap-chatbot-demo-dify/v1\").rstrip(\n        \"/\"\n  \
+          \  )\n    dataset_id = os.getenv(\"DIFY_DATASET_ID\") or \"<your-dataset-id>\"\
+          \n    api_key = os.getenv(\"DIFY_API_KEY\") or \"REDACTED\"\
+          \n\n    if not _is_set(api_base) or not _is_set(dataset_id) or not _is_set(api_key):\n\
+          \        return {\n            \"result\": (\n                \"Dify API\
+          \ Konfiguration unvollstaendig. \"\n                \"Erwarte DIFY_API_URL,\
+          \ DIFY_DATASET_ID und DIFY_API_KEY.\"\n            )\n        }\n\n  \
+          \  headers = _build_headers(str(api_key).strip())\n    docs, errors =\
+          \ _collect_documents(str(api_base), str(dataset_id).strip(), headers)\n\
+          \n    year_filter = _sanitize_year_filter(year)\n    journal_filter =\
+          \ _sanitize_free_text_filter(journal, max_len=80)\n    title_filter =\
+          \ _sanitize_free_text_filter(title, max_len=160)\n\n    matches = []\n\
+          \    for doc in docs:\n        if _matches_filters(doc, year_filter, authors,\
+          \ journal_filter, title_filter):\n            matches.append(doc)\n\n\
+          \    unique = {}\n    for doc in matches:\n        key = (\n         \
+          \   (doc.get(\"title\") or \"\").strip().lower(),\n            (doc.get(\"\
+          authors\") or \"\").strip().lower(),\n            (doc.get(\"year\") or\
+          \ \"\").strip(),\n            (doc.get(\"journal\") or \"\").strip().lower(),\n\
+          \        )\n        if key not in unique:\n            unique[key] = doc\n\
+          \    final_docs = list(unique.values())\n\n    result_text = _render_result(final_docs,\
           \ total_docs=len(docs))\n    if errors:\n        result_text += \"\\nFehlerdetails:\\\
           n\" + \"\\n\".join(f\"- {e}\" for e in errors[:8])\n    return {\"result\"\
-          : (result_text.split(\"\\n\") if result_text else []), \"result_text\":\
-          \ result_text}\n"
+          : (result_text.split(\"\\n\") if result_text else []), \"result_text\"\
+          : result_text}\n"
         code_language: python3
         isInIteration: true
         isInLoop: false
@@ -1844,37 +1853,40 @@ workflow:
       zIndex: 1002
     - data:
         code: "import json\nimport re\n\n\ndef _to_text(value):\n    if value is None:\n\
-          \        return \"\"\n    if isinstance(value, list):\n        return \"\
-          , \".join(str(v).strip() for v in value if str(v).strip())[:300]\n    if\
-          \ isinstance(value, dict):\n        for key in (\"value\", \"name\", \"\
-          author\", \"authors\", \"text\"):\n            if key in value:\n      \
-          \          return _to_text(value.get(key))\n        return \", \".join(str(v).strip()\
-          \ for v in value.values() if str(v).strip())[:300]\n    return str(value).strip()[:300]\n\
-          \n\ndef _clean_obj(item):\n    if not isinstance(item, dict):\n        return\
-          \ None\n    year_value = _to_text(item.get(\"year\"))\n    return {\n  \
-          \      \"title\": _to_text(item.get(\"title\")),\n        \"authors\": _to_text(item.get(\"\
-          authors\") or item.get(\"author\")),\n        \"year\": year_value if re.fullmatch(r\"\
-          ^(19|20)[0-9]{2}$\", year_value) else \"\",\n        \"journal\": _to_text(item.get(\"\
-          journal\")),\n    }\n\n\ndef _parse_json(extractor_text):\n    if isinstance(extractor_text,\
-          \ dict):\n        return extractor_text\n    if not isinstance(extractor_text,\
-          \ str):\n        return {}\n    text = extractor_text.strip()\n    if not\
-          \ text:\n        return {}\n    if text.startswith(\"```\"):\n        text\
-          \ = re.sub(r\"^```(?:json)?\\s*\", \"\", text)\n        text = re.sub(r\"\
-          \\s*```$\", \"\", text).strip()\n    try:\n        parsed = json.loads(text)\n\
-          \    except Exception:\n        return {}\n    return parsed if isinstance(parsed,\
-          \ dict) else {}\n\n\ndef _clean_list(items):\n    cleaned = []\n    if not\
-          \ isinstance(items, list):\n        return cleaned\n    for item in items:\n\
-          \        obj = _clean_obj(item)\n        if obj is not None and any(obj.values()):\n\
+          \        return \"\"\n    if isinstance(value, list):\n        return\
+          \ \", \".join(str(v).strip() for v in value if str(v).strip())[:300]\n\
+          \    if isinstance(value, dict):\n        for key in (\"value\", \"name\"\
+          , \"author\", \"authors\", \"text\"):\n            if key in value:\n\
+          \                return _to_text(value.get(key))\n        return \", \"\
+          .join(str(v).strip() for v in value.values() if str(v).strip())[:300]\n\
+          \    return str(value).strip()[:300]\n\n\ndef _clean_obj(item):\n    if\
+          \ not isinstance(item, dict):\n        return None\n    year_value = _to_text(item.get(\"\
+          year\"))\n    return {\n        \"title\": _to_text(item.get(\"title\"\
+          )),\n        \"authors\": _to_text(item.get(\"authors\") or item.get(\"\
+          author\")),\n        \"year\": year_value if re.fullmatch(r\"^(19|20)[0-9]{2}$\"\
+          , year_value) else \"\",\n        \"journal\": _to_text(item.get(\"journal\"\
+          )),\n    }\n\n\ndef _parse_json(extractor_text):\n    if isinstance(extractor_text,\
+          \ (dict, list)):\n        return extractor_text\n    if not isinstance(extractor_text,\
+          \ str):\n        return {}\n    text = extractor_text.strip()\n    if\
+          \ not text:\n        return {}\n    text = re.sub(r\"<think>.*?</think>\"\
+          , \"\", text, flags=re.DOTALL).strip()\n    if text.startswith(\"```\"\
+          ):\n        text = re.sub(r\"^```(?:json)?\\s*\", \"\", text)\n      \
+          \  text = re.sub(r\"\\s*```$\", \"\", text).strip()\n    try:\n      \
+          \  parsed = json.loads(text)\n    except Exception:\n        return {}\n\
+          \    return parsed if isinstance(parsed, (dict, list)) else {}\n\n\ndef\
+          \ _clean_list(items):\n    cleaned = []\n    if not isinstance(items,\
+          \ list):\n        return cleaned\n    for item in items:\n        obj\
+          \ = _clean_obj(item)\n        if obj is not None and any(obj.values()):\n\
           \            cleaned.append(obj)\n    return cleaned\n\n\ndef main(extractor_text=None,\
           \ extractor_structured_output=None):\n    data = extractor_structured_output\
-          \ if isinstance(extractor_structured_output, dict) else _parse_json(extractor_text)\n\
-          \n    if isinstance(data.get(\"paper_list\"), list):\n        raw_items\
-          \ = data.get(\"paper_list\")\n    elif any(k in data for k in (\"title\"\
-          , \"authors\", \"author\", \"year\", \"journal\")):\n        raw_items =\
-          \ [data]\n    elif isinstance(data.get(\"authors\"), list):\n        raw_items\
-          \ = [{\"authors\": a} for a in data.get(\"authors\") if str(a).strip()]\n\
-          \    else:\n        raw_items = []\n\n    return {\"extracted_paper_list\"\
-          : _clean_list(raw_items)}\n"
+          \ if isinstance(extractor_structured_output, (dict, list)) else _parse_json(extractor_text)\n\
+          \n    if isinstance(data, list):\n        raw_items = data\n    elif isinstance(data.get(\"\
+          paper_list\"), list):\n        raw_items = data.get(\"paper_list\")\n\
+          \    elif any(k in data for k in (\"title\", \"authors\", \"author\",\
+          \ \"year\", \"journal\")):\n        raw_items = [data]\n    elif isinstance(data.get(\"\
+          authors\"), list):\n        raw_items = [{\"authors\": a} for a in data.get(\"\
+          authors\") if str(a).strip()]\n    else:\n        raw_items = []\n\n \
+          \   return {\"extracted_paper_list\": _clean_list(raw_items)}\n"
         code_language: python3
         isInIteration: false
         isInLoop: false
