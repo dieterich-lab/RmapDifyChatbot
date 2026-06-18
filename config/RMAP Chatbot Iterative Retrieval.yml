@@ -237,19 +237,6 @@ workflow:
       type: custom
       zIndex: 1002
     - data:
-        isInIteration: true
-        isInLoop: false
-        iteration_id: '1778676584534'
-        sourceType: llm
-        targetType: variable-aggregator
-      id: 1778689042001-source-1778678575789-target
-      source: '1778689042001'
-      sourceHandle: source
-      target: '1778678575789'
-      targetHandle: target
-      type: custom
-      zIndex: 1002
-    - data:
         isInLoop: false
         sourceType: iteration
         targetType: code
@@ -311,13 +298,13 @@ workflow:
         isInLoop: false
         iteration_id: '1778676584534'
         sourceType: code
-        targetType: llm
-      id: 1778800001025-source-1778689042001-target
+        targetType: variable-aggregator
+      id: 1778800001025-source-1778678575789-target
       markerEnd:
         type: ArrowClosed
       source: '1778800001025'
       sourceHandle: source
-      target: '1778689042001'
+      target: '1778678575789'
       targetHandle: target
       type: custom
       zIndex: 1002
@@ -503,101 +490,19 @@ workflow:
         - id: 400aef06-66bf-4730-a1f4-3dd418d2d48e
           reasoning_format: separated
           role: system
-          text: 'You are the reduce step of a map-reduce academic assistant.
-
-
-            Use ONLY the mapped per-paper results provided below:
-
-            {{#1778676584534.output#}}
-
-
-            Requested paper identities (authoritative order):
-
-            {{#1778800001001.paper_list#}}
-
-
-            Response policy:
-
-
-            - Answer in the same language as the user.
-
-
-            - Be precise and concise.
-
-
-            - If context includes errors or no results, explain that clearly and suggest one concrete reformulation (for example:
-            add year, remove strict filters, or provide full author name).
-
-
-            - If context includes per-paper summaries, produce a compact global synthesis first, then a clean numbered list
-            per paper.
-
-
-            - If user intent is comparison/contrast, add a short comparison table (or bullet matrix) across the referenced
-            papers before the per-paper details.
-
-
-            - If user intent asks for newest/oldest/first/top subset, explicitly state your selection criterion (typically
-            publication year if available) and then provide only the requested subset.
-
-
-            - If user asks for a fixed subset size (for example: "first two" or "top 3"), output exactly that many numbered
-            paper sections whenever that many mapped entries are available.
-
-
-            - Use the requested paper identities above as authoritative. Do not output placeholder labels like "Uncertain
-            match" when requested metadata is available.
-
-
-            - Preserve requested order: for "first two", section 1 must map to requested paper 1 and section 2 must map to
-            requested paper 2.
-
-
-            - For fixed-size subset requests, always use numbered markdown headers in this exact style: "**1. <paper title>**",
-            "**2. <paper title>**", etc. Never replace these with labels like "Paper 1" or "Paper 2".
-
-
-            - Even when textual context is insufficient, still emit the numbered paper headers for every requested slot so
-            downstream checks can verify section 1/2/3 presence deterministically.
-
-
-            - If mapped context is insufficient for a requested paper, still keep that paper title/authors/year/journal from
-            requested identities and clearly mark "insufficient textual context".
-
-
-            - Keep each paper section compact: at most 3 bullets per paper and no more than 2 short sentences per bullet.
-
-
-            - Output final answer text only. Never output <think> tags or hidden reasoning.
-
-
-            - If context includes only document list outputs, present count first and then up to 10 items in a numbered list.
-
-
-            - If context indicates missing textual content for some or all papers, do NOT stop at a generic refusal. Still
-            provide a useful structured answer: first list all matched papers (title, year, journal), then explicitly mark
-            which papers have insufficient text for reliable summarization.
-
-
-            - Keep the response constructive: add one short next step (for example: ask for full text, re-index documents,
-            or relax filters).
-
-
-            - STRICT GROUNDING GUARD: For each requested paper, if the mapped result for that paper contains phrases like
-            "insufficient textual context" or indicates metadata-only evidence, you MUST NOT write concrete methods/results/findings
-            claims for that paper.
-
-
-            - In that case, output only verified metadata (title/authors/year/journal) plus an explicit insufficiency note.
-
-
-            - Never transfer claims from one paper section to another paper section, even if topics are similar.
-
-
-            - Do not invent papers, counts, methods, or findings.
-
-
-            - Do not mention internal nodes, GraphQL, or system internals unless the user explicitly asks for technical details.'
+          text: "You are an academic literature assistant.\n\nThe context below contains either:\n  (a) A numbered list of\
+            \ paper metadata (title | authors | year | journal) — respond with a paper count and clean numbered list.\n  (b)\
+            \ Raw text excerpts of one or more papers, each tagged with a header  === <title> (<year>, <journal>) — <authors>\
+            \ === — respond with summaries and a global synthesis.\n\nContext (iteration output):\n{{#1778676584534.output#}}\n\
+            \nRequested paper identities (authoritative order):\n{{#1778800001001.paper_list#}}\n\nResponse policy for case\
+            \ (a):\n- State the total count, then a numbered list: title, year, journal.\n\nResponse policy for case (b):\n\
+            - **Global synthesis** first: 3–5 sentences comparing and contrasting themes across all papers.\n- Then, for each\
+            \ paper in numbered order:\n  - Header: **N. <full title>**\n  - Exactly 3 bullet points (method / key finding\
+            \ / implication), each at most 2 short sentences.\n  - If a paper's text is missing or says \"Insufficient textual\
+            \ context\", still emit the header and write: *Insufficient textual context — only metadata available.*\n  - STRICT\
+            \ GROUNDING GUARD: Do NOT fabricate methods or findings absent from the provided text.\n\nGeneral rules:\n- Answer\
+            \ in the same language as the user.\n- Output final answer text only. No <think> tags or hidden reasoning.\n-\
+            \ If context includes errors, explain clearly and suggest one concrete reformulation."
         selected: false
         title: Metadata LLM
         type: llm
@@ -1016,110 +921,6 @@ workflow:
       width: 242
       zIndex: 1002
     - data:
-        context:
-          enabled: true
-          variable_selector:
-          - '1778800001025'
-          - paper_text
-        isInIteration: true
-        isInLoop: false
-        iteration_id: '1778676584534'
-        memory:
-          query_prompt_template: '{{#sys.query#}}
-
-            {{#1778508354995.text#}}'
-          role_prefix:
-            assistant: ''
-            user: ''
-          window:
-            enabled: false
-            size: 10
-        model:
-          completion_params:
-            max_tokens: 2048
-            num_ctx: 12288
-            temperature: 0.2
-          mode: chat
-          name: gpt-oss
-          provider: langgenius/ollama/ollama
-        prompt_template:
-        - id: 4eaf6992-1e89-4a94-97ac-a7f6f2f6a151
-          role: system
-          text: 'You are the map step for exactly one target paper.
-
-
-            Target paper metadata for this iteration:
-
-            - title: {{#1778676584534.item.title#}}
-
-            - authors: {{#1778676584534.item.authors#}}
-
-            - year: {{#1778676584534.item.year#}}
-
-            - journal: {{#1778676584534.item.journal#}}
-
-
-            Use only {{#context#}} from the filtered retrieval of this single iteration.
-
-
-            STRICT SCOPE RULES:
-
-            - Summarize only the target paper above.
-
-            - Never summarize other papers, even if they appear in context.
-
-            - If context appears to refer primarily to another paper, output "insufficient textual context" for this target
-            paper.
-
-            - Never transfer claims from another paper to this target paper.
-
-
-            Output exactly 2 short sections:
-
-
-            1) MATCH: identify title/authors if visible; otherwise say uncertain match.
-
-
-            2) SUMMARY: concise methods/findings summary, or "insufficient textual context" if retrieval contains only metadata
-            or non-content snippets.
-
-
-            Additional formatting rules:
-
-
-            - In MATCH, include a confidence label: high, medium, or low.
-
-
-            - If text is insufficient, include one line "AVAILABLE_METADATA:" with any visible title/year/journal/authors
-            from context.
-
-
-            - Never claim findings when only metadata is available.
-
-
-            No hallucinations.'
-        reasoning_format: separated
-        selected: false
-        title: Paper Map LLM
-        type: llm
-        vision:
-          enabled: false
-      height: 88
-      id: '1778689042001'
-      parentId: '1778676584534'
-      position:
-        x: 848.8164042105939
-        y: 890.7501762704605
-      positionAbsolute:
-        x: -233.1309530840815
-        y: 4157.953128325196
-      selected: false
-      sourcePosition: right
-      targetPosition: left
-      type: custom
-      width: 242
-      zIndex: 1002
-    - data:
         code: "import json\nimport os\nimport re\nfrom urllib.error import HTTPError, URLError\nfrom urllib.parse import urlencode\n\
           from urllib.request import Request, urlopen\n\nCODE_VERSION = \"metadata_query_v2026-05-11_dify-metadata_1\"\n\n\
           _EMPTY_TOKENS = {\n    \"\",\n    \"null\",\n    \"none\",\n    \"unknown\",\n    \"n/a\",\n    \"na\",\n    \"\
@@ -1531,8 +1332,8 @@ workflow:
         variables:
         - - '17786780698570'
           - result_text
-        - - '1778689042001'
-          - text
+        - - '1778800001025'
+          - paper_context
       height: 135
       id: '1778678575789'
       parentId: '1778676584534'
@@ -1568,36 +1369,39 @@ workflow:
           \           seen.add(sid)\n                        pos = seg.get('position', 10 ** 9)\n                        all_segs.append((pos,\
           \ val.strip()))\n                    break\n        if len(items) < 100:\n            break\n    if not all_segs:\n\
           \        return '', 'no segments found'\n    all_segs.sort(key=lambda x: x[0])\n    return '\\n\\n'.join(t for _,\
-          \ t in all_segs), None\n\n\ndef _find_doc_id_by_title(api_base, dataset_id, title, headers):\n    expected = title.lower().strip()\n\
+          \ t in all_segs), None\n\n\ndef _find_doc_id_by_title(api_base, dataset_id, title, headers):\n    # Find document\
+          \ ID by matching title against doc_metadata from the list response.\n    # Uses the list endpoint doc_metadata field\
+          \ directly - no per-document detail calls.\n    expected = title.lower().strip()\n    exp_words = set(expected.split())\n\
           \    for page in range(1, 21):\n        q = urlencode({'page': page, 'limit': 100})\n        url = f'{api_base}/datasets/{dataset_id}/documents?{q}'\n\
           \        payload, err = _run_json_get(url, headers=headers, timeout=30)\n        if err:\n            break\n  \
           \      items = payload.get('data') or []\n        if not items:\n            break\n        for item in items:\n\
-          \            doc_id = _norm(item.get('id'))\n            if not doc_id:\n                continue\n            detail_url\
-          \ = (\n                f'{api_base}/datasets/{dataset_id}/documents/{doc_id}'\n                f'?{urlencode({\"\
-          metadata\": \"all\"})}'\n            )\n            detail, _ = _run_json_get(detail_url, headers=headers, timeout=10)\n\
-          \            doc_title = ''\n            for m in detail.get('doc_metadata', []) or []:\n                if _norm((m\
-          \ or {}).get('name')).lower() == 'title':\n                    doc_title = _norm((m or {}).get('value'))\n     \
-          \               break\n            if not doc_title:\n                doc_title = _norm(detail.get('name'))\n  \
-          \          if not doc_title:\n                continue\n            if doc_title.lower() == expected:\n        \
-          \        return doc_id, None\n            exp_words = set(expected.split())\n            doc_words = set(doc_title.lower().split())\n\
-          \            if exp_words and len(exp_words & doc_words) / len(exp_words) >= 0.8:\n                return doc_id,\
-          \ None\n        if len(items) < 100:\n            break\n    return '', f'no document found for title: {title!r}'\n\
-          \n\ndef main(doc_id=None, item_title=None):\n    api_base = (\n        _norm(os.getenv('DIFY_API_URL')) or 'http://rmap-chatbot-demo-dify/v1'\n\
+          \            doc_id = _norm(item.get('id'))\n            if not doc_id:\n                continue\n            #\
+          \ Read title from doc_metadata (already in list response, no extra call)\n            doc_title = ''\n         \
+          \   for m in (item.get('doc_metadata') or []):\n                if _norm((m or {}).get('name')).lower() == 'title':\n\
+          \                    doc_title = _norm((m or {}).get('value'))\n                    break\n            if not doc_title:\n\
+          \                doc_title = _norm(item.get('name', ''))\n            if not doc_title:\n                continue\n\
+          \            if doc_title.lower() == expected:\n                return doc_id, None\n            if exp_words:\n\
+          \                doc_words = set(doc_title.lower().split())\n                if len(exp_words & doc_words) / len(exp_words)\
+          \ >= 0.8:\n                    return doc_id, None\n        if len(items) < 100:\n            break\n    return\
+          \ '', f'no document found for title: {title!r}'\n\n\ndef main(doc_id=None, item_title=None, item_authors=None, item_year=None,\
+          \ item_journal=None):\n    api_base = (\n        _norm(os.getenv('DIFY_API_URL')) or 'http://rmap-chatbot-demo-dify/v1'\n\
           \    ).rstrip('/')\n    dataset_id = (\n        _norm(os.getenv('DIFY_DATASET_ID')) or '5a231cec-21bf-40b9-86c8-87b9d01bca74'\n\
           \    )\n    api_key = (\n        _norm(os.getenv('DIFY_API_KEY')) or 'dataset-z3bHkQ6eUPKN21GaLq3KXIiS'\n    )\n\
           \    headers = {'Authorization': f'Bearer {api_key}', 'Content-Type': 'application/json'}\n\n    resolved = _norm(doc_id)\n\
-          \    if not resolved:\n        title = _norm(item_title)\n        if not title:\n            return {'paper_text':\
+          \    if not resolved:\n        title = _norm(item_title)\n        if not title:\n            return {'paper_context':\
           \ '', 'paper_fetch_error': 'no doc_id and no title'}\n        resolved, err = _find_doc_id_by_title(api_base, dataset_id,\
-          \ title, headers)\n        if not resolved:\n            return {'paper_text': '', 'paper_fetch_error': err or 'title\
-          \ lookup failed'}\n\n    text, err = _fetch_all_segments(api_base, dataset_id, resolved, headers)\n    if err:\n\
-          \        return {'paper_text': '', 'paper_fetch_error': err}\n\n    return {'paper_text': text[:24000], 'paper_fetch_error':\
-          \ ''}\n"
+          \ title, headers)\n        if not resolved:\n            return {'paper_context': '', 'paper_fetch_error': err or\
+          \ 'title lookup failed'}\n\n    text, err = _fetch_all_segments(api_base, dataset_id, resolved, headers)\n    if\
+          \ err:\n        return {'paper_context': '', 'paper_fetch_error': err}\n\n    title  = _norm(item_title)\n    year\
+          \   = _norm(item_year)\n    journal = _norm(item_journal)\n    authors = _norm(item_authors)\n    meta_line = f'{title}\
+          \ ({year}, {journal}) — {authors}' if (year or journal or authors) else title\n    header = f'=== {meta_line} ==='\n\
+          \    context = f'{header}\\n\\n{text[:24000]}'\n    return {'paper_context': context, 'paper_fetch_error': ''}\n"
         code_language: python3
         isInIteration: true
         isInLoop: false
         iteration_id: '1778676584534'
         outputs:
-          paper_text:
+          paper_context:
             children: null
             type: string
           paper_fetch_error:
@@ -1619,6 +1423,24 @@ workflow:
           - title
           value_type: string
           variable: item_title
+        - value_selector:
+          - '1778676584534'
+          - item
+          - authors
+          value_type: string
+          variable: item_authors
+        - value_selector:
+          - '1778676584534'
+          - item
+          - year
+          value_type: string
+          variable: item_year
+        - value_selector:
+          - '1778676584534'
+          - item
+          - journal
+          value_type: string
+          variable: item_journal
       height: 51
       id: '1778800001025'
       parentId: '1778676584534'
