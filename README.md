@@ -50,16 +50,16 @@ flowchart TD
     FMS --> RPL[Resolve Paper List]
     RPL --> IF{Paper List\nEmpty?}
 
-    IF -->|"Yes — Turn 1\n(new author/topic query)"| KR[Knowledge Retrieval]
+    IF -->|"Yes — no paper constraints\n(open knowledge question)"| KR[Knowledge Retrieval]
     KR --> KLLM[Knowledge LLM]
     KLLM --> SAN[Final Answer Sanitizer]
 
-    IF -->|"No — Turn 2\n(follow-up: summarise)"| IT["Paper Iterator\n(iterates paper_list)"]
+    IF -->|"No — paper constraints present\n(author / title / follow-up)"| IT["Paper Iterator\n(iterates paper_list)"]
 
     subgraph iter ["Iteration (per paper)"]
         ITS([Iteration Start]) --> QC2[Question Classifier 2]
-        QC2 -->|"IS_COUNT_OR_LIST\n(list/count intent)"| MQ[Metadata Query]
-        QC2 -->|"IS_CONTENT\n(summarise intent)"| FF[Fetch Full Paper]
+        QC2 -->|"IS_COUNT_OR_LIST\n(list / count / filter)"| MQ[Metadata Query]
+        QC2 -->|"IS_CONTENT\n(summarise / explain)"| FF[Fetch Full Paper]
         MQ --> VA[Variable Aggregator]
         FF --> VA
     end
@@ -113,7 +113,7 @@ flowchart TD
 
 > **Query:** "Zeige mir alle Papiere von Christoph Dieterich in der Datenbank."
 
-**Route:** IF/ELSE → Knowledge Retrieval → Knowledge LLM (IS_COUNT_OR_LIST path via Metadata Query inside iteration)
+**Route:** IF/ELSE (paper_list = [{authors: "Christoph Dieterich"}], not empty) → Paper Iterator → **Metadata Query** (IS_COUNT_OR_LIST)
 
 **Time: 79 s**
 
@@ -138,7 +138,7 @@ Gesamtzahl der Publikationen von Christoph Dieterich: 6
 
 > **Query:** "Fasse jedes dieser Papiere kurz zusammen."
 
-**Route:** IF/ELSE → Paper Iterator (IS_CONTENT path via Fetch Full Paper) → Metadata LLM
+**Route:** IF/ELSE (paper_list = 6 items from conversation.memory, not empty) → Paper Iterator → **Fetch Full Paper** (IS_CONTENT) → Metadata LLM
 
 **Time: 214 s** | Fetch Full Paper ×6: 0.4–0.9 s/paper | Metadata LLM: 15 260 prompt tokens · 1 388 completion tokens
 
