@@ -231,6 +231,66 @@ run_import_with_retries() {
   fi
 }
 
+# ── Draft sync ──────────────────────────────────────────────────────────────
+# Always sync the draft so the GUI editor reflects the imported DSL.
+sync_draft() {
+  [[ -n "${DIFY_APP_ID:-}" ]] || { echo "Skipping draft sync: DIFY_APP_ID not set."; return 0; }
+  [[ -n "${DIFY_CONSOLE_COOKIE:-}" && -n "${DIFY_CSRF_TOKEN:-}" ]] || {
+    echo "Skipping draft sync: no cookie session available."; return 0
+  }
+
+  DRAFT_URL="${DIFY_BASE_URL%/}/console/api/apps/${DIFY_APP_ID}/workflows/draft"
+  TMP_DRAFT_GET=$(mktemp)
+  TMP_DRAFT_PAYLOAD=$(mktemp)
+  TMP_DRAFT_RESP=$(mktemp)
+
+  # Fetch current draft to get the hash required for the update
+  DRAFT_GET_HTTP=$(curl -sS -o "$TMP_DRAFT_GET" -w "%{http_code}" "$DRAFT_URL" \
+    -H "Cookie: ${DIFY_CONSOLE_COOKIE}" -H "x-csrf-token: ${DIFY_CSRF_TOKEN}")
+  if [[ "$DRAFT_GET_HTTP" != "200" ]]; then
+    echo "Warning: could not fetch draft (HTTP $DRAFT_GET_HTTP); skipping draft sync."
+    return 0
+  fi
+
+  # Build draft payload: graph + features from DSL, env/conv vars from current draft
+  DSL_PATH="$DSL_PATH" TMP_DRAFT_GET="$TMP_DRAFT_GET" TMP_DRAFT_PAYLOAD="$TMP_DRAFT_PAYLOAD" \
+  "$PYTHON_BIN" - <<'PY'
+import json, os, yaml
+from pathlib import Path
+dsl   = yaml.safe_load(Path(os.environ["DSL_PATH"]).read_text(encoding="utf-8"))
+draft = json.loads(Path(os.environ["TMP_DRAFT_GET"]).read_text(encoding="utf-8"))
+payload = {
+    "graph":                 dsl["workflow"]["graph"],
+    "features":              dsl.get("features", {}),
+    "environment_variables": draft.get("environment_variables", []),
+    "conversation_variables":draft.get("conversation_variables", []),
+    "hash":                  draft.get("hash", ""),
+}
+with open(os.environ["TMP_DRAFT_PAYLOAD"], "w") as f:
+    json.dump(payload, f, ensure_ascii=False)
+g = dsl["workflow"]["graph"]
+print(f"Draft payload: {len(g['nodes'])} nodes, {len(g['edges'])} edges")
+PY
+
+  # Post to draft endpoint
+  DRAFT_POST_HTTP=$(curl -sS -o "$TMP_DRAFT_RESP" -w "%{http_code}" \
+    -X POST "$DRAFT_URL" \
+    -H "Cookie: ${DIFY_CONSOLE_COOKIE}" \
+    -H "x-csrf-token: ${DIFY_CSRF_TOKEN}" \
+    -H "Content-Type: application/json" \
+    --data @"$TMP_DRAFT_PAYLOAD")
+
+  echo "Draft sync HTTP: $DRAFT_POST_HTTP"
+  "$PYTHON_BIN" -c "
+import json
+d = json.load(open('$TMP_DRAFT_RESP'))
+if d.get('result') == 'success':
+    print(f'Draft updated ✓  (new hash: {str(d.get(\"hash\",\"\"))[:20]}...)')
+else:
+    print('Draft sync failed:', json.dumps(d)[:300])
+  "
+}
+
 run_import_with_retries
 
 echo "Import endpoint: $IMPORT_URL"
@@ -239,6 +299,9 @@ cat "$TMP_IMPORT"
 echo
 
 [[ "$HTTP_CODE" =~ ^20(0|1|2)$ ]] || exit 1
+
+sync_draft
+
 [[ "${AUTO_CONFIRM:-false}" == "true" ]] || exit 0
 
 IMPORT_META=$(TMP_FILE="$TMP_IMPORT" "$PYTHON_BIN" - <<'PY'
