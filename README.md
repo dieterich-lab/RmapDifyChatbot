@@ -10,6 +10,7 @@ academic assistant with explicit metadata routing.
 3. `doc_id` is now propagated through the full Turn-1 → Turn-2 pipeline, eliminating O(N) title lookups.
 4. Paper fetch reduced to 0.4–0.9 s/paper (was ~25 s/paper with title-based pagination).
 5. Structured-output extractor handoff is robust; final answer sanitizer strips `<think>` leakage.
+6. `Fetch Full Paper` uses a dynamic text budget: total 48 000 chars divided equally among all papers in the iteration (`48 000 // paper_count`), so fewer papers automatically get more context (min 4 000 chars/paper).
 
 ## Overview
 
@@ -89,7 +90,7 @@ flowchart TD
 | 10 | **Paper Iterator** | iteration | Iterates over `paper_list` items. Turn-2 only. Each item carries `{title, authors, year, journal, doc_id}`. |
 | 11 | **Question Classifier 2** | question-classifier | Inside the iteration: classifies the intent as `IS_COUNT_OR_LIST` (listing/counting) or `IS_CONTENT` (summarise/explain). |
 | 12 | **Metadata Query** | code | `IS_COUNT_OR_LIST` path. Searches the dataset by author/year/title metadata filters; returns a formatted `title \| authors \| year \| journal \| doc_id` string. |
-| 13 | **Fetch Full Paper** | code | `IS_CONTENT` path. Uses `doc_id` directly from the iteration item for a single-call segment fetch (0.4–0.9 s/paper). Falls back to title-based lookup only if `doc_id` is absent. Truncates text to 8 000 chars. |
+| 13 | **Fetch Full Paper** | code | `IS_CONTENT` path. Uses `doc_id` directly from the iteration item for a single-call segment fetch (0.4–0.9 s/paper). Falls back to title-based lookup only if `doc_id` is absent. Applies a dynamic text budget: `chars_per_paper = max(4 000, 48 000 // paper_count)`, so the total context stays bounded at ~48 000 chars regardless of how many papers are in the iteration. |
 | 14 | **Variable Aggregator** | variable-aggregator | Collects outputs from `Metadata Query` (`result_text`) and `Fetch Full Paper` (`paper_context`) into one string per iteration round. |
 | 15 | **Update Paper Memory** | code | After the iteration: parses the aggregated output into structured paper objects and deduplicates them. |
 | 16 | **Persist Paper Memory** | assigner | Writes the updated paper list to `conversation.memory` (scoped to the conversation, persisted across turns). |
@@ -101,7 +102,7 @@ flowchart TD
 
 - **`doc_id` passthrough**: `conversation.memory` stores `doc_id` alongside each paper entry (written by `Metadata Query` in Turn 1). `Follow-up Memory Subset` and `Resolve Paper List` preserve `doc_id` through `_clean_obj`, so `Fetch Full Paper` can call the segments API directly — no pagination, no title matching.
 - **Single Metadata LLM call**: all paper texts are aggregated by the `Variable Aggregator` inside the iteration; one combined LLM call (outside the loop) produces the cross-paper synthesis and summaries, rather than one LLM call per paper.
-- **Context budget**: 8 000 chars (~2 000 tokens) per paper × 6 papers = ~12 000 tokens content; system prompt + metadata ≈ 3 000 tokens; total prompt ~15 000 tokens fits comfortably in `num_ctx=24576`.
+- **Dynamic context budget**: `Resolve Paper List` outputs `paper_count`; `Fetch Full Paper` receives it as an input variable and computes `chars_per_paper = max(4 000, 48 000 // paper_count)`. The total text budget is fixed at 48 000 chars and distributed equally: 6 papers → 8 000 chars each, 3 papers → 16 000 chars each, 1 paper → 48 000 chars. System prompt + metadata ≈ 3 000 tokens; at 6 papers the total prompt is ~15 000 tokens, fitting comfortably in `num_ctx=24576`.
 
 ---
 
@@ -393,6 +394,12 @@ Notes:
 	- Metadata LLM max token budget increased (`768 -> 1200`) to improve long-answer completeness.
 	- Final sanitizer hardened for both closed and unclosed `<think>` segments.
 	- Validated two-turn runs with HTTP 200 on both turns and no `<think>` content in final answer.
+
+10. Milestone 2026-06-19 (dynamic text budget for Fetch Full Paper):
+	- `Resolve Paper List` now outputs `paper_count` (integer) alongside `paper_list`.
+	- `Fetch Full Paper` accepts `paper_count` as an input variable and computes `chars_per_paper = max(4 000, 48 000 // paper_count)`.
+	- Replaces the previous hard-coded 8 000 chars/paper limit; with fewer papers each paper gets proportionally more context.
+	- **Verified:** 6-paper Turn-2 run: `paper_count=6` → 8 000 chars/paper, context lengths 8 161–8 456 chars, all 6 Fetch Full Paper nodes succeeded.
 
 9. Milestone 2026-06-19 (Turn-2 consolidation — single LLM call + doc_id passthrough):
 	- Removed `Paper Map LLM` node from inside the iteration (was 1 LLM call per paper).

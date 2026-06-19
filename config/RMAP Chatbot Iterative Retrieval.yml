@@ -1189,12 +1189,13 @@ workflow:
           \ = []\n    if not isinstance(items, list):\n        return cleaned\n    for item in items:\n        obj = _clean_obj(item)\n\
           \        if obj is not None and any(obj.values()):\n            cleaned.append(obj)\n    return cleaned\n\n\ndef\
           \ main(extracted_paper_list=None, memory_subset=None, is_followup=True, query=None):\n    extracted = _clean_list(extracted_paper_list)\n\
-          \    subset = _clean_list(memory_subset)\n\n    if subset:\n        return {\"paper_list\": subset}\n\n    if extracted:\n\
-          \        return {\"paper_list\": extracted}\n\n    q = str(query or \"\").strip()\n    m = re.search(r\"\\b(?:by|von)\\\
-          s+([A-Z][A-Za-z.-]+(?:\\s+[A-Z][A-Za-z.-]+){1,4})\", q)\n    if m:\n        return {\n            \"paper_list\"\
-          : [\n                {\n                    \"title\": \"\",\n                    \"authors\": m.group(1).strip(\"\
-          \ ,.;:\"),\n                    \"year\": \"\",\n                    \"journal\": \"\",\n                }\n   \
-          \         ]\n        }\n\n    return {\"paper_list\": []}\n"
+          \    subset = _clean_list(memory_subset)\n\n    if subset:\n        return {\"paper_list\": subset, \"paper_count\"\
+          : len(subset)}\n\n    if extracted:\n        return {\"paper_list\": extracted, \"paper_count\": len(extracted)}\n\
+          \n    q = str(query or \"\").strip()\n    m = re.search(r\"\\b(?:by|von)\\s+([A-Z][A-Za-z.-]+(?:\\s+[A-Z][A-Za-z.-]+){1,4})\"\
+          , q)\n    if m:\n        return {\n            \"paper_list\": [\n                {\n                    \"title\"\
+          : \"\",\n                    \"authors\": m.group(1).strip(\" ,.;:\"),\n                    \"year\": \"\",\n  \
+          \                  \"journal\": \"\",\n                }\n            ],\n            \"paper_count\": 1\n     \
+          \   }\n\n    return {\"paper_list\": [], \"paper_count\": 0}\n"
         code_language: python3
         isInIteration: false
         isInLoop: false
@@ -1202,6 +1203,9 @@ workflow:
           paper_list:
             children: null
             type: array[object]
+          paper_count:
+            children: null
+            type: number
         selected: false
         title: Resolve Paper List
         type: code
@@ -1384,7 +1388,7 @@ workflow:
           \                doc_words = set(doc_title.lower().split())\n                if len(exp_words & doc_words) / len(exp_words)\
           \ >= 0.8:\n                    return doc_id, None\n        if len(items) < 100:\n            break\n    return\
           \ '', f'no document found for title: {title!r}'\n\n\ndef main(doc_id=None, item_title=None, item_authors=None, item_year=None,\
-          \ item_journal=None):\n    api_base = (\n        _norm(os.getenv('DIFY_API_URL')) or 'http://rmap-chatbot-demo-dify/v1'\n\
+          \ item_journal=None, paper_count=None):\n    api_base = (\n        _norm(os.getenv('DIFY_API_URL')) or 'http://rmap-chatbot-demo-dify/v1'\n\
           \    ).rstrip('/')\n    dataset_id = (\n        _norm(os.getenv('DIFY_DATASET_ID')) or '5a231cec-21bf-40b9-86c8-87b9d01bca74'\n\
           \    )\n    api_key = (\n        _norm(os.getenv('DIFY_API_KEY')) or 'dataset-z3bHkQ6eUPKN21GaLq3KXIiS'\n    )\n\
           \    headers = {'Authorization': f'Bearer {api_key}', 'Content-Type': 'application/json'}\n\n    resolved = _norm(doc_id)\n\
@@ -1395,7 +1399,9 @@ workflow:
           \ err:\n        return {'paper_context': '', 'paper_fetch_error': err}\n\n    title  = _norm(item_title)\n    year\
           \   = _norm(item_year)\n    journal = _norm(item_journal)\n    authors = _norm(item_authors)\n    meta_line = f'{title}\
           \ ({year}, {journal}) — {authors}' if (year or journal or authors) else title\n    header = f'=== {meta_line} ==='\n\
-          \    context = f'{header}\\n\\n{text[:8000]}'\n    return {'paper_context': context, 'paper_fetch_error': ''}\n"
+          \    n = int(paper_count) if paper_count and int(paper_count) > 0 else 1\n    chars_per_paper = max(4000, 48000\
+          \ // n)\n    context = f'{header}\\n\\n{text[:chars_per_paper]}'\n    return {'paper_context': context, 'paper_fetch_error':\
+          \ ''}\n"
         code_language: python3
         isInIteration: true
         isInLoop: false
@@ -1441,6 +1447,11 @@ workflow:
           - journal
           value_type: string
           variable: item_journal
+        - value_selector:
+          - '1778800001001'
+          - paper_count
+          value_type: number
+          variable: paper_count
       height: 51
       id: '1778800001025'
       parentId: '1778676584534'
