@@ -3,12 +3,13 @@
 RmapDifyChatbot is a production-oriented Python project for operating a Dify-based
 academic assistant with explicit metadata routing.
 
-## Status Snapshot (2026-05-29)
+## Status Snapshot (2026-06-19)
 
-1. Iterative map/reduce workflow is stable for core two-turn handover: paper list -> summarize selected papers.
-2. Structured-output extractor handoff is now robust (parser prefers extractor JSON over raw free text).
-3. Final answer sanitation strips leaked `<think>` blocks, including malformed or unclosed variants.
-4. Two-pass bulk upload is integrated for local and SLURM execution paths via Python module invocation.
+1. Two-turn workflow validated end-to-end on all 6 Dieterich papers (Turn 1: 79 s, Turn 2: 214 s).
+2. Turn 2 uses a single Metadata LLM call for all papers (Paper Map LLM removed from iteration).
+3. `doc_id` is now propagated through the full Turn-1 → Turn-2 pipeline, eliminating O(N) title lookups.
+4. Paper fetch reduced to 0.4–0.9 s/paper (was ~25 s/paper with title-based pagination).
+5. Structured-output extractor handoff is robust; final answer sanitizer strips `<think>` leakage.
 
 ## Overview
 
@@ -36,26 +37,39 @@ flowchart LR
 
 Current iterative retrieval workflow (`config/RMAP Chatbot Iterative Retrieval.yml`):
 
+20 nodes · 20 edges · Dify DSL v0.6.0 · `advanced-chat` mode
+
 ```mermaid
 flowchart LR
-		A[Start] --> B[Query Rewriter]
-		B --> C[JSON Metadata Extractor]
-		C --> F{Paper List Empty?}
+    A[Start] --> B[Query Rewriter]
+    B --> C[JSON Metadata Extractor]
+    C --> D[Parse Extractor Paper List]
+    D --> E[Follow-up Memory Subset]
+    E --> F[Resolve Paper List]
+    F --> G{Paper List Empty?}
 
-		F -->|Yes| G[Knowledge Retrieval]
-		G --> H[Knowledge LLM]
-		H --> Z[Answer]
+    G -->|Yes - Turn 1| H[Knowledge Retrieval]
+    H --> I[Knowledge LLM]
+    I --> San[Final Answer Sanitizer]
 
-		F -->|No| I[Paper Iterator]
-		I --> J[Question Classifier]
-		J -->|Count/List| K[Metadata Code]
-		J -->|Content| L[KR with filter]
-		L --> M[Paper Map LLM]
-		K --> N[Iteration Aggregator]
-		M --> N
-		N --> O[Map/Reduce LLM]
-		O --> Z
+    G -->|No - Turn 2| J[Paper Iterator]
+    J --> QC[Question Classifier 2]
+    QC -->|Count/List| MQ[Metadata Query]
+    QC -->|Content| FF[Fetch Full Paper]
+    MQ --> VA[Variable Aggregator]
+    FF --> VA
+    VA --> J
+    J --> UPM[Update Paper Memory]
+    UPM --> PM[Persist Paper Memory]
+    PM --> MLLM[Metadata LLM]
+    MLLM --> San
+    San --> Z[Answer]
 ```
+
+Key design decisions:
+- **doc_id passthrough**: `conversation.memory` stores `doc_id` from Turn 1; `Follow-up Memory Subset` and `Resolve Paper List` preserve it so `Fetch Full Paper` can do a direct segment fetch without title lookup.
+- **Single Metadata LLM call**: all paper texts are aggregated by the `Variable Aggregator` inside the iteration; one combined LLM call produces the synthesis and per-paper summaries.
+- **Context budget**: `Fetch Full Paper` truncates each paper to 8 000 chars (~2 000 tokens); Metadata LLM uses `num_ctx=24576` and `max_tokens=4000`.
 
 ## Installation
 
@@ -273,6 +287,37 @@ Notes:
 	- Metadata LLM max token budget increased (`768 -> 1200`) to improve long-answer completeness.
 	- Final sanitizer hardened for both closed and unclosed `<think>` segments.
 	- Validated two-turn runs with HTTP 200 on both turns and no `<think>` content in final answer.
+
+9. Milestone 2026-06-19 (Turn-2 consolidation — single LLM call + doc_id passthrough):
+	- Removed `Paper Map LLM` node from inside the iteration (was 1 LLM call per paper).
+	- `Fetch Full Paper` now returns `paper_context` (header + truncated text) directly to the `Variable Aggregator`.
+	- A single `Metadata LLM` call outside the iteration synthesises all paper texts at once.
+	- Fixed `_find_doc_id_by_title` O(N) pagination: uses `doc_metadata` field in the document list response (no per-document detail calls needed).
+	- `doc_id` now propagates through the full pipeline: `conversation.memory` → `Follow-up Memory Subset` → `Resolve Paper List` → `Paper Iterator` item → `Fetch Full Paper`. `_clean_obj` in both code nodes updated to preserve `doc_id`.
+	- Paper text limit reduced from 24 000 to 8 000 chars/paper; Metadata LLM `num_ctx` set to 24 576, `max_tokens` to 4 000.
+	- `import_dify_dsl.sh` updated to always sync the Dify Draft after import (via `POST /workflows/draft`).
+	- **Validated two-turn consolidation test (2026-06-19, app `16d50bee-bc86-4bda-bb56-a861743f3ddb`, draft run):**
+
+| Turn | Query | Time |
+|---|---|---|
+| 1 | "Zeige mir alle Papiere von Christoph Dieterich in der Datenbank." | 79 s |
+| 2 | "Fasse jedes dieser Papiere kurz zusammen." | 214 s |
+
+Turn 1 — all 6 papers listed (Metadata Query path, IS_COUNT_OR_LIST):
+```
+Gesamtzahl der Publikationen: 6
+1. APOBEC2 safeguards skeletal muscle cell fate ... | 2024 | PNAS
+2. PEPseq quantifies transcriptome-wide changes ... | 2023 | Nucleic Acids Res
+3. Detection of queuosine and queuosine precursors ... | 2023 | Nucleic Acids Res
+4. Adaptive sampling for nanopore direct RNA-sequencing | 2023 | RNA
+5. Detecting m6A at single-molecular resolution ... | 2024 | Nat Commun
+6. Sci-ModoM: a quantitative database ... | 2025 | Nucleic Acids Res
+```
+
+Turn 2 — all 6 papers summarised (Fetch Full Paper path, IS_CONTENT):
+- Fetch Full Paper ×6: **0.4–0.9 s/paper** (direct doc_id, no pagination)
+- Metadata LLM: 15 260 prompt tokens · 1 388 completion tokens
+- Output: global synthesis + 3-bullet-point summary per paper ✓
 
 ## Secondary Service: Metadata Extraction And Paper Upload
 

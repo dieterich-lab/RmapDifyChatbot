@@ -480,8 +480,8 @@ workflow:
             size: 50
         model:
           completion_params:
-            max_tokens: 1200
-            num_ctx: 12288
+            max_tokens: 4000
+            num_ctx: 24576
             temperature: 0
           mode: chat
           name: gpt-oss
@@ -1124,24 +1124,24 @@ workflow:
           \ dict):\n        return None\n    year_value = _to_text(item.get(\"year\"))\n    return {\n        \"title\": _to_text(item.get(\"\
           title\")),\n        \"authors\": _to_text(item.get(\"authors\") or item.get(\"author\")),\n        \"year\": year_value\
           \ if re.fullmatch(r\"^(19|20)[0-9]{2}$\", year_value) else \"\",\n        \"journal\": _to_text(item.get(\"journal\"\
-          )),\n    }\n\n\ndef _clean_list(items):\n    cleaned = []\n    if not isinstance(items, list):\n        return cleaned\n\
-          \    for item in items:\n        obj = _clean_obj(item)\n        if obj is not None and any(obj.values()):\n   \
-          \         cleaned.append(obj)\n    return cleaned\n\n\ndef _extract_limit(query):\n    text = str(query or \"\"\
-          ).strip().lower()\n    if not text:\n        return None\n    for pattern in (r\"\\btop\\s+(\\d{1,2})\\b\", r\"\\\
-          bfirst\\s+(\\d{1,2})\\b\", r\"\\bersten?\\s+(\\d{1,2})\\b\"):\n        m = re.search(pattern, text)\n        if\
-          \ m:\n            n = int(m.group(1))\n            return n if n > 0 else None\n    if re.search(r\"\\bfirst\\s+two\\\
-          b|\\bersten?\\s+zwei\\b\", text):\n        return 2\n    if re.search(r\"\\bfirst\\s+three\\b|\\bersten?\\s+drei\\\
-          b\", text):\n        return 3\n    if re.search(r\"\\bfirst\\s+one\\b|\\bersten?\\s+eins\\b\", text):\n        return\
-          \ 1\n    return None\n\n\ndef _extract_year(item):\n    text = _to_text((item or {}).get(\"year\"))\n    return\
-          \ int(text) if re.fullmatch(r\"^(19|20)[0-9]{2}$\", text) else -1\n\n\ndef main(memory=None, query=None, is_followup=True):\n\
-          \    if not is_followup:\n        return {\"memory_subset\": []}\n\n    items = _clean_list(memory)\n    if not\
-          \ items:\n        return {\"memory_subset\": []}\n\n    text = str(query or \"\").strip().lower()\n    if re.search(r\"\
-          \\b(newest|latest|most recent|neueste[snrm]?)\\b\", text):\n        sorted_items = sorted(items, key=_extract_year,\
-          \ reverse=True)\n        if _extract_year(sorted_items[0]) != -1:\n            return {\"memory_subset\": sorted_items[:1]}\n\
-          \n    if re.search(r\"\\b(oldest|earliest|aelteste[snrm]?|älteste[snrm]?)\\b\", text):\n        sorted_items = sorted(items,\
-          \ key=_extract_year, reverse=False)\n        if _extract_year(sorted_items[0]) != -1:\n            return {\"memory_subset\"\
-          : sorted_items[:1]}\n\n    limit = _extract_limit(text)\n    if isinstance(limit, int):\n        return {\"memory_subset\"\
-          : items[:limit]}\n\n    return {\"memory_subset\": items}\n"
+          )),\n        \"doc_id\": str(item.get(\"doc_id\") or \"\").strip(),\n    }\n\n\ndef _clean_list(items):\n    cleaned\
+          \ = []\n    if not isinstance(items, list):\n        return cleaned\n    for item in items:\n        obj = _clean_obj(item)\n\
+          \        if obj is not None and any(obj.values()):\n            cleaned.append(obj)\n    return cleaned\n\n\ndef\
+          \ _extract_limit(query):\n    text = str(query or \"\").strip().lower()\n    if not text:\n        return None\n\
+          \    for pattern in (r\"\\btop\\s+(\\d{1,2})\\b\", r\"\\bfirst\\s+(\\d{1,2})\\b\", r\"\\bersten?\\s+(\\d{1,2})\\\
+          b\"):\n        m = re.search(pattern, text)\n        if m:\n            n = int(m.group(1))\n            return\
+          \ n if n > 0 else None\n    if re.search(r\"\\bfirst\\s+two\\b|\\bersten?\\s+zwei\\b\", text):\n        return 2\n\
+          \    if re.search(r\"\\bfirst\\s+three\\b|\\bersten?\\s+drei\\b\", text):\n        return 3\n    if re.search(r\"\
+          \\bfirst\\s+one\\b|\\bersten?\\s+eins\\b\", text):\n        return 1\n    return None\n\n\ndef _extract_year(item):\n\
+          \    text = _to_text((item or {}).get(\"year\"))\n    return int(text) if re.fullmatch(r\"^(19|20)[0-9]{2}$\", text)\
+          \ else -1\n\n\ndef main(memory=None, query=None, is_followup=True):\n    if not is_followup:\n        return {\"\
+          memory_subset\": []}\n\n    items = _clean_list(memory)\n    if not items:\n        return {\"memory_subset\": []}\n\
+          \n    text = str(query or \"\").strip().lower()\n    if re.search(r\"\\b(newest|latest|most recent|neueste[snrm]?)\\\
+          b\", text):\n        sorted_items = sorted(items, key=_extract_year, reverse=True)\n        if _extract_year(sorted_items[0])\
+          \ != -1:\n            return {\"memory_subset\": sorted_items[:1]}\n\n    if re.search(r\"\\b(oldest|earliest|aelteste[snrm]?|älteste[snrm]?)\\\
+          b\", text):\n        sorted_items = sorted(items, key=_extract_year, reverse=False)\n        if _extract_year(sorted_items[0])\
+          \ != -1:\n            return {\"memory_subset\": sorted_items[:1]}\n\n    limit = _extract_limit(text)\n    if isinstance(limit,\
+          \ int):\n        return {\"memory_subset\": items[:limit]}\n\n    return {\"memory_subset\": items}\n"
         code_language: python3
         isInIteration: false
         isInLoop: false
@@ -1185,16 +1185,16 @@ workflow:
           \ dict):\n        return None\n    year_value = _to_text(item.get(\"year\"))\n    return {\n        \"title\": _to_text(item.get(\"\
           title\")),\n        \"authors\": _to_text(item.get(\"authors\") or item.get(\"author\")),\n        \"year\": year_value\
           \ if re.fullmatch(r\"^(19|20)[0-9]{2}$\", year_value) else \"\",\n        \"journal\": _to_text(item.get(\"journal\"\
-          )),\n    }\n\n\ndef _clean_list(items):\n    cleaned = []\n    if not isinstance(items, list):\n        return cleaned\n\
-          \    for item in items:\n        obj = _clean_obj(item)\n        if obj is not None and any(obj.values()):\n   \
-          \         cleaned.append(obj)\n    return cleaned\n\n\ndef main(extracted_paper_list=None, memory_subset=None, is_followup=True,\
-          \ query=None):\n    extracted = _clean_list(extracted_paper_list)\n    subset = _clean_list(memory_subset)\n\n \
-          \   if subset:\n        return {\"paper_list\": subset}\n\n    if extracted:\n        return {\"paper_list\": extracted}\n\
-          \n    q = str(query or \"\").strip()\n    m = re.search(r\"\\b(?:by|von)\\s+([A-Z][A-Za-z.-]+(?:\\s+[A-Z][A-Za-z.-]+){1,4})\"\
-          , q)\n    if m:\n        return {\n            \"paper_list\": [\n                {\n                    \"title\"\
-          : \"\",\n                    \"authors\": m.group(1).strip(\" ,.;:\"),\n                    \"year\": \"\",\n  \
-          \                  \"journal\": \"\",\n                }\n            ]\n        }\n\n    return {\"paper_list\"\
-          : []}\n"
+          )),\n        \"doc_id\": str(item.get(\"doc_id\") or \"\").strip(),\n    }\n\n\ndef _clean_list(items):\n    cleaned\
+          \ = []\n    if not isinstance(items, list):\n        return cleaned\n    for item in items:\n        obj = _clean_obj(item)\n\
+          \        if obj is not None and any(obj.values()):\n            cleaned.append(obj)\n    return cleaned\n\n\ndef\
+          \ main(extracted_paper_list=None, memory_subset=None, is_followup=True, query=None):\n    extracted = _clean_list(extracted_paper_list)\n\
+          \    subset = _clean_list(memory_subset)\n\n    if subset:\n        return {\"paper_list\": subset}\n\n    if extracted:\n\
+          \        return {\"paper_list\": extracted}\n\n    q = str(query or \"\").strip()\n    m = re.search(r\"\\b(?:by|von)\\\
+          s+([A-Z][A-Za-z.-]+(?:\\s+[A-Z][A-Za-z.-]+){1,4})\", q)\n    if m:\n        return {\n            \"paper_list\"\
+          : [\n                {\n                    \"title\": \"\",\n                    \"authors\": m.group(1).strip(\"\
+          \ ,.;:\"),\n                    \"year\": \"\",\n                    \"journal\": \"\",\n                }\n   \
+          \         ]\n        }\n\n    return {\"paper_list\": []}\n"
         code_language: python3
         isInIteration: false
         isInLoop: false
@@ -1395,7 +1395,7 @@ workflow:
           \ err:\n        return {'paper_context': '', 'paper_fetch_error': err}\n\n    title  = _norm(item_title)\n    year\
           \   = _norm(item_year)\n    journal = _norm(item_journal)\n    authors = _norm(item_authors)\n    meta_line = f'{title}\
           \ ({year}, {journal}) — {authors}' if (year or journal or authors) else title\n    header = f'=== {meta_line} ==='\n\
-          \    context = f'{header}\\n\\n{text[:24000]}'\n    return {'paper_context': context, 'paper_fetch_error': ''}\n"
+          \    context = f'{header}\\n\\n{text[:8000]}'\n    return {'paper_context': context, 'paper_fetch_error': ''}\n"
         code_language: python3
         isInIteration: true
         isInLoop: false
