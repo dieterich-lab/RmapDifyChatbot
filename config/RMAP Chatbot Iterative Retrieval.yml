@@ -1587,14 +1587,25 @@ workflow:
         isInIteration: false
         isInLoop: false
         conditions:
-        - id: a5804197-a84b-4d65-837d-31943044924f
+        - id: route-by-intent-cond-top
           variable_selector:
           - '17786780005730'
           - class_name
-          comparison_operator: contains
+          comparison_operator: is
           value: COUNT
         logical_operator: and
         selected: false
+        cases:
+        - case_id: 'true'
+          id: 'true'
+          logical_operator: and
+          conditions:
+          - id: route-by-intent-cond-1
+            variable_selector:
+            - '17786780005730'
+            - class_name
+            comparison_operator: is
+            value: COUNT
       position:
         x: 1200
         y: 400
