@@ -176,39 +176,13 @@ workflow:
       type: custom
       zIndex: 1002
     - data:
-        isInIteration: true
-        isInLoop: false
-        iteration_id: '1778676584534'
-        sourceType: question-classifier
-        targetType: code
-      id: 17786780005730-1-17786780698570-target
-      source: '17786780005730'
-      sourceHandle: '1'
-      target: '17786780698570'
-      targetHandle: target
-      type: custom
-      zIndex: 1002
-    - data:
-        isInIteration: true
-        isInLoop: false
-        iteration_id: '1778676584534'
-        sourceType: question-classifier
-        targetType: code
-      id: 17786780005730-2-1778800001025-target
-      source: '17786780005730'
-      sourceHandle: '2'
-      target: '1778800001025'
-      targetHandle: target
-      type: custom
-      zIndex: 1002
-    - data:
         isInLoop: false
         sourceType: if-else
-        targetType: iteration
+        targetType: question-classifier
       id: 1778677927006-false-1778676584534-target
       source: '1778677927006'
       sourceHandle: 'false'
-      target: '1778676584534'
+      target: '17786780005730'
       targetHandle: target
       type: custom
       zIndex: 0
@@ -279,6 +253,39 @@ workflow:
       target: '17785946070360'
       targetHandle: target
       type: custom
+      zIndex: 0
+    - id: 17786780005730-source-1778999999001-target
+      source: '17786780005730'
+      sourceHandle: source
+      target: '1778999999001'
+      targetHandle: target
+      type: custom
+      data:
+        sourceType: question-classifier
+        targetType: if-else
+        isInLoop: false
+      zIndex: 0
+    - id: 1778999999001-true-1778999999002-target
+      source: '1778999999001'
+      sourceHandle: 'true'
+      target: '1778999999002'
+      targetHandle: target
+      type: custom
+      data:
+        sourceType: if-else
+        targetType: code
+        isInLoop: false
+      zIndex: 0
+    - id: 1778999999001-false-1778676584534-target
+      source: '1778999999001'
+      sourceHandle: 'false'
+      target: '1778676584534'
+      targetHandle: target
+      type: custom
+      data:
+        sourceType: if-else
+        targetType: iteration
+        isInLoop: false
       zIndex: 0
     nodes:
     - data:
@@ -878,9 +885,8 @@ workflow:
           name: IS_CONTENT (Zusammenfassen, Erklären)
         instruction: ''
         instructions: ''
-        isInIteration: true
+        isInIteration: false
         isInLoop: false
-        iteration_id: '1778676584534'
         memory:
           query_prompt_template: '{{#sys.query#}}
 
@@ -1057,7 +1063,7 @@ workflow:
         isInIteration: true
         isInLoop: false
         iteration_id: '1778676584534'
-        outputs:
+        outputs: &id001
           result:
             children: null
             type: array[string]
@@ -1067,7 +1073,7 @@ workflow:
         selected: false
         title: Metadata Query
         type: code
-        variables:
+        variables: &id002
         - value_selector:
           - '1778676584534'
           - item
@@ -1552,6 +1558,180 @@ workflow:
       type: custom
       width: 241
       zIndex: 1002
+    - id: '1778999999001'
+      data:
+        type: if-else
+        title: Route by Intent
+        desc: Route to Metadata Query (COUNT) or Iterator (CONTENT)
+        isInIteration: false
+        isInLoop: false
+        conditions:
+        - id: a5804197-a84b-4d65-837d-31943044924f
+          variable_selector:
+          - '17786780005730'
+          - class_name
+          comparison_operator: contains
+          value: COUNT
+        logical_operator: and
+        selected: false
+      position:
+        x: 1200
+        y: 400
+      type: custom
+      positionAbsolute:
+        x: 1200
+        y: 400
+    - id: '1778999999002'
+      data:
+        code: "import json\nimport os\nimport re\nfrom urllib.error import HTTPError,\
+          \ URLError\nfrom urllib.parse import urlencode\nfrom urllib.request import\
+          \ Request, urlopen\n\nCODE_VERSION = \"metadata_query_v2026-05-11_dify-metadata_1\"\
+          \n\n_EMPTY_TOKENS = {\n    \"\",\n    \"null\",\n    \"none\",\n    \"unknown\"\
+          ,\n    \"n/a\",\n    \"na\",\n    \"[]\",\n    \"{}\",\n    \"-\",\n}\n\n\
+          \ndef _is_set(value) -> bool:\n    if value is None:\n        return False\n\
+          \    if isinstance(value, (int, float)) and value == 0:\n        return\
+          \ False\n    if isinstance(value, list):\n        return any(_is_set(item)\
+          \ for item in value)\n    if isinstance(value, dict):\n        return any(_is_set(v)\
+          \ for v in value.values())\n    text = str(value).strip()\n    return text.lower()\
+          \ not in _EMPTY_TOKENS\n\n\ndef _normalize_text(value) -> str:\n    if value\
+          \ is None:\n        return \"\"\n    text = str(value).strip()\n    return\
+          \ \"\" if text.lower() in _EMPTY_TOKENS else text\n\n\ndef _to_string_list(value)\
+          \ -> list[str]:\n    if value is None:\n        return []\n    if isinstance(value,\
+          \ list):\n        return [_normalize_text(v) for v in value if _is_set(v)]\n\
+          \    if isinstance(value, dict):\n        candidates = []\n        for key\
+          \ in (\"value\", \"name\", \"author\", \"authors\", \"text\"):\n       \
+          \     if key in value:\n                entry = value.get(key)\n       \
+          \         if isinstance(entry, list):\n                    candidates.extend(_to_string_list(entry))\n\
+          \                elif _is_set(entry):\n                    norm = _normalize_text(entry)\n\
+          \                    if norm:\n                        candidates.append(norm)\n\
+          \        if candidates:\n            return candidates\n        return [_normalize_text(v)\
+          \ for v in value.values() if _is_set(v)]\n    if _is_set(value):\n     \
+          \   normalized = _normalize_text(value)\n        return [normalized] if\
+          \ normalized else []\n    return []\n\n\ndef _author_variants(author: str)\
+          \ -> list[str]:\n    text = \" \".join(str(author).strip().split())\n  \
+          \  if not text:\n        return []\n\n    variants = [text]\n    parts =\
+          \ text.split(\" \")\n    if len(parts) >= 2:\n        first = parts[0].strip(\"\
+          .\")\n        last = parts[-1].strip(\".,;\")\n        if first and last:\n\
+          \            variants.append(f\"{first[0]}. {last}\")\n            variants.append(f\"\
+          {first[0]} {last}\")\n            variants.append(last)\n\n    seen = set()\n\
+          \    deduped = []\n    for item in variants:\n        key = item.lower()\n\
+          \        if key in seen:\n            continue\n        seen.add(key)\n\
+          \        deduped.append(item)\n    return deduped\n\n\ndef _build_headers(api_key:\
+          \ str) -> dict:\n    return {\n        \"Authorization\": f\"Bearer {api_key}\"\
+          ,\n        \"Content-Type\": \"application/json\",\n    }\n\n\ndef _run_json_get(\n\
+          \    url: str, headers: dict, timeout: int = 30\n) -> tuple[dict, str |\
+          \ None]:\n    request = Request(url=url, headers=headers, method=\"GET\"\
+          )\n    try:\n        with urlopen(request, timeout=timeout) as response:\n\
+          \            body = response.read().decode(\"utf-8\", errors=\"replace\"\
+          )\n            status = response.getcode()\n    except HTTPError as exc:\n\
+          \        body = exc.read().decode(\"utf-8\", errors=\"replace\")\n     \
+          \   return {}, f\"Dify API Error {exc.code}: {body}\"\n    except URLError\
+          \ as exc:\n        return {}, f\"Verbindungsfehler zur Dify API: {exc}\"\
+          \n    except Exception as exc:\n        return {}, f\"Unbekannter Dify API-Fehler:\
+          \ {exc}\"\n\n    if status != 200:\n        return {}, f\"Dify API Error\
+          \ {status}: {body}\"\n\n    try:\n        return json.loads(body), None\n\
+          \    except ValueError:\n        return {}, f\"Ungueltige JSON-Antwort:\
+          \ {body}\"\n\n\ndef _extract_items(payload: dict) -> list[dict]:\n    if\
+          \ isinstance(payload, dict):\n        if isinstance(payload.get(\"data\"\
+          ), list):\n            return payload.get(\"data\", [])\n        if isinstance(payload.get(\"\
+          documents\"), list):\n            return payload.get(\"documents\", [])\n\
+          \    return []\n\n\ndef _metadata_to_dict(detail: dict) -> dict[str, str]:\n\
+          \    result = {}\n    for item in detail.get(\"doc_metadata\", []) or []:\n\
+          \        name = str((item or {}).get(\"name\") or \"\").strip().lower()\n\
+          \        value = (item or {}).get(\"value\")\n        if name:\n       \
+          \     result[name] = \"\" if value is None else str(value).strip()\n   \
+          \ return result\n\n\ndef _matches_filters(meta: dict[str, str], year, authors,\
+          \ journal, title) -> bool:\n    meta_year = _normalize_text(meta.get(\"\
+          year\", \"\"))\n    meta_authors = _normalize_text(meta.get(\"authors\"\
+          , \"\"))\n    meta_journal = _normalize_text(meta.get(\"journal\", \"\"\
+          ))\n    meta_title = _normalize_text(meta.get(\"title\", \"\"))\n\n    year_text\
+          \ = _normalize_text(year)\n    journal_text = _normalize_text(journal)\n\
+          \    title_text = _normalize_text(title)\n\n    if _is_set(year_text) and\
+          \ year_text.lower() != meta_year.lower():\n        return False\n\n    if\
+          \ _is_set(journal_text) and journal_text.lower() not in meta_journal.lower():\n\
+          \        return False\n\n    if _is_set(title_text) and title_text.lower()\
+          \ not in meta_title.lower():\n        return False\n\n    author_inputs\
+          \ = _to_string_list(authors)\n    for author in author_inputs:\n       \
+          \ variants = [v.lower() for v in _author_variants(author)]\n        if not\
+          \ any(v in meta_authors.lower() for v in variants):\n            return\
+          \ False\n\n    return True\n\n\ndef _sanitize_year_filter(value) -> str:\n\
+          \    text = _normalize_text(value)\n    if not text:\n        return \"\"\
+          \n    return text if re.fullmatch(r\"(19|20)\\d{2}\", text) else \"\"\n\n\
+          \ndef _sanitize_free_text_filter(value, max_len: int = 120) -> str:\n  \
+          \  text = _normalize_text(value)\n    if not text:\n        return \"\"\n\
+          \    if len(text) > max_len:\n        return \"\"\n    if \"?\" in text:\n\
+          \        return \"\"\n    lower = text.lower()\n    noisy_markers = [\"\
+          which documents\", \"co-authored\", \"co-authored by\", \"authored by\"\
+          ]\n    if any(marker in lower for marker in noisy_markers):\n        return\
+          \ \"\"\n    return text\n\n\ndef _collect_documents(\n    api_base: str,\
+          \ dataset_id: str, headers: dict\n) -> tuple[list[dict], list[str]]:\n \
+          \   errors = []\n    docs = []\n\n    all_items = []\n    for page in range(1,\
+          \ 21):\n        q = urlencode({\"page\": page, \"limit\": 100})\n      \
+          \  list_url = f\"{api_base}/datasets/{dataset_id}/documents?{q}\"\n    \
+          \    payload, err = _run_json_get(list_url, headers=headers)\n        if\
+          \ err:\n            if page == 1:\n                return [], [err]\n  \
+          \          break\n\n        items = _extract_items(payload)\n        if\
+          \ not items:\n            break\n        all_items.extend(items)\n     \
+          \   if len(items) < 100:\n            break\n\n    for item in all_items:\n\
+          \        doc_id = str((item or {}).get(\"id\") or \"\").strip()\n      \
+          \  if not doc_id:\n            continue\n\n        detail_url = f\"{api_base}/datasets/{dataset_id}/documents/{doc_id}?{urlencode({'metadata':\
+          \ 'all'})}\"\n        detail, detail_err = _run_json_get(detail_url, headers=headers)\n\
+          \        if detail_err:\n            errors.append(f\"Dokument {doc_id}:\
+          \ {detail_err}\")\n            continue\n\n        meta = _metadata_to_dict(detail)\n\
+          \        docs.append(\n            {\n                \"id\": doc_id,\n\
+          \                \"title\": meta.get(\"title\") or str(detail.get(\"name\"\
+          ) or \"\").strip(),\n                \"authors\": meta.get(\"authors\",\
+          \ \"\"),\n                \"year\": meta.get(\"year\", \"\"),\n        \
+          \        \"journal\": meta.get(\"journal\", \"\"),\n            }\n    \
+          \    )\n\n    return docs, errors\n\n\ndef _render_result(matches: list[dict],\
+          \ total_docs: int) -> str:\n    if not matches:\n        return (\n    \
+          \        \"Keine Dokumente gefunden.\\n\"\n            f\"Code-Version:\
+          \ {CODE_VERSION}; Dokumente geprueft: {total_docs}; Treffer: 0\"\n     \
+          \   )\n\n    lines = []\n    for idx, doc in enumerate(matches, start=1):\n\
+          \        lines.append(\n            f\"{idx}. {doc['title']} | {doc['authors']}\
+          \ | {doc['year']} | {doc['journal']} | {doc.get('id', '')}\"\n        )\n\
+          \    header = (\n        f\"Code-Version: {CODE_VERSION}; Dokumente geprueft:\
+          \ {total_docs}; \"\n        f\"Treffer: {len(matches)}\"\n    )\n    return\
+          \ header + \"\\n\" + \"\\n\".join(lines)\n\n\ndef main(year=None, authors=None,\
+          \ journal=None, title=None):\n    api_base = (os.getenv(\"DIFY_API_URL\"\
+          ) or \"http://rmap-chatbot-demo-dify/v1\").rstrip(\n        \"/\"\n    )\n\
+          \    dataset_id = os.getenv(\"DIFY_DATASET_ID\") or \"5a231cec-21bf-40b9-86c8-87b9d01bca74\"\
+          \n    api_key = os.getenv(\"DIFY_API_KEY\") or \"dataset-z3bHkQ6eUPKN21GaLq3KXIiS\"\
+          \n\n    if not _is_set(api_base) or not _is_set(dataset_id) or not _is_set(api_key):\n\
+          \        return {\n            \"result\": (\n                \"Dify API\
+          \ Konfiguration unvollstaendig. \"\n                \"Erwarte DIFY_API_URL,\
+          \ DIFY_DATASET_ID und DIFY_API_KEY.\"\n            )\n        }\n\n    headers\
+          \ = _build_headers(str(api_key).strip())\n    docs, errors = _collect_documents(str(api_base),\
+          \ str(dataset_id).strip(), headers)\n\n    year_filter = _sanitize_year_filter(year)\n\
+          \    journal_filter = _sanitize_free_text_filter(journal, max_len=80)\n\
+          \    title_filter = _sanitize_free_text_filter(title, max_len=160)\n\n \
+          \   matches = []\n    for doc in docs:\n        if _matches_filters(doc,\
+          \ year_filter, authors, journal_filter, title_filter):\n            matches.append(doc)\n\
+          \n    unique = {}\n    for doc in matches:\n        key = (\n          \
+          \  (doc.get(\"title\") or \"\").strip().lower(),\n            (doc.get(\"\
+          authors\") or \"\").strip().lower(),\n            (doc.get(\"year\") or\
+          \ \"\").strip(),\n            (doc.get(\"journal\") or \"\").strip().lower(),\n\
+          \        )\n        if key not in unique:\n            unique[key] = doc\n\
+          \    final_docs = list(unique.values())\n\n    result_text = _render_result(final_docs,\
+          \ total_docs=len(docs))\n    if errors:\n        result_text += \"\\nFehlerdetails:\\\
+          n\" + \"\\n\".join(f\"- {e}\" for e in errors[:8])\n    return {\"result\"\
+          : (result_text.split(\"\\n\") if result_text else []), \"result_text\":\
+          \ result_text}\n"
+        code_language: python3
+        isInIteration: false
+        isInLoop: false
+        outputs: *id001
+        selected: false
+        title: Metadata Query (COUNT)
+        type: code
+        variables: *id002
+      position:
+        x: 1400
+        y: 300
+      type: custom
+      positionAbsolute:
+        x: 1400
+        y: 300
     viewport:
       x: 1779.5176252904992
       y: -1847.0097477284953
