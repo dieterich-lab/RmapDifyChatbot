@@ -46,10 +46,12 @@ def main(extracted_paper_list=None, memory_subset=None, is_followup=True, query=
     subset = _clean_list(memory_subset)
 
     if subset:
-        return {"paper_list": subset, "paper_count": len(subset)}
+        count_with_docid = sum(1 for p in subset if p.get("doc_id"))
+        return {"paper_list": subset, "paper_count": count_with_docid}
 
     if extracted:
-        return {"paper_list": extracted, "paper_count": len(extracted)}
+        count_with_docid = sum(1 for p in extracted if p.get("doc_id"))
+        return {"paper_list": extracted, "paper_count": count_with_docid}
 
     q = str(query or "").strip()
     m = re.search(r"\b(?:by|von)\s+([A-Z][A-Za-z.-]+(?:\s+[A-Z][A-Za-z.-]+){1,4})", q)
@@ -61,9 +63,10 @@ def main(extracted_paper_list=None, memory_subset=None, is_followup=True, query=
                     "authors": m.group(1).strip(" ,.;:"),
                     "year": "",
                     "journal": "",
+                    "doc_id": "",
                 }
             ],
-            "paper_count": 1
+            "paper_count": 0
         }
 
     return {"paper_list": [], "paper_count": 0}

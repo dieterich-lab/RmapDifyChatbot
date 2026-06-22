@@ -863,13 +863,12 @@ workflow:
         cases:
         - case_id: 'true'
           conditions:
-          - comparison_operator: empty
-            id: 6b990a2f-40d3-43f2-871c-538601b97c06
-            value: '[]'
-            varType: array[object]
+          - id: 6b990a2f-40d3-43f2-871c-538601b97c06
             variable_selector:
             - '1778800001001'
-            - paper_list
+            - paper_count
+            comparison_operator: '>'
+            value: '0'
           id: 'true'
           logical_operator: and
         selected: false
@@ -878,7 +877,7 @@ workflow:
         conditions:
         - id: 8a0aadfc-b9fa-407c-9f7f-0d162f91962b
           variable_selector:
-          - '1778800001011'
+          - '1778800001001'
           - paper_count
           comparison_operator: '>'
           value: '0'
@@ -1290,16 +1289,19 @@ workflow:
           \ _clean_obj(item)\n        if obj is not None and any(obj.values()):\n\
           \            cleaned.append(obj)\n    return cleaned\n\n\ndef main(extracted_paper_list=None,\
           \ memory_subset=None, is_followup=True, query=None):\n    extracted = _clean_list(extracted_paper_list)\n\
-          \    subset = _clean_list(memory_subset)\n\n    if subset:\n        return\
-          \ {\"paper_list\": subset, \"paper_count\": len(subset)}\n\n    if extracted:\n\
-          \        return {\"paper_list\": extracted, \"paper_count\": len(extracted)}\n\
+          \    subset = _clean_list(memory_subset)\n\n    if subset:\n        count_with_docid\
+          \ = sum(1 for p in subset if p.get(\"doc_id\"))\n        return {\"paper_list\"\
+          : subset, \"paper_count\": count_with_docid}\n\n    if extracted:\n    \
+          \    count_with_docid = sum(1 for p in extracted if p.get(\"doc_id\"))\n\
+          \        return {\"paper_list\": extracted, \"paper_count\": count_with_docid}\n\
           \n    q = str(query or \"\").strip()\n    m = re.search(r\"\\b(?:by|von)\\\
           s+([A-Z][A-Za-z.-]+(?:\\s+[A-Z][A-Za-z.-]+){1,4})\", q)\n    if m:\n   \
           \     return {\n            \"paper_list\": [\n                {\n     \
           \               \"title\": \"\",\n                    \"authors\": m.group(1).strip(\"\
           \ ,.;:\"),\n                    \"year\": \"\",\n                    \"\
-          journal\": \"\",\n                }\n            ],\n            \"paper_count\"\
-          : 1\n        }\n\n    return {\"paper_list\": [], \"paper_count\": 0}\n"
+          journal\": \"\",\n                    \"doc_id\": \"\",\n              \
+          \  }\n            ],\n            \"paper_count\": 0\n        }\n\n    return\
+          \ {\"paper_list\": [], \"paper_count\": 0}\n"
         code_language: python3
         isInIteration: false
         isInLoop: false
