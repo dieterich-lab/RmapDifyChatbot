@@ -1092,7 +1092,7 @@ workflow:
         selected: false
         title: Metadata Query
         type: code
-        variables: &id002
+        variables:
         - value_selector:
           - '1778676584534'
           - item
@@ -1743,7 +1743,35 @@ workflow:
         selected: false
         title: Metadata Query (COUNT)
         type: code
-        variables: *id002
+        variables:
+        - value_selector:
+          - '1778800001001'
+          - paper_list
+          - '0'
+          - year
+          value_type: string
+          variable: year
+        - value_selector:
+          - '1778800001001'
+          - paper_list
+          - '0'
+          - authors
+          value_type: string
+          variable: authors
+        - value_selector:
+          - '1778800001001'
+          - paper_list
+          - '0'
+          - journal
+          value_type: string
+          variable: journal
+        - value_selector:
+          - '1778800001001'
+          - paper_list
+          - '0'
+          - title
+          value_type: string
+          variable: title
       position:
         x: 1400
         y: 300
