@@ -201,12 +201,19 @@ PY
 run_import_with_retries() {
   HTTP_CODE=""
 
-  if [[ -z "${DIFY_CONSOLE_API_KEY:-}" && "$AUTO_LOGIN" == "1" ]]; then
-    echo "Auth mode: auto-login"
-    run_console_auto_login
-  fi
+  # Prefer cookie auth if session exists, otherwise use API key or auto-login
+  if [[ -n "${DIFY_CONSOLE_COOKIE:-}" && -n "${DIFY_CSRF_TOKEN:-}" ]]; then
+    echo "Auth mode: cookie session"
+    HTTP_CODE=$(post_import_cookie)
+    USED_AUTH_MODE="cookie"
 
-  if [[ -n "${DIFY_CONSOLE_API_KEY:-}" ]]; then
+    if [[ "$HTTP_CODE" == "401" && "$AUTO_LOGIN" == "1" ]]; then
+      echo "Session expired; refreshing via /console/api/login."
+      run_console_auto_login
+      HTTP_CODE=$(post_import_cookie)
+      USED_AUTH_MODE="cookie"
+    fi
+  elif [[ -n "${DIFY_CONSOLE_API_KEY:-}" ]]; then
     echo "Auth mode: API key"
     HTTP_CODE=$(post_import_api)
     USED_AUTH_MODE="api_key"
@@ -217,17 +224,13 @@ run_import_with_retries() {
       HTTP_CODE=$(post_import_api)
       USED_AUTH_MODE="api_key"
     fi
-
-    if [[ "$HTTP_CODE" == "401" && ( "$ALLOW_COOKIE_AUTH" == "1" || ( -n "${DIFY_CONSOLE_COOKIE:-}" && -n "${DIFY_CSRF_TOKEN:-}" ) ) ]]; then
-      echo "API key not valid for console API on this deployment; retrying with cookie session."
-      HTTP_CODE=$(post_import_cookie)
-      USED_AUTH_MODE="cookie_fallback"
-    fi
-  else
-    [[ "$ALLOW_COOKIE_AUTH" == "1" ]] || fail "DIFY_CONSOLE_API_KEY is missing. If your deployment does not support console API keys, provide DIFY_CONSOLE_COOKIE/DIFY_CSRF_TOKEN and use --allow-cookie-auth."
-    echo "Auth mode: cookie fallback"
+  elif [[ "$AUTO_LOGIN" == "1" ]]; then
+    echo "Auth mode: auto-login"
+    run_console_auto_login
     HTTP_CODE=$(post_import_cookie)
-    USED_AUTH_MODE="cookie_fallback"
+    USED_AUTH_MODE="cookie"
+  else
+    fail "No authentication available. Provide DIFY_CONSOLE_API_KEY, or DIFY_CONSOLE_COOKIE/DIFY_CSRF_TOKEN, or use --auto-login."
   fi
 }
 
