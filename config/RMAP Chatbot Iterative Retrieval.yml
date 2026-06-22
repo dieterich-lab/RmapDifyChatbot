@@ -287,6 +287,17 @@ workflow:
         targetType: iteration
         isInLoop: false
       zIndex: 0
+    - id: 1778999999002-source-17785945324000-target
+      source: '1778999999002'
+      sourceHandle: source
+      target: '17785945324000'
+      targetHandle: target
+      type: custom
+      data:
+        sourceType: code
+        targetType: llm
+        isInLoop: false
+      zIndex: 0
     nodes:
     - data:
         desc: The user's question comes in here.
