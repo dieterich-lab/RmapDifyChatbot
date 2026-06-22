@@ -224,19 +224,6 @@ workflow:
       type: custom
       zIndex: 0
     - data:
-        isInIteration: true
-        isInLoop: false
-        iteration_id: '1778676584534'
-        sourceType: code
-        targetType: variable-aggregator
-      id: 17786780698570-source-1778678575789-target
-      source: '17786780698570'
-      sourceHandle: source
-      target: '1778678575789'
-      targetHandle: target
-      type: custom
-      zIndex: 1002
-    - data:
         isInLoop: false
         sourceType: iteration
         targetType: code
@@ -293,21 +280,6 @@ workflow:
       targetHandle: target
       type: custom
       zIndex: 0
-    - data:
-        isInIteration: true
-        isInLoop: false
-        iteration_id: '1778676584534'
-        sourceType: code
-        targetType: variable-aggregator
-      id: 1778800001025-source-1778678575789-target
-      markerEnd:
-        type: ArrowClosed
-      source: '1778800001025'
-      sourceHandle: source
-      target: '1778678575789'
-      targetHandle: target
-      type: custom
-      zIndex: 1002
     nodes:
     - data:
         desc: The user's question comes in here.
@@ -1442,34 +1414,6 @@ workflow:
       targetPosition: left
       type: custom
       width: 242
-    - data:
-        isInIteration: true
-        isInLoop: false
-        iteration_id: '1778676584534'
-        output_type: string
-        selected: true
-        title: Variable Aggregator
-        type: variable-aggregator
-        variables:
-        - - '17786780698570'
-          - result_text
-        - - '1778800001025'
-          - paper_context
-      height: 135
-      id: '1778678575789'
-      parentId: '1778676584534'
-      position:
-        x: 1262.7172169467003
-        y: 84.58552162663227
-      positionAbsolute:
-        x: 180.76985965202493
-        y: 3351.788473681368
-      selected: true
-      sourcePosition: right
-      targetPosition: left
-      type: custom
-      width: 242
-      zIndex: 1002
     - data:
         code: "import json\nimport os\nfrom urllib.error import HTTPError, URLError\n\
           from urllib.parse import urlencode\nfrom urllib.request import Request,\
