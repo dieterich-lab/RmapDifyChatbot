@@ -1,0 +1,28 @@
+cff-version: 1.2.0
+title: RMap Dify Chatbot
+message: >-
+  If you use this software, please cite it using the
+  metadata from this file.
+type: software
+authors:
+  - given-names: Philipp
+    family-names: Wiesenbach
+    email: philipp.wiesenbach@uni-heidelberg.de
+    affiliation: Heidelberg University
+repository-code: 'https://github.com/dieterich-lab/RmapDifyChatbot'
+abstract: >-
+  Metadata-aware Dify chatbot for scientific paper retrieval and analysis.
+  Includes advanced-chat workflow with iterative retrieval, paper metadata
+  extraction using hybrid LLM/regex pipelines, bulk upload tooling for
+  Dify knowledge bases, and development utilities for workflow maintenance.
+keywords:
+  - dify
+  - chatbot
+  - scientific papers
+  - metadata extraction
+  - knowledge retrieval
+  - llm
+  - rag
+license: MIT
+version: 0.2.0
+date-released: '2026-06-22'
