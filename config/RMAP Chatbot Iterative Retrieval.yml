@@ -287,6 +287,17 @@ workflow:
         targetType: iteration
         isInLoop: false
       zIndex: 0
+    - id: 1778999999002-source-17785945324000-target
+      source: '1778999999002'
+      sourceHandle: source
+      target: '17785945324000'
+      targetHandle: target
+      type: custom
+      data:
+        sourceType: code
+        targetType: llm
+        isInLoop: false
+      zIndex: 0
     nodes:
     - data:
         desc: The user's question comes in here.
@@ -864,6 +875,14 @@ workflow:
         selected: false
         title: IF/ELSE
         type: if-else
+        conditions:
+        - id: 8a0aadfc-b9fa-407c-9f7f-0d162f91962b
+          variable_selector:
+          - '1778800001011'
+          - paper_count
+          comparison_operator: '>'
+          value: '0'
+        logical_operator: and
       height: 140
       id: '1778677927006'
       position:
