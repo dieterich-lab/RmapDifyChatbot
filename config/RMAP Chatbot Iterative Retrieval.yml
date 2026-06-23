@@ -271,7 +271,7 @@ workflow:
 
             Metadata (iterator output):
 
-            {{#1778676584534.output#}}
+            {{#17786780698570.result_text#}}
 
 
             Requested paper identities (authoritative order):
@@ -1166,8 +1166,8 @@ workflow:
         type: code
         variables:
         - value_selector:
-          - '1778676584534'
-          - output
+          - '17786780698570'
+          - result
           value_type: array[string]
           variable: iteration_output
         - value_selector:
