@@ -60,7 +60,7 @@ workflow:
       number_limits: 3
     opening_statement: ''
     retriever_resource:
-      enabled: true
+      enabled: false
     sensitive_word_avoidance:
       enabled: false
     speech_to_text:
@@ -167,18 +167,16 @@ workflow:
         isInLoop: false
         iteration_id: '1778676584534'
         sourceType: iteration-start
-        targetType: question-classifier
-      id: 1778676584534start-source-17786780005730-target
+        targetType: code
+      id: 1778676584534start-source-1778800001025-target
       source: 1778676584534start
       sourceHandle: source
-      target: '17786780005730'
+      target: '1778800001025'
       targetHandle: target
       type: custom
       zIndex: 1002
     - data:
-        isInIteration: true
         isInLoop: false
-        iteration_id: '1778676584534'
         sourceType: question-classifier
         targetType: code
       id: 17786780005730-1-17786780698570-target
@@ -187,28 +185,26 @@ workflow:
       target: '17786780698570'
       targetHandle: target
       type: custom
-      zIndex: 1002
+      zIndex: 0
     - data:
-        isInIteration: true
         isInLoop: false
-        iteration_id: '1778676584534'
         sourceType: question-classifier
-        targetType: code
-      id: 17786780005730-2-1778800001025-target
+        targetType: iteration
+      id: 17786780005730-2-1778676584534-target
       source: '17786780005730'
       sourceHandle: '2'
-      target: '1778800001025'
+      target: '1778676584534'
       targetHandle: target
       type: custom
-      zIndex: 1002
+      zIndex: 0
     - data:
         isInLoop: false
         sourceType: if-else
-        targetType: iteration
-      id: 1778677927006-false-1778676584534-target
+        targetType: question-classifier
+      id: 1778677927006-false-17786780005730-target
       source: '1778677927006'
       sourceHandle: 'false'
-      target: '1778676584534'
+      target: '17786780005730'
       targetHandle: target
       type: custom
       zIndex: 0
@@ -227,10 +223,10 @@ workflow:
         isInLoop: false
         sourceType: iteration
         targetType: code
-      id: 1778676584534-source-1778800001002-target
+      id: 1778676584534-source-1778800001026-target
       source: '1778676584534'
       sourceHandle: source
-      target: '1778800001002'
+      target: '1778800001026'
       targetHandle: target
       type: custom
       zIndex: 0
@@ -248,12 +244,66 @@ workflow:
     - data:
         isInLoop: false
         sourceType: assigner
-        targetType: llm
-      id: 1778800001003-source-17785945324000-target
-      selected: false
+        targetType: if-else
+      id: 1778800001003-source-1778800001028-target
       source: '1778800001003'
       sourceHandle: source
+      target: '1778800001028'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInLoop: false
+        sourceType: code
+        targetType: code
+      id: 17786780698570-source-1778800001026-target
+      source: '17786780698570'
+      sourceHandle: source
+      target: '1778800001026'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInLoop: false
+        sourceType: code
+        targetType: code
+      id: 1778800001026-source-1778800001002-target
+      source: '1778800001026'
+      sourceHandle: source
+      target: '1778800001002'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInLoop: false
+        sourceType: if-else
+        targetType: llm
+      id: 1778800001028-true-1778800001027-target
+      source: '1778800001028'
+      sourceHandle: 'true'
+      target: '1778800001027'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInLoop: false
+        sourceType: if-else
+        targetType: llm
+      id: 1778800001028-false-17785945324000-target
+      source: '1778800001028'
+      sourceHandle: 'false'
       target: '17785945324000'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInLoop: false
+        sourceType: llm
+        targetType: code
+      id: 1778800001027-source-1778800001013-target
+      source: '1778800001027'
+      sourceHandle: source
+      target: '1778800001013'
       targetHandle: target
       type: custom
       zIndex: 0
@@ -287,7 +337,7 @@ workflow:
         title: Start
         type: start
         variables: []
-      height: 101
+      height: 100
       id: '1711528914102'
       position:
         x: -1435.0542222055321
@@ -381,7 +431,7 @@ workflow:
         type: llm
         vision:
           enabled: false
-      height: 88
+      height: 87
       id: '1778508354995'
       position:
         x: -1445.680202203922
@@ -393,10 +443,10 @@ workflow:
       sourcePosition: right
       targetPosition: left
       type: custom
-      width: 242
+      width: 241
     - data:
         dataset_ids:
-        - fiCgoIRCdFcUlyjUHsSQ9Xvcmn7KQ+rUaG9hnUJbpc7JzQCYkQK1G+O2moWlBG8d
+        - sqVK0V0ePqiS6KdcMPI11GjqzdL7pU/FXV+4rtN1emfmB2MQbt3N+O2FpClGOzXSD6liW9V+Jt7IfDszXxgXkVH57SFt2tbLU0ifwSdkfrI=
         isInIteration: false
         isInLoop: false
         metadata_filtering_conditions:
@@ -430,19 +480,19 @@ workflow:
         selected: false
         title: Knowledge Retrieval
         type: knowledge-retrieval
-      height: 90
+      height: 51
       id: '17785930638200'
       position:
-        x: -669.5135424503067
-        y: 3103.918405308649
+        x: -676.9053546066759
+        y: 3109.0521088989008
       positionAbsolute:
-        x: -669.5135424503067
-        y: 3103.918405308649
+        x: -676.9053546066759
+        y: 3109.0521088989008
       selected: false
       sourcePosition: right
       targetPosition: left
       type: custom
-      width: 242
+      width: 241
     - data:
         context:
           enabled: false
@@ -470,14 +520,10 @@ workflow:
           reasoning_format: separated
           role: system
           text: "You are an academic literature assistant.\n\nThe context below contains\
-            \ either:\n  (a) A numbered list of paper metadata (title | authors |\
-            \ year | journal) — respond with a paper count and clean numbered list.\n\
-            \  (b) Raw text excerpts of one or more papers, each tagged with a header\
-            \  === <title> (<year>, <journal>) — <authors> === — respond with summaries\
-            \ and a global synthesis.\n\nContext (iteration output):\n{{#1778676584534.output#}}\n\
+            \ raw text excerpts of one or more papers, each tagged with a header\
+            \  === <title> (<year>, <journal>) — <authors> ===.\n\nContext:\n{{#1778800001026.routed_output#}}\n\
             \nRequested paper identities (authoritative order):\n{{#1778800001001.paper_list#}}\n\
-            \nResponse policy for case (a):\n- State the total count, then a numbered\
-            \ list: title, year, journal.\n\nResponse policy for case (b):\n- **Global\
+            \nResponse policy:\n- **Global\
             \ synthesis** first: 3–5 sentences comparing and contrasting themes across\
             \ all papers.\n- Then, for each paper in numbered order:\n  - Header:\
             \ **N. <full title>**\n  - Exactly 3 bullet points (method / key finding\
@@ -490,23 +536,23 @@ workflow:
             \ reasoning.\n- If context includes errors, explain clearly and suggest\
             \ one concrete reformulation."
         selected: false
-        title: Metadata LLM
+        title: Summary LLM
         type: llm
         vision:
           enabled: false
-      height: 88
+      height: 87
       id: '17785945324000'
       position:
-        x: 705.9029071995568
-        y: 3622.473414315233
+        x: 844.897745908094
+        y: 3430.8432635628624
       positionAbsolute:
-        x: 705.9029071995568
-        y: 3622.473414315233
+        x: 844.897745908094
+        y: 3430.8432635628624
       selected: false
       sourcePosition: right
       targetPosition: left
       type: custom
-      width: 242
+      width: 241
     - data:
         context:
           enabled: true
@@ -567,12 +613,12 @@ workflow:
           retry_enabled: false
           retry_interval: 1000
         selected: false
-        title: Knowledge LLM
+        title: Content LLM
         type: llm
         variables: []
         vision:
           enabled: false
-      height: 132
+      height: 131
       id: '17785945559750'
       position:
         x: -166.52858610343264
@@ -584,7 +630,7 @@ workflow:
       sourcePosition: right
       targetPosition: left
       type: custom
-      width: 242
+      width: 241
     - data:
         answer: '{{#1778800001013.cleaned_text#}}'
         desc: Send the final response back to the user.
@@ -594,29 +640,26 @@ workflow:
         title: Answer
         type: answer
         variables: []
-      height: 146
+      height: 145
       id: '17785946070360'
       position:
-        x: 1115.9401670578973
-        y: 3292.928480690657
+        x: 1253.2700040448444
+        y: 3123.94540903259
       positionAbsolute:
-        x: 1115.9401670578973
-        y: 3292.928480690657
+        x: 1253.2700040448444
+        y: 3123.94540903259
       selected: false
       sourcePosition: right
       targetPosition: left
       type: custom
-      width: 242
+      width: 241
     - data:
         code: "import re\n\n\ndef _strip_think(text):\n    cleaned = str(text or \"\
           \")\n    # Remove well-formed think blocks first.\n    cleaned = re.sub(r\"\
           <think>.*?</think>\", \"\", cleaned, flags=re.S | re.I)\n    # Also handle\
           \ truncated outputs where </think> is missing.\n    cleaned = re.sub(r\"\
           <think>.*$\", \"\", cleaned, flags=re.S | re.I)\n    return cleaned.strip()\n\
-          \n\ndef main(knowledge_text=None, metadata_text=None):\n    parts = []\n\
-          \    first = _strip_think(knowledge_text)\n    second = _strip_think(metadata_text)\n\
-          \    if first:\n        parts.append(first)\n    if second:\n        parts.append(second)\n\
-          \    merged = \"\\n\\n\".join(parts).strip()\n    return {\"cleaned_text\"\
+          \n\ndef main(content_text=None, metadata_text=None, summary_text=None):\n    parts = []\n    for text in (content_text, metadata_text, summary_text):\n        cleaned = _strip_think(text)\n        if cleaned:\n            parts.append(cleaned)\n    merged = \"\\n\\n\".join(parts).strip()\n    return {\"cleaned_text\"\
           : merged}\n"
         code_language: python3
         isInIteration: false
@@ -633,25 +676,30 @@ workflow:
           - '17785945559750'
           - text
           value_type: string
-          variable: knowledge_text
+          variable: content_text
+        - value_selector:
+          - '1778800001027'
+          - text
+          value_type: string
+          variable: metadata_text
         - value_selector:
           - '17785945324000'
           - text
           value_type: string
-          variable: metadata_text
-      height: 52
+          variable: summary_text
+      height: 51
       id: '1778800001013'
       position:
-        x: 1072.287910416112
-        y: 3115.74530475884
+        x: 922.8722476198238
+        y: 3123.94540903259
       positionAbsolute:
-        x: 1072.287910416112
-        y: 3115.74530475884
+        x: 922.8722476198238
+        y: 3123.94540903259
       selected: false
       sourcePosition: right
       targetPosition: left
       type: custom
-      width: 242
+      width: 241
     - data:
         context:
           enabled: false
@@ -773,7 +821,7 @@ workflow:
         type: llm
         vision:
           enabled: false
-      height: 88
+      height: 87
       id: '1778676150362'
       position:
         x: -1452.6825467404378
@@ -785,39 +833,39 @@ workflow:
       sourcePosition: right
       targetPosition: left
       type: custom
-      width: 242
+      width: 241
     - data:
         error_handle_mode: terminated
         flatten_output: false
-        height: 1071
+        height: 152
         is_parallel: false
         iterator_input_type: array[object]
         iterator_selector:
         - '1778800001001'
         - paper_list
         output_selector:
-        - '17786780698570'
-        - result
+        - '1778800001025'
+        - paper_context
         output_type: array[string]
         parallel_nums: 10
         selected: false
         start_node_id: 1778676584534start
         title: Paper Iterator
         type: iteration
-        width: 1688
-      height: 1071
+        width: 434
+      height: 152
       id: '1778676584534'
       position:
-        x: -1081.9473572946754
-        y: 3267.2029520547358
+        x: -828.2008446602481
+        y: 3449.300716014718
       positionAbsolute:
-        x: -1081.9473572946754
-        y: 3267.2029520547358
+        x: -828.2008446602481
+        y: 3449.300716014718
       selected: false
       sourcePosition: right
       targetPosition: left
       type: custom
-      width: 1688
+      width: 434
       zIndex: 1
     - data:
         desc: ''
@@ -833,8 +881,8 @@ workflow:
         x: 24
         y: 68
       positionAbsolute:
-        x: -1057.9473572946754
-        y: 3335.2029520547358
+        x: -804.2008446602481
+        y: 3517.300716014718
       selectable: false
       sourcePosition: right
       targetPosition: left
@@ -857,7 +905,7 @@ workflow:
         selected: false
         title: IF/ELSE
         type: if-else
-      height: 140
+      height: 139
       id: '1778677927006'
       position:
         x: -1139.701522685006
@@ -869,18 +917,17 @@ workflow:
       sourcePosition: right
       targetPosition: left
       type: custom
-      width: 242
+      width: 241
     - data:
         classes:
         - id: '1'
-          name: IS_COUNT_OR_LIST (Zählen, Auflisten) 
+          name: IS_COUNT_OR_LIST (Zählen, Auflisten)
         - id: '2'
-          name: IS_CONTENT (Zusammenfassen, Erklären)
+          name: IS_CONTENT (Zusammenfassen, Erklären)
         instruction: ''
         instructions: ''
-        isInIteration: true
+        isInIteration: false
         isInLoop: false
-        iteration_id: '1778676584534'
         memory:
           query_prompt_template: '{{#sys.query#}}
 
@@ -899,25 +946,23 @@ workflow:
         - '1778508354995'
         - text
         selected: false
-        title: Question Classifier 2 (1)
+        title: Route by Intent
         type: question-classifier
         vision:
           enabled: false
-      height: 178
+      height: 177
       id: '17786780005730'
-      parentId: '1778676584534'
       position:
-        x: 91.43256182406503
-        y: 69.7795565443148
+        x: -1139.701522685006
+        y: 3321.576345596582
       positionAbsolute:
-        x: -990.5147954706104
-        y: 3336.9825085990506
+        x: -1139.701522685006
+        y: 3321.576345596582
       selected: false
       sourcePosition: right
       targetPosition: left
       type: custom
-      width: 242
-      zIndex: 1002
+      width: 241
     - data:
         code: "import json\nimport os\nimport re\nfrom urllib.error import HTTPError,\
           \ URLError\nfrom urllib.parse import urlencode\nfrom urllib.request import\
@@ -1028,35 +1073,38 @@ workflow:
           \ | {doc['year']} | {doc['journal']} | {doc.get('id', '')}\"\n        )\n\
           \    header = (\n        f\"Code-Version: {CODE_VERSION}; Dokumente geprueft:\
           \ {total_docs}; \"\n        f\"Treffer: {len(matches)}\"\n    )\n    return\
-          \ header + \"\\n\" + \"\\n\".join(lines)\n\n\ndef main(year=None, authors=None,\
-          \ journal=None, title=None):\n    api_base = (os.getenv(\"DIFY_API_URL\"\
-          ) or \"http://rmap-chatbot-demo-dify/v1\").rstrip(\n        \"/\"\n    )\n\
-          \    dataset_id = os.getenv(\"DIFY_DATASET_ID\") or \"<your-dataset-id>\"\
-          \n    api_key = os.getenv(\"DIFY_API_KEY\") or \"REDACTED\"\
-          \n\n    if not _is_set(api_base) or not _is_set(dataset_id) or not _is_set(api_key):\n\
-          \        return {\n            \"result\": (\n                \"Dify API\
-          \ Konfiguration unvollstaendig. \"\n                \"Erwarte DIFY_API_URL,\
-          \ DIFY_DATASET_ID und DIFY_API_KEY.\"\n            )\n        }\n\n    headers\
-          \ = _build_headers(str(api_key).strip())\n    docs, errors = _collect_documents(str(api_base),\
-          \ str(dataset_id).strip(), headers)\n\n    year_filter = _sanitize_year_filter(year)\n\
-          \    journal_filter = _sanitize_free_text_filter(journal, max_len=80)\n\
-          \    title_filter = _sanitize_free_text_filter(title, max_len=160)\n\n \
-          \   matches = []\n    for doc in docs:\n        if _matches_filters(doc,\
-          \ year_filter, authors, journal_filter, title_filter):\n            matches.append(doc)\n\
-          \n    unique = {}\n    for doc in matches:\n        key = (\n          \
-          \  (doc.get(\"title\") or \"\").strip().lower(),\n            (doc.get(\"\
-          authors\") or \"\").strip().lower(),\n            (doc.get(\"year\") or\
-          \ \"\").strip(),\n            (doc.get(\"journal\") or \"\").strip().lower(),\n\
-          \        )\n        if key not in unique:\n            unique[key] = doc\n\
-          \    final_docs = list(unique.values())\n\n    result_text = _render_result(final_docs,\
-          \ total_docs=len(docs))\n    if errors:\n        result_text += \"\\nFehlerdetails:\\\
-          n\" + \"\\n\".join(f\"- {e}\" for e in errors[:8])\n    return {\"result\"\
-          : (result_text.split(\"\\n\") if result_text else []), \"result_text\":\
-          \ result_text}\n"
+          \ header + \"\\n\" + \"\\n\".join(lines)\n\n\ndef main(paper_list=None):\n\
+          \    api_base = (os.getenv(\"DIFY_API_URL\") or \"http://rmap-chatbot-demo-dify/v1\"\
+          ).rstrip(\n        \"/\"\n    )\n    dataset_id = os.getenv(\"DIFY_DATASET_ID\"\
+          ) or \"<your-dataset-id>\"\n    api_key = os.getenv(\"\
+          DIFY_API_KEY\") or \"REDACTED\"\n\n    if not _is_set(api_base)\
+          \ or not _is_set(dataset_id) or not _is_set(api_key):\n        return {\n\
+          \            \"result\": (\n                \"Dify API Konfiguration unvollstaendig.\
+          \ \"\n                \"Erwarte DIFY_API_URL, DIFY_DATASET_ID und DIFY_API_KEY.\"\
+          \n            )\n        }\n\n    items = paper_list if isinstance(paper_list,\
+          \ list) else []\n    if not items:\n        return {\"result\": [], \"result_text\"\
+          : \"\"}\n\n    headers = _build_headers(str(api_key).strip())\n    docs,\
+          \ errors = _collect_documents(str(api_base), str(dataset_id).strip(), headers)\n\
+          \n    all_matches = []\n    for item in items:\n        if not isinstance(item,\
+          \ dict):\n            continue\n        year_filter = _sanitize_year_filter(item.get(\"\
+          year\"))\n        journal_filter = _sanitize_free_text_filter(item.get(\"\
+          journal\"), max_len=80)\n        title_filter = _sanitize_free_text_filter(item.get(\"\
+          title\"), max_len=160)\n        authors = item.get(\"authors\") or item.get(\"\
+          author\")\n        for doc in docs:\n            if _matches_filters(doc,\
+          \ year_filter, authors, journal_filter, title_filter):\n               \
+          \ all_matches.append(doc)\n\n    unique = {}\n    for doc in all_matches:\n\
+          \        key = (\n            (doc.get(\"title\") or \"\").strip().lower(),\n\
+          \            (doc.get(\"authors\") or \"\").strip().lower(),\n         \
+          \   (doc.get(\"year\") or \"\").strip(),\n            (doc.get(\"journal\"\
+          ) or \"\").strip().lower(),\n        )\n        if key not in unique:\n\
+          \            unique[key] = doc\n    final_docs = list(unique.values())\n\
+          \n    result_text = _render_result(final_docs, total_docs=len(docs))\n \
+          \   if errors:\n        result_text += \"\\nFehlerdetails:\\n\" + \"\\n\"\
+          .join(f\"- {e}\" for e in errors[:8])\n    return {\"result\": (result_text.split(\"\
+          \\n\") if result_text else []), \"result_text\": result_text}\n"
         code_language: python3
-        isInIteration: true
+        isInIteration: false
         isInLoop: false
-        iteration_id: '1778676584534'
         outputs:
           result:
             children: null
@@ -1069,44 +1117,23 @@ workflow:
         type: code
         variables:
         - value_selector:
-          - '1778676584534'
-          - item
-          - year
-          value_type: string
-          variable: year
-        - value_selector:
-          - '1778676584534'
-          - item
-          - authors
-          value_type: string
-          variable: authors
-        - value_selector:
-          - '1778676584534'
-          - item
-          - journal
-          value_type: string
-          variable: journal
-        - value_selector:
-          - '1778676584534'
-          - item
-          - title
-          value_type: string
-          variable: title
-      height: 52
+          - '1778800001001'
+          - paper_list
+          value_type: array[object]
+          variable: paper_list
+      height: 51
       id: '17786780698570'
-      parentId: '1778676584534'
       position:
-        x: 507.70835440792223
-        y: 82.02579653098337
+        x: -765.3058361196249
+        y: 3311.1615923545087
       positionAbsolute:
-        x: -574.2390028867532
-        y: 3349.228748585719
+        x: -765.3058361196249
+        y: 3311.1615923545087
       selected: false
       sourcePosition: right
       targetPosition: left
       type: custom
-      width: 242
-      zIndex: 1002
+      width: 241
     - data:
         code: "import json\nimport re\n\n\ndef _to_text(value):\n    if value is None:\n\
           \        return \"\"\n    if isinstance(value, list):\n        return \"\
@@ -1158,7 +1185,7 @@ workflow:
           - text
           value_type: string
           variable: extractor_text
-      height: 52
+      height: 51
       id: '1778800001010'
       position:
         x: -1468.2450258990343
@@ -1170,7 +1197,7 @@ workflow:
       sourcePosition: right
       targetPosition: left
       type: custom
-      width: 242
+      width: 241
     - data:
         code: "import re\n\n\ndef _to_text(value):\n    if value is None:\n      \
           \  return \"\"\n    if isinstance(value, list):\n        return \", \".join(str(v).strip()\
@@ -1233,7 +1260,7 @@ workflow:
           - query
           value_type: string
           variable: query
-      height: 52
+      height: 51
       id: '1778800001012'
       position:
         x: -1462.949953920941
@@ -1245,7 +1272,7 @@ workflow:
       sourcePosition: right
       targetPosition: left
       type: custom
-      width: 242
+      width: 241
     - data:
         code: "import re\n\n\ndef _to_text(value):\n    if value is None:\n      \
           \  return \"\"\n    if isinstance(value, list):\n        return \", \".join(str(v).strip()\
@@ -1279,12 +1306,12 @@ workflow:
         isInIteration: false
         isInLoop: false
         outputs:
-          paper_list:
-            children: null
-            type: array[object]
           paper_count:
             children: null
             type: number
+          paper_list:
+            children: null
+            type: array[object]
         selected: false
         title: Resolve Paper List
         type: code
@@ -1304,7 +1331,7 @@ workflow:
           - query
           value_type: string
           variable: query
-      height: 52
+      height: 51
       id: '1778800001001'
       position:
         x: -1468.2450258990343
@@ -1316,7 +1343,7 @@ workflow:
       sourcePosition: right
       targetPosition: left
       type: custom
-      width: 242
+      width: 241
     - data:
         code: "def _normalize_obj(item):\n    if not isinstance(item, dict):\n   \
           \     return None\n    title = str(item.get('title') or '').strip()\n  \
@@ -1364,8 +1391,8 @@ workflow:
         type: code
         variables:
         - value_selector:
-          - '1778676584534'
-          - output
+          - '1778800001026'
+          - routed_output
           value_type: array[string]
           variable: iteration_output
         - value_selector:
@@ -1373,19 +1400,19 @@ workflow:
           - memory
           value_type: array[object]
           variable: memory
-      height: 52
+      height: 51
       id: '1778800001002'
       position:
-        x: 722.1648939435693
-        y: 3260.013335239976
+        x: 186.77736706624069
+        y: 3430.8432635628624
       positionAbsolute:
-        x: 722.1648939435693
-        y: 3260.013335239976
+        x: 186.77736706624069
+        y: 3430.8432635628624
       selected: false
       sourcePosition: right
       targetPosition: left
       type: custom
-      width: 242
+      width: 241
     - data:
         desc: ''
         isInIteration: false
@@ -1404,19 +1431,19 @@ workflow:
         title: Persist Paper Memory
         type: assigner
         version: '2'
-      height: 84
+      height: 83
       id: '1778800001003'
       position:
-        x: 722.1648939435693
-        y: 3421.652332669853
+        x: 515.060137315422
+        y: 3430.8432635628624
       positionAbsolute:
-        x: 722.1648939435693
-        y: 3421.652332669853
+        x: 515.060137315422
+        y: 3430.8432635628624
       selected: false
       sourcePosition: right
       targetPosition: left
       type: custom
-      width: 242
+      width: 241
     - data:
         code: "import json\nimport os\nfrom urllib.error import HTTPError, URLError\n\
           from urllib.parse import urlencode\nfrom urllib.request import Request,\
@@ -1544,19 +1571,140 @@ workflow:
       id: '1778800001025'
       parentId: '1778676584534'
       position:
-        x: 340
-        y: 304
+        x: 129.36682773149482
+        y: 68.71826501922305
       positionAbsolute:
-        x: -795
-        y: 3627
+        x: -698.8340169287533
+        y: 3518.018981033941
       selected: false
       sourcePosition: right
       targetPosition: left
       type: custom
       width: 241
       zIndex: 1002
+    - data:
+        code: "def main(metadata_result=None, iteration_output=None):\n    if isinstance(metadata_result,\
+          \ list) and metadata_result:\n        return {'routed_output': metadata_result}\n\
+          \    if isinstance(iteration_output, list) and iteration_output:\n     \
+          \   return {'routed_output': iteration_output}\n    return {'routed_output':\
+          \ []}\n"
+        code_language: python3
+        isInIteration: false
+        isInLoop: false
+        outputs:
+          routed_output:
+            children: null
+            type: array[string]
+        selected: true
+        title: Converge Paths
+        type: code
+        variables:
+        - value_selector:
+          - '17786780698570'
+          - result
+          value_type: array[string]
+          variable: metadata_result
+        - value_selector:
+          - '1778676584534'
+          - output
+          value_type: array[string]
+          variable: iteration_output
+      height: 51
+      id: '1778800001026'
+      position:
+        x: -171.00527687665453
+        y: 3430.8432635628624
+      positionAbsolute:
+        x: -171.00527687665453
+        y: 3430.8432635628624
+      selected: true
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 241
+    - data:
+        cases:
+        - case_id: 'true'
+          conditions:
+          - comparison_operator: is
+            id: b8c11a3f-50e4-42f3-972d-648711c97d07
+            value: '1'
+            varType: string
+            variable_selector:
+            - '17786780005730'
+            - class_id
+          id: 'true'
+          logical_operator: and
+        selected: false
+        title: Route LLM
+        type: if-else
+      height: 139
+      id: '1778800001028'
+      position:
+        x: 844.897745908094
+        y: 3580
+      positionAbsolute:
+        x: 844.897745908094
+        y: 3580
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 241
+    - data:
+        context:
+          enabled: false
+          variable_selector: []
+        isInIteration: false
+        isInLoop: false
+        memory:
+          query_prompt_template: '{{#sys.query#}}'
+          role_prefix:
+            assistant: ''
+            user: ''
+          window:
+            enabled: false
+            size: 50
+        model:
+          completion_params:
+            max_tokens: 4000
+            num_ctx: 24576
+            temperature: 0
+          mode: chat
+          name: gpt-oss
+          provider: langgenius/ollama/ollama
+        prompt_template:
+        - id: b9d22b40-75cf-5841-a2e5-4ee428e3d59f
+          reasoning_format: separated
+          role: system
+          text: "You are an academic literature assistant.\n\nThe context below contains\
+            \ a numbered list of paper metadata (title | authors | year | journal).\n\
+            \nContext:\n{{#1778800001026.routed_output#}}\n\nRequested paper identities\
+            \ (authoritative order):\n{{#1778800001001.paper_list#}}\n\nResponse policy:\n\
+            - State the total count, then a clean numbered list: title, year, journal.\n\
+            - Answer in the same language as the user.\n\
+            - Output final answer text only. No <think> tags or hidden reasoning.\n\
+            - If context includes errors, explain clearly and suggest one concrete reformulation."
+        selected: false
+        title: Metadata LLM
+        type: llm
+        vision:
+          enabled: false
+      height: 87
+      id: '1778800001027'
+      position:
+        x: 1080
+        y: 3580
+      positionAbsolute:
+        x: 1080
+        y: 3580
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 241
     viewport:
-      x: 1779.5176252904992
-      y: -1847.0097477284953
-      zoom: 0.6764241155251367
+      x: 1036.8653374432574
+      y: -2410.5971747357935
+      zoom: 0.7770072687840502
   rag_pipeline_variables: []
