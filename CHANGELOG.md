@@ -5,6 +5,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.2] - 2026-06-23
+
+### Changed
+
+- **Question Classifier aus Iterator herausgezogen**: Der Question Classifier (`Route by Intent`) sitzt jetzt nach dem IF/ELSE (false-Pfad) außerhalb des Iterators. Der Iterator enthält nur noch `Fetch Full Paper`.
+- **Metadata Query außerhalb des Iterators**: `Metadata Query` ist nun ein eigenständiger Code-Node und akzeptiert `paper_list` direkt.
+- **Separate LLMs für drei Pfade**: Statt eines überfrachteten `Metadata LLM` gibt es jetzt `Content LLM` (Knowledge Retrieval), `Metadata LLM` (IS_COUNT_OR_LIST) und `Summary LLM` (IS_CONTENT) – jeweils mit fokussiertem Prompt.
+- **Route LLM IF/ELSE**: Neue IF/ELSE-Node nach `Persist Paper Memory`, die anhand der QC-`class_id` zwischen `Metadata LLM` und `Summary LLM` routet.
+- **Converge Paths**: Neuer Code-Node, der die Outputs von `Metadata Query` und `Iterator` merged und an `Update Paper Memory` weitergibt – dadurch wird der Conversation Memory auch bei Metadata-Queries aktualisiert.
+
 ## [0.2.1] - 2026-06-23
 
 ### Fixed
