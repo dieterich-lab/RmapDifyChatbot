@@ -166,19 +166,6 @@ workflow:
         isInIteration: true
         isInLoop: false
         iteration_id: '1778676584534'
-        sourceType: iteration-start
-        targetType: question-classifier
-      id: 1778676584534start-source-17786780005730-target
-      source: 1778676584534start
-      sourceHandle: source
-      target: '17786780005730'
-      targetHandle: target
-      type: custom
-      zIndex: 1002
-    - data:
-        isInIteration: true
-        isInLoop: false
-        iteration_id: '1778676584534'
         sourceType: question-classifier
         targetType: code
       id: 17786780005730-1-17786780698570-target
@@ -193,25 +180,14 @@ workflow:
         isInLoop: false
         iteration_id: '1778676584534'
         sourceType: question-classifier
-        targetType: code
-      id: 17786780005730-2-1778800001025-target
+        targetType: iteration
+      id: 17786780005730-2-1778676584534-target
       source: '17786780005730'
       sourceHandle: '2'
-      target: '1778800001025'
-      targetHandle: target
-      type: custom
-      zIndex: 1002
-    - data:
-        isInLoop: false
-        sourceType: if-else
-        targetType: iteration
-      id: 1778677927006-false-1778676584534-target
-      source: '1778677927006'
-      sourceHandle: 'false'
       target: '1778676584534'
       targetHandle: target
       type: custom
-      zIndex: 0
+      zIndex: 1002
     - data:
         isInLoop: false
         sourceType: knowledge-retrieval
@@ -277,6 +253,17 @@ workflow:
       source: '1778800001013'
       sourceHandle: source
       target: '17785946070360'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInLoop: false
+        sourceType: if-else
+        targetType: question-classifier
+      id: 1778677927006-false-17786780005730-target
+      source: '1778677927006'
+      sourceHandle: 'false'
+      target: '17786780005730'
       targetHandle: target
       type: custom
       zIndex: 0
@@ -878,9 +865,8 @@ workflow:
           name: IS_CONTENT (Zusammenfassen, Erklären)
         instruction: ''
         instructions: ''
-        isInIteration: true
+        isInIteration: false
         isInLoop: false
-        iteration_id: '1778676584534'
         memory:
           query_prompt_template: '{{#sys.query#}}
 
