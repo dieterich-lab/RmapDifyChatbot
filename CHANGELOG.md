@@ -5,6 +5,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.1] - 2026-06-23
+
+### Fixed
+
+- **Variable Aggregator removed**: The Variable Aggregator node inside the Paper Iterator was unnecessary and caused corrupted metadata in `Update Paper Memory` (mixed Metadata Query text with full paper context). The Iterator now outputs `Metadata Query.result` directly. ([339038b](https://github.com/dieterich-lab/RmapDifyChatbot/commit/339038b))
+- **Update Paper Memory**: Now handles both flat pipe-separated strings and array-of-strings format from the iterator output. ([339038b](https://github.com/dieterich-lab/RmapDifyChatbot/commit/339038b))
+
+[0.2.1]: https://github.com/dieterich-lab/RmapDifyChatbot/compare/v0.2.0...v0.2.1
+
 ## [0.2.0] - 2026-06-22
 
 ### Added
