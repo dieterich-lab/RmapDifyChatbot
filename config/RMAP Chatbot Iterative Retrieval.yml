@@ -73,6 +73,213 @@ workflow:
       language: ''
       voice: ''
   graph:
+    edges:
+    - data:
+        isInLoop: false
+        sourceType: start
+        targetType: llm
+      id: 1711528914102-source-1778508354995-target
+      source: '1711528914102'
+      sourceHandle: source
+      target: '1778508354995'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInLoop: false
+        sourceType: llm
+        targetType: code
+      id: 17785945559750-source-1778800001013-target
+      source: '17785945559750'
+      sourceHandle: source
+      target: '1778800001013'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInLoop: false
+        sourceType: llm
+        targetType: llm
+      id: 1778508354995-source-1778676150362-target
+      source: '1778508354995'
+      sourceHandle: source
+      target: '1778676150362'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInLoop: false
+        sourceType: llm
+        targetType: code
+      id: 1778676150362-source-1778800001010-target
+      source: '1778676150362'
+      sourceHandle: source
+      target: '1778800001010'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInLoop: false
+        sourceType: code
+        targetType: code
+      id: 1778800001010-source-1778800001012-target
+      source: '1778800001010'
+      sourceHandle: source
+      target: '1778800001012'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInLoop: false
+        sourceType: code
+        targetType: code
+      id: 1778800001012-source-1778800001001-target
+      source: '1778800001012'
+      sourceHandle: source
+      target: '1778800001001'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInLoop: false
+        sourceType: code
+        targetType: if-else
+      id: 1778800001001-source-1778677927006-target
+      source: '1778800001001'
+      sourceHandle: source
+      target: '1778677927006'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInLoop: false
+        sourceType: if-else
+        targetType: knowledge-retrieval
+      id: 1778677927006-true-17785930638200-target
+      source: '1778677927006'
+      sourceHandle: 'true'
+      target: '17785930638200'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInIteration: true
+        isInLoop: false
+        iteration_id: '1778676584534'
+        sourceType: iteration-start
+        targetType: question-classifier
+      id: 1778676584534start-source-17786780005730-target
+      source: 1778676584534start
+      sourceHandle: source
+      target: '17786780005730'
+      targetHandle: target
+      type: custom
+      zIndex: 1002
+    - data:
+        isInIteration: true
+        isInLoop: false
+        iteration_id: '1778676584534'
+        sourceType: question-classifier
+        targetType: code
+      id: 17786780005730-1-17786780698570-target
+      source: '17786780005730'
+      sourceHandle: '1'
+      target: '17786780698570'
+      targetHandle: target
+      type: custom
+      zIndex: 1002
+    - data:
+        isInIteration: true
+        isInLoop: false
+        iteration_id: '1778676584534'
+        sourceType: question-classifier
+        targetType: code
+      id: 17786780005730-2-1778800001025-target
+      source: '17786780005730'
+      sourceHandle: '2'
+      target: '1778800001025'
+      targetHandle: target
+      type: custom
+      zIndex: 1002
+    - data:
+        isInLoop: false
+        sourceType: if-else
+        targetType: iteration
+      id: 1778677927006-false-1778676584534-target
+      source: '1778677927006'
+      sourceHandle: 'false'
+      target: '1778676584534'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInLoop: false
+        sourceType: knowledge-retrieval
+        targetType: llm
+      id: 17785930638200-source-17785945559750-target
+      source: '17785930638200'
+      sourceHandle: source
+      target: '17785945559750'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInLoop: false
+        sourceType: iteration
+        targetType: code
+      id: 1778676584534-source-1778800001002-target
+      source: '1778676584534'
+      sourceHandle: source
+      target: '1778800001002'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInLoop: false
+        sourceType: code
+        targetType: assigner
+      id: 1778800001002-source-1778800001003-target
+      source: '1778800001002'
+      sourceHandle: source
+      target: '1778800001003'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInLoop: false
+        sourceType: assigner
+        targetType: llm
+      id: 1778800001003-source-17785945324000-target
+      selected: false
+      source: '1778800001003'
+      sourceHandle: source
+      target: '17785945324000'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInLoop: false
+        sourceType: llm
+        targetType: code
+      id: 17785945324000-source-1778800001013-target
+      selected: false
+      source: '17785945324000'
+      sourceHandle: source
+      target: '1778800001013'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInLoop: false
+        sourceType: code
+        targetType: answer
+      id: 1778800001013-source-17785946070360-target
+      source: '1778800001013'
+      sourceHandle: source
+      target: '17785946070360'
+      targetHandle: target
+      type: custom
+      zIndex: 0
     nodes:
     - data:
         desc: The user's question comes in here.
@@ -80,7 +287,7 @@ workflow:
         title: Start
         type: start
         variables: []
-      height: 100
+      height: 101
       id: '1711528914102'
       position:
         x: -1435.0542222055321
@@ -174,7 +381,7 @@ workflow:
         type: llm
         vision:
           enabled: false
-      height: 87
+      height: 88
       id: '1778508354995'
       position:
         x: -1445.680202203922
@@ -186,7 +393,7 @@ workflow:
       sourcePosition: right
       targetPosition: left
       type: custom
-      width: 241
+      width: 242
     - data:
         dataset_ids:
         - fiCgoIRCdFcUlyjUHsSQ9Xvcmn7KQ+rUaG9hnUJbpc7JzQCYkQK1G+O2moWlBG8d
@@ -223,7 +430,7 @@ workflow:
         selected: false
         title: Knowledge Retrieval
         type: knowledge-retrieval
-      height: 51
+      height: 90
       id: '17785930638200'
       position:
         x: -669.5135424503067
@@ -235,7 +442,7 @@ workflow:
       sourcePosition: right
       targetPosition: left
       type: custom
-      width: 241
+      width: 242
     - data:
         context:
           enabled: false
@@ -262,55 +469,44 @@ workflow:
         - id: 400aef06-66bf-4730-a1f4-3dd418d2d48e
           reasoning_format: separated
           role: system
-          text: 'You are an academic literature assistant.
-
-
-            Below is a numbered list of paper metadata (title | authors | year | journal
-            | doc_id).
-
-
-            Metadata (iterator output):
-
-            {{#17786780698570.result_text#}}
-
-
-            Requested paper identities (authoritative order):
-
-            {{#1778800001001.paper_list#}}
-
-
-            Response policy:
-
-            - State the total count of papers found.
-
-            - Then output a clean numbered list: title, year, journal.
-
-
-            General rules:
-
-            - Answer in the same language as the user.
-
-            - Output final answer text only. No <think> tags or hidden reasoning.
-
-            - If no papers were found, say so clearly and suggest a reformulation.'
+          text: "You are an academic literature assistant.\n\nThe context below contains\
+            \ either:\n  (a) A numbered list of paper metadata (title | authors |\
+            \ year | journal) — respond with a paper count and clean numbered list.\n\
+            \  (b) Raw text excerpts of one or more papers, each tagged with a header\
+            \  === <title> (<year>, <journal>) — <authors> === — respond with summaries\
+            \ and a global synthesis.\n\nContext (iteration output):\n{{#1778676584534.output#}}\n\
+            \nRequested paper identities (authoritative order):\n{{#1778800001001.paper_list#}}\n\
+            \nResponse policy for case (a):\n- State the total count, then a numbered\
+            \ list: title, year, journal.\n\nResponse policy for case (b):\n- **Global\
+            \ synthesis** first: 3–5 sentences comparing and contrasting themes across\
+            \ all papers.\n- Then, for each paper in numbered order:\n  - Header:\
+            \ **N. <full title>**\n  - Exactly 3 bullet points (method / key finding\
+            \ / implication), each at most 2 short sentences.\n  - If a paper's text\
+            \ is missing or says \"Insufficient textual context\", still emit the\
+            \ header and write: *Insufficient textual context — only metadata available.*\n\
+            \  - STRICT GROUNDING GUARD: Do NOT fabricate methods or findings absent\
+            \ from the provided text.\n\nGeneral rules:\n- Answer in the same language\
+            \ as the user.\n- Output final answer text only. No <think> tags or hidden\
+            \ reasoning.\n- If context includes errors, explain clearly and suggest\
+            \ one concrete reformulation."
         selected: false
         title: Metadata LLM
         type: llm
         vision:
           enabled: false
-      height: 87
+      height: 88
       id: '17785945324000'
       position:
-        x: 670.7901105845616
-        y: 4406.659205383457
+        x: 705.9029071995568
+        y: 3622.473414315233
       positionAbsolute:
-        x: 670.7901105845616
-        y: 4406.659205383457
+        x: 705.9029071995568
+        y: 3622.473414315233
       selected: false
       sourcePosition: right
       targetPosition: left
       type: custom
-      width: 241
+      width: 242
     - data:
         context:
           enabled: true
@@ -376,7 +572,7 @@ workflow:
         variables: []
         vision:
           enabled: false
-      height: 131
+      height: 132
       id: '17785945559750'
       position:
         x: -166.52858610343264
@@ -388,7 +584,7 @@ workflow:
       sourcePosition: right
       targetPosition: left
       type: custom
-      width: 241
+      width: 242
     - data:
         answer: '{{#1778800001013.cleaned_text#}}'
         desc: Send the final response back to the user.
@@ -398,19 +594,19 @@ workflow:
         title: Answer
         type: answer
         variables: []
-      height: 145
+      height: 146
       id: '17785946070360'
       position:
-        x: 1551.0306322377196
-        y: 3115.74530475884
+        x: 1115.9401670578973
+        y: 3292.928480690657
       positionAbsolute:
-        x: 1551.0306322377196
-        y: 3115.74530475884
-      selected: true
+        x: 1115.9401670578973
+        y: 3292.928480690657
+      selected: false
       sourcePosition: right
       targetPosition: left
       type: custom
-      width: 241
+      width: 242
     - data:
         code: "import re\n\n\ndef _strip_think(text):\n    cleaned = str(text or \"\
           \")\n    # Remove well-formed think blocks first.\n    cleaned = re.sub(r\"\
@@ -443,7 +639,7 @@ workflow:
           - text
           value_type: string
           variable: metadata_text
-      height: 51
+      height: 52
       id: '1778800001013'
       position:
         x: 1072.287910416112
@@ -455,7 +651,7 @@ workflow:
       sourcePosition: right
       targetPosition: left
       type: custom
-      width: 241
+      width: 242
     - data:
         context:
           enabled: false
@@ -577,7 +773,7 @@ workflow:
         type: llm
         vision:
           enabled: false
-      height: 87
+      height: 88
       id: '1778676150362'
       position:
         x: -1452.6825467404378
@@ -589,7 +785,7 @@ workflow:
       sourcePosition: right
       targetPosition: left
       type: custom
-      width: 241
+      width: 242
     - data:
         error_handle_mode: terminated
         flatten_output: false
@@ -600,8 +796,8 @@ workflow:
         - '1778800001001'
         - paper_list
         output_selector:
-        - '1778800001025'
-        - paper_context
+        - '17786780698570'
+        - result
         output_type: array[string]
         parallel_nums: 10
         selected: false
@@ -612,11 +808,11 @@ workflow:
       height: 1071
       id: '1778676584534'
       position:
-        x: -1043.9228208479803
-        y: 3581.81346557712
+        x: -1081.9473572946754
+        y: 3267.2029520547358
       positionAbsolute:
-        x: -1043.9228208479803
-        y: 3581.81346557712
+        x: -1081.9473572946754
+        y: 3267.2029520547358
       selected: false
       sourcePosition: right
       targetPosition: left
@@ -637,8 +833,8 @@ workflow:
         x: 24
         y: 68
       positionAbsolute:
-        x: -1019.9228208479803
-        y: 3649.81346557712
+        x: -1057.9473572946754
+        y: 3335.2029520547358
       selectable: false
       sourcePosition: right
       targetPosition: left
@@ -661,7 +857,7 @@ workflow:
         selected: false
         title: IF/ELSE
         type: if-else
-      height: 139
+      height: 140
       id: '1778677927006'
       position:
         x: -1139.701522685006
@@ -673,7 +869,7 @@ workflow:
       sourcePosition: right
       targetPosition: left
       type: custom
-      width: 241
+      width: 242
     - data:
         classes:
         - id: '1'
@@ -682,8 +878,9 @@ workflow:
           name: IS_CONTENT (Zusammenfassen, Erklären)
         instruction: ''
         instructions: ''
-        isInIteration: false
+        isInIteration: true
         isInLoop: false
+        iteration_id: '1778676584534'
         memory:
           query_prompt_template: '{{#sys.query#}}
 
@@ -706,20 +903,20 @@ workflow:
         type: question-classifier
         vision:
           enabled: false
-      height: 177
+      height: 178
       id: '17786780005730'
       parentId: '1778676584534'
       position:
-        x: -405.29721508394596
-        y: 752.7829997928302
+        x: 91.43256182406503
+        y: 69.7795565443148
       positionAbsolute:
-        x: -1449.2200359319263
-        y: 4334.59646536995
+        x: -990.5147954706104
+        y: 3336.9825085990506
       selected: false
       sourcePosition: right
       targetPosition: left
       type: custom
-      width: 241
+      width: 242
       zIndex: 1002
     - data:
         code: "import json\nimport os\nimport re\nfrom urllib.error import HTTPError,\
@@ -857,8 +1054,9 @@ workflow:
           : (result_text.split(\"\\n\") if result_text else []), \"result_text\":\
           \ result_text}\n"
         code_language: python3
-        isInIteration: false
+        isInIteration: true
         isInLoop: false
+        iteration_id: '1778676584534'
         outputs:
           result:
             children: null
@@ -894,20 +1092,20 @@ workflow:
           - title
           value_type: string
           variable: title
-      height: 51
+      height: 52
       id: '17786780698570'
       parentId: '1778676584534'
       position:
-        x: -166.52858610343264
-        y: 1199.6677945740084
+        x: 507.70835440792223
+        y: 82.02579653098337
       positionAbsolute:
-        x: -1210.451406951413
-        y: 4781.4812601511285
+        x: -574.2390028867532
+        y: 3349.228748585719
       selected: false
       sourcePosition: right
       targetPosition: left
       type: custom
-      width: 241
+      width: 242
       zIndex: 1002
     - data:
         code: "import json\nimport re\n\n\ndef _to_text(value):\n    if value is None:\n\
@@ -960,7 +1158,7 @@ workflow:
           - text
           value_type: string
           variable: extractor_text
-      height: 51
+      height: 52
       id: '1778800001010'
       position:
         x: -1468.2450258990343
@@ -972,7 +1170,7 @@ workflow:
       sourcePosition: right
       targetPosition: left
       type: custom
-      width: 241
+      width: 242
     - data:
         code: "import re\n\n\ndef _to_text(value):\n    if value is None:\n      \
           \  return \"\"\n    if isinstance(value, list):\n        return \", \".join(str(v).strip()\
@@ -1035,7 +1233,7 @@ workflow:
           - query
           value_type: string
           variable: query
-      height: 51
+      height: 52
       id: '1778800001012'
       position:
         x: -1462.949953920941
@@ -1047,7 +1245,7 @@ workflow:
       sourcePosition: right
       targetPosition: left
       type: custom
-      width: 241
+      width: 242
     - data:
         code: "import re\n\n\ndef _to_text(value):\n    if value is None:\n      \
           \  return \"\"\n    if isinstance(value, list):\n        return \", \".join(str(v).strip()\
@@ -1106,7 +1304,7 @@ workflow:
           - query
           value_type: string
           variable: query
-      height: 51
+      height: 52
       id: '1778800001001'
       position:
         x: -1468.2450258990343
@@ -1118,7 +1316,7 @@ workflow:
       sourcePosition: right
       targetPosition: left
       type: custom
-      width: 241
+      width: 242
     - data:
         code: "def _normalize_obj(item):\n    if not isinstance(item, dict):\n   \
           \     return None\n    title = str(item.get('title') or '').strip()\n  \
@@ -1166,8 +1364,8 @@ workflow:
         type: code
         variables:
         - value_selector:
-          - '17786780698570'
-          - result
+          - '1778676584534'
+          - output
           value_type: array[string]
           variable: iteration_output
         - value_selector:
@@ -1175,19 +1373,19 @@ workflow:
           - memory
           value_type: array[object]
           variable: memory
-      height: 51
+      height: 52
       id: '1778800001002'
       position:
-        x: 694.8549410207954
-        y: 4785.469277069209
+        x: 722.1648939435693
+        y: 3260.013335239976
       positionAbsolute:
-        x: 694.8549410207954
-        y: 4785.469277069209
+        x: 722.1648939435693
+        y: 3260.013335239976
       selected: false
       sourcePosition: right
       targetPosition: left
       type: custom
-      width: 241
+      width: 242
     - data:
         desc: ''
         isInIteration: false
@@ -1206,19 +1404,19 @@ workflow:
         title: Persist Paper Memory
         type: assigner
         version: '2'
-      height: 83
+      height: 84
       id: '1778800001003'
       position:
-        x: 675.3478317902425
-        y: 4574.792497379238
+        x: 722.1648939435693
+        y: 3421.652332669853
       positionAbsolute:
-        x: 675.3478317902425
-        y: 4574.792497379238
+        x: 722.1648939435693
+        y: 3421.652332669853
       selected: false
       sourcePosition: right
       targetPosition: left
       type: custom
-      width: 241
+      width: 242
     - data:
         code: "import json\nimport os\nfrom urllib.error import HTTPError, URLError\n\
           from urllib.parse import urlencode\nfrom urllib.request import Request,\
@@ -1346,295 +1544,19 @@ workflow:
       id: '1778800001025'
       parentId: '1778676584534'
       position:
-        x: 152.73175138669274
-        y: 99.17535307919525
+        x: 340
+        y: 304
       positionAbsolute:
-        x: -891.1910694612876
-        y: 3680.9888186563153
+        x: -795
+        y: 3627
       selected: false
       sourcePosition: right
       targetPosition: left
       type: custom
       width: 241
       zIndex: 1002
-    - data:
-        context:
-          enabled: false
-          variable_selector: []
-        isInIteration: false
-        isInLoop: false
-        memory:
-          query_prompt_template: '{{#sys.query#}}'
-          role_prefix:
-            assistant: ''
-            user: ''
-          window:
-            enabled: false
-            size: 50
-        model:
-          completion_params:
-            max_tokens: 4000
-            num_ctx: 24576
-            temperature: 0
-          mode: chat
-          name: gpt-oss
-          provider: langgenius/ollama/ollama
-        prompt_template:
-        - id: 400aef06-66bf-4730-a1f4-3dd418d2d48e
-          reasoning_format: separated
-          role: system
-          text: "You are an academic literature assistant.\n\nBelow are full-text\
-            \ excerpts of one or more papers, each tagged with a header\n=== <title>\
-            \ (<year>, <journal>) — <authors> ===\n\nPaper text (iterator output):\n\
-            {{#1778676584534.output#}}\n\nRequested paper identities (authoritative\
-            \ order):\n{{#1778800001001.paper_list#}}\n\nResponse policy:\n- **Global\
-            \ synthesis** first: 3–5 sentences comparing and contrasting themes across\
-            \ all papers.\n- Then, for each paper in numbered order:\n  - Header:\
-            \ **N. <full title>**\n  - Exactly 3 bullet points (method / key finding\
-            \ / implication), each at most 2 short sentences.\n  - If a paper's text\
-            \ is missing or says \"Insufficient textual context\", still emit the\
-            \ header\n    and write: *Insufficient textual context — only metadata\
-            \ available.*\n  - STRICT GROUNDING GUARD: Do NOT fabricate methods or\
-            \ findings absent from the provided text.\n\nGeneral rules:\n- Answer\
-            \ in the same language as the user.\n- Output final answer text only.\
-            \ No <think> tags or hidden reasoning.\n- If context includes errors,\
-            \ explain clearly and suggest one concrete reformulation."
-        selected: false
-        title: Summary LLM
-        type: llm
-        vision:
-          enabled: false
-      height: 87
-      id: '1778999999010'
-      position:
-        x: 581.0574081240183
-        y: 3544.4229459283233
-      positionAbsolute:
-        x: 581.0574081240183
-        y: 3544.4229459283233
-      selected: false
-      sourcePosition: right
-      targetPosition: left
-      type: custom
-      width: 241
-    edges:
-    - data:
-        isInLoop: false
-        sourceType: start
-        targetType: llm
-      id: 1711528914102-source-1778508354995-target
-      source: '1711528914102'
-      sourceHandle: source
-      target: '1778508354995'
-      targetHandle: target
-      type: custom
-      zIndex: 0
-    - data:
-        isInLoop: false
-        sourceType: llm
-        targetType: code
-      id: 17785945559750-source-1778800001013-target
-      source: '17785945559750'
-      sourceHandle: source
-      target: '1778800001013'
-      targetHandle: target
-      type: custom
-      zIndex: 0
-    - data:
-        isInLoop: false
-        sourceType: llm
-        targetType: llm
-      id: 1778508354995-source-1778676150362-target
-      source: '1778508354995'
-      sourceHandle: source
-      target: '1778676150362'
-      targetHandle: target
-      type: custom
-      zIndex: 0
-    - data:
-        isInLoop: false
-        sourceType: llm
-        targetType: code
-      id: 1778676150362-source-1778800001010-target
-      source: '1778676150362'
-      sourceHandle: source
-      target: '1778800001010'
-      targetHandle: target
-      type: custom
-      zIndex: 0
-    - data:
-        isInLoop: false
-        sourceType: code
-        targetType: code
-      id: 1778800001010-source-1778800001012-target
-      source: '1778800001010'
-      sourceHandle: source
-      target: '1778800001012'
-      targetHandle: target
-      type: custom
-      zIndex: 0
-    - data:
-        isInLoop: false
-        sourceType: code
-        targetType: code
-      id: 1778800001012-source-1778800001001-target
-      source: '1778800001012'
-      sourceHandle: source
-      target: '1778800001001'
-      targetHandle: target
-      type: custom
-      zIndex: 0
-    - data:
-        isInLoop: false
-        sourceType: code
-        targetType: if-else
-      id: 1778800001001-source-1778677927006-target
-      source: '1778800001001'
-      sourceHandle: source
-      target: '1778677927006'
-      targetHandle: target
-      type: custom
-      zIndex: 0
-    - data:
-        isInLoop: false
-        sourceType: if-else
-        targetType: knowledge-retrieval
-      id: 1778677927006-true-17785930638200-target
-      source: '1778677927006'
-      sourceHandle: 'true'
-      target: '17785930638200'
-      targetHandle: target
-      type: custom
-      zIndex: 0
-    - data:
-        isInIteration: true
-        isInLoop: false
-        iteration_id: '1778676584534'
-        sourceType: question-classifier
-        targetType: code
-      id: 17786780005730-1-17786780698570-target
-      source: '17786780005730'
-      sourceHandle: '1'
-      target: '17786780698570'
-      targetHandle: target
-      type: custom
-      zIndex: 1002
-    - data:
-        isInIteration: true
-        isInLoop: false
-        iteration_id: '1778676584534'
-        sourceType: question-classifier
-        targetType: iteration
-      id: 17786780005730-2-1778676584534-target
-      source: '17786780005730'
-      sourceHandle: '2'
-      target: '1778676584534'
-      targetHandle: target
-      type: custom
-      zIndex: 1002
-    - data:
-        isInLoop: false
-        sourceType: knowledge-retrieval
-        targetType: llm
-      id: 17785930638200-source-17785945559750-target
-      source: '17785930638200'
-      sourceHandle: source
-      target: '17785945559750'
-      targetHandle: target
-      type: custom
-      zIndex: 0
-    - data:
-        isInLoop: false
-        sourceType: code
-        targetType: assigner
-      id: 1778800001002-source-1778800001003-target
-      source: '1778800001002'
-      sourceHandle: source
-      target: '1778800001003'
-      targetHandle: target
-      type: custom
-      zIndex: 0
-    - data:
-        isInLoop: false
-        sourceType: assigner
-        targetType: llm
-      id: 1778800001003-source-17785945324000-target
-      selected: false
-      source: '1778800001003'
-      sourceHandle: source
-      target: '17785945324000'
-      targetHandle: target
-      type: custom
-      zIndex: 0
-    - data:
-        isInLoop: false
-        sourceType: llm
-        targetType: code
-      id: 17785945324000-source-1778800001013-target
-      selected: false
-      source: '17785945324000'
-      sourceHandle: source
-      target: '1778800001013'
-      targetHandle: target
-      type: custom
-      zIndex: 0
-    - data:
-        isInLoop: false
-        sourceType: code
-        targetType: answer
-      id: 1778800001013-source-17785946070360-target
-      source: '1778800001013'
-      sourceHandle: source
-      target: '17785946070360'
-      targetHandle: target
-      type: custom
-      zIndex: 0
-    - data:
-        isInLoop: false
-        sourceType: if-else
-        targetType: question-classifier
-      id: 1778677927006-false-17786780005730-target
-      source: '1778677927006'
-      sourceHandle: 'false'
-      target: '17786780005730'
-      targetHandle: target
-      type: custom
-      zIndex: 0
-    - data:
-        isInLoop: false
-        sourceType: code
-        targetType: code
-      id: 17786780698570-source-1778800001002-target
-      source: '17786780698570'
-      sourceHandle: source
-      target: '1778800001002'
-      targetHandle: target
-      type: custom
-      zIndex: 0
-    - data:
-        isInLoop: false
-        sourceType: iteration
-        targetType: llm
-      id: 1778676584534-source-1778999999010-target
-      source: '1778676584534'
-      sourceHandle: source
-      target: '1778999999010'
-      targetHandle: target
-      type: custom
-      zIndex: 0
-    - data:
-        isInLoop: false
-        sourceType: llm
-        targetType: code
-      id: 1778999999010-source-1778800001013-target
-      source: '1778999999010'
-      sourceHandle: source
-      target: '1778800001013'
-      targetHandle: target
-      type: custom
-      zIndex: 0
     viewport:
-      x: 577.9891865932652
-      y: -760.1570588971201
-      zoom: 0.2944306973987453
+      x: 1779.5176252904992
+      y: -1847.0097477284953
+      zoom: 0.6764241155251367
   rag_pipeline_variables: []
