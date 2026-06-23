@@ -267,6 +267,28 @@ workflow:
       targetHandle: target
       type: custom
       zIndex: 0
+    - data:
+        isInLoop: false
+        sourceType: iteration
+        targetType: llm
+      id: 1778676584534-source-1778999999010-target
+      source: '1778676584534'
+      sourceHandle: source
+      target: '1778999999010'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInLoop: false
+        sourceType: llm
+        targetType: code
+      id: 1778999999010-source-1778800001013-target
+      source: '1778999999010'
+      sourceHandle: source
+      target: '1778800001013'
+      targetHandle: target
+      type: custom
+      zIndex: 0
     nodes:
     - data:
         desc: The user's question comes in here.
@@ -456,26 +478,37 @@ workflow:
         - id: 400aef06-66bf-4730-a1f4-3dd418d2d48e
           reasoning_format: separated
           role: system
-          text: "You are an academic literature assistant.\n\nThe context below contains\
-            \ either:\n  (a) A numbered list of paper metadata (title | authors |\
-            \ year | journal) — respond with a paper count and clean numbered list.\n\
-            \  (b) Raw text excerpts of one or more papers, each tagged with a header\
-            \  === <title> (<year>, <journal>) — <authors> === — respond with summaries\
-            \ and a global synthesis.\n\nContext (iteration output):\n{{#1778676584534.output#}}\n\
-            \nRequested paper identities (authoritative order):\n{{#1778800001001.paper_list#}}\n\
-            \nResponse policy for case (a):\n- State the total count, then a numbered\
-            \ list: title, year, journal.\n\nResponse policy for case (b):\n- **Global\
-            \ synthesis** first: 3–5 sentences comparing and contrasting themes across\
-            \ all papers.\n- Then, for each paper in numbered order:\n  - Header:\
-            \ **N. <full title>**\n  - Exactly 3 bullet points (method / key finding\
-            \ / implication), each at most 2 short sentences.\n  - If a paper's text\
-            \ is missing or says \"Insufficient textual context\", still emit the\
-            \ header and write: *Insufficient textual context — only metadata available.*\n\
-            \  - STRICT GROUNDING GUARD: Do NOT fabricate methods or findings absent\
-            \ from the provided text.\n\nGeneral rules:\n- Answer in the same language\
-            \ as the user.\n- Output final answer text only. No <think> tags or hidden\
-            \ reasoning.\n- If context includes errors, explain clearly and suggest\
-            \ one concrete reformulation."
+          text: 'You are an academic literature assistant.
+
+
+            Below is a numbered list of paper metadata (title | authors | year | journal
+            | doc_id).
+
+
+            Metadata (iterator output):
+
+            {{#1778676584534.output#}}
+
+
+            Requested paper identities (authoritative order):
+
+            {{#1778800001001.paper_list#}}
+
+
+            Response policy:
+
+            - State the total count of papers found.
+
+            - Then output a clean numbered list: title, year, journal.
+
+
+            General rules:
+
+            - Answer in the same language as the user.
+
+            - Output final answer text only. No <think> tags or hidden reasoning.
+
+            - If no papers were found, say so clearly and suggest a reformulation.'
         selected: false
         title: Metadata LLM
         type: llm
@@ -1540,6 +1573,66 @@ workflow:
       type: custom
       width: 241
       zIndex: 1002
+    - data:
+        context:
+          enabled: false
+          variable_selector: []
+        isInIteration: false
+        isInLoop: false
+        memory:
+          query_prompt_template: '{{#sys.query#}}'
+          role_prefix:
+            assistant: ''
+            user: ''
+          window:
+            enabled: false
+            size: 50
+        model:
+          completion_params:
+            max_tokens: 4000
+            num_ctx: 24576
+            temperature: 0
+          mode: chat
+          name: gpt-oss
+          provider: langgenius/ollama/ollama
+        prompt_template:
+        - id: 400aef06-66bf-4730-a1f4-3dd418d2d48e
+          reasoning_format: separated
+          role: system
+          text: "You are an academic literature assistant.\n\nBelow are full-text\
+            \ excerpts of one or more papers, each tagged with a header\n=== <title>\
+            \ (<year>, <journal>) — <authors> ===\n\nPaper text (iterator output):\n\
+            {{#1778676584534.output#}}\n\nRequested paper identities (authoritative\
+            \ order):\n{{#1778800001001.paper_list#}}\n\nResponse policy:\n- **Global\
+            \ synthesis** first: 3–5 sentences comparing and contrasting themes across\
+            \ all papers.\n- Then, for each paper in numbered order:\n  - Header:\
+            \ **N. <full title>**\n  - Exactly 3 bullet points (method / key finding\
+            \ / implication), each at most 2 short sentences.\n  - If a paper's text\
+            \ is missing or says \"Insufficient textual context\", still emit the\
+            \ header\n    and write: *Insufficient textual context — only metadata\
+            \ available.*\n  - STRICT GROUNDING GUARD: Do NOT fabricate methods or\
+            \ findings absent from the provided text.\n\nGeneral rules:\n- Answer\
+            \ in the same language as the user.\n- Output final answer text only.\
+            \ No <think> tags or hidden reasoning.\n- If context includes errors,\
+            \ explain clearly and suggest one concrete reformulation."
+        selected: false
+        title: Summary LLM
+        type: llm
+        vision:
+          enabled: false
+      height: 88
+      id: '1778999999010'
+      position:
+        x: 705.9029071995568
+        y: 3622.473414315233
+      positionAbsolute:
+        x: 705.9029071995568
+        y: 3622.473414315233
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 242
     viewport:
       x: 1779.5176252904992
       y: -1847.0097477284953
