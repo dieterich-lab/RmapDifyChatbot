@@ -201,17 +201,6 @@ workflow:
       zIndex: 0
     - data:
         isInLoop: false
-        sourceType: iteration
-        targetType: code
-      id: 1778676584534-source-1778800001002-target
-      source: '1778676584534'
-      sourceHandle: source
-      target: '1778800001002'
-      targetHandle: target
-      type: custom
-      zIndex: 0
-    - data:
-        isInLoop: false
         sourceType: code
         targetType: assigner
       id: 1778800001002-source-1778800001003-target
@@ -264,6 +253,17 @@ workflow:
       source: '1778677927006'
       sourceHandle: 'false'
       target: '17786780005730'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInLoop: false
+        sourceType: code
+        targetType: code
+      id: 17786780698570-source-1778800001002-target
+      source: '17786780698570'
+      sourceHandle: source
+      target: '1778800001002'
       targetHandle: target
       type: custom
       zIndex: 0
@@ -783,8 +783,8 @@ workflow:
         - '1778800001001'
         - paper_list
         output_selector:
-        - '17786780698570'
-        - result
+        - '1778800001025'
+        - paper_context
         output_type: array[string]
         parallel_nums: 10
         selected: false
@@ -1040,9 +1040,8 @@ workflow:
           : (result_text.split(\"\\n\") if result_text else []), \"result_text\":\
           \ result_text}\n"
         code_language: python3
-        isInIteration: true
+        isInIteration: false
         isInLoop: false
-        iteration_id: '1778676584534'
         outputs:
           result:
             children: null
