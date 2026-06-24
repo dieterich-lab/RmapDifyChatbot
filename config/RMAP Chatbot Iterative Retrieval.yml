@@ -223,10 +223,10 @@ workflow:
         isInLoop: false
         sourceType: iteration
         targetType: code
-      id: 1778676584534-source-1778800001026-target
+      id: 1778676584534-source-1778800001029-target
       source: '1778676584534'
       sourceHandle: source
-      target: '1778800001026'
+      target: '1778800001029'
       targetHandle: target
       type: custom
       zIndex: 0
@@ -243,12 +243,23 @@ workflow:
       zIndex: 0
     - data:
         isInLoop: false
+        sourceType: code
+        targetType: assigner
+      id: 1778800001029-source-1778800001030-target
+      source: '1778800001029'
+      sourceHandle: source
+      target: '1778800001030'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInLoop: false
         sourceType: assigner
-        targetType: if-else
-      id: 1778800001003-source-1778800001028-target
+        targetType: llm
+      id: 1778800001003-source-1778800001027-target
       source: '1778800001003'
       sourceHandle: source
-      target: '1778800001028'
+      target: '1778800001027'
       targetHandle: target
       type: custom
       zIndex: 0
@@ -256,19 +267,8 @@ workflow:
         isInLoop: false
         sourceType: code
         targetType: code
-      id: 17786780698570-source-1778800001026-target
+      id: 17786780698570-source-1778800001002-target
       source: '17786780698570'
-      sourceHandle: source
-      target: '1778800001026'
-      targetHandle: target
-      type: custom
-      zIndex: 0
-    - data:
-        isInLoop: false
-        sourceType: code
-        targetType: code
-      id: 1778800001026-source-1778800001002-target
-      source: '1778800001026'
       sourceHandle: source
       target: '1778800001002'
       targetHandle: target
@@ -276,22 +276,11 @@ workflow:
       zIndex: 0
     - data:
         isInLoop: false
-        sourceType: if-else
+        sourceType: assigner
         targetType: llm
-      id: 1778800001028-true-1778800001027-target
-      source: '1778800001028'
-      sourceHandle: 'true'
-      target: '1778800001027'
-      targetHandle: target
-      type: custom
-      zIndex: 0
-    - data:
-        isInLoop: false
-        sourceType: if-else
-        targetType: llm
-      id: 1778800001028-false-17785945324000-target
-      source: '1778800001028'
-      sourceHandle: 'false'
+      id: 1778800001030-source-17785945324000-target
+      source: '1778800001030'
+      sourceHandle: source
       target: '17785945324000'
       targetHandle: target
       type: custom
@@ -521,7 +510,7 @@ workflow:
           role: system
           text: "You are an academic literature assistant.\n\nThe context below contains\
             \ raw text excerpts of one or more papers, each tagged with a header\
-            \  === <title> (<year>, <journal>) — <authors> ===.\n\nContext:\n{{#1778800001026.routed_output#}}\n\
+            \  === <title> (<year>, <journal>) — <authors> ===.\n\nContext:\n{{#1778676584534.output#}}\n\
             \nRequested paper identities (authoritative order):\n{{#1778800001001.paper_list#}}\n\
             \nResponse policy:\n- **Global\
             \ synthesis** first: 3–5 sentences comparing and contrasting themes across\
@@ -1391,8 +1380,8 @@ workflow:
         type: code
         variables:
         - value_selector:
-          - '1778800001026'
-          - routed_output
+          - '17786780698570'
+          - result
           value_type: array[string]
           variable: iteration_output
         - value_selector:
@@ -1439,6 +1428,106 @@ workflow:
       positionAbsolute:
         x: 515.060137315422
         y: 3430.8432635628624
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 241
+    - data:
+        code: "def _normalize_obj(item):\n    if not isinstance(item, dict):\n   \
+          \     return None\n    title = str(item.get('title') or '').strip()\n  \
+          \  authors = str(item.get('authors') or item.get('author') or '').strip()\n\
+          \    year = str(item.get('year') or '').strip()\n    journal = str(item.get('journal')\
+          \ or '').strip()\n    doc_id = str(item.get('doc_id') or '').strip()\n \
+          \   if not any([title, authors, year, journal]):\n        return None\n\
+          \    return {\n        'title': title,\n        'authors': authors,\n  \
+          \      'year': year,\n        'journal': journal,\n        'doc_id': doc_id,\n\
+          \    }\n\n\ndef _parse_pipe_line(line):\n    line = line.strip()\n    if\
+          \ not line or '|' not in line:\n        return None\n    # Strip leading\
+          \ numbering like \"1. \"\n    if '. ' in line:\n        _, _, line = line.partition('.\
+          \ ')\n    parts = [p.strip() for p in line.split('|')]\n    if len(parts)\
+          \ not in (4, 5):\n        return None\n    obj_dict = {\n        'title':\
+          \ parts[0],\n        'authors': parts[1],\n        'year': parts[2],\n \
+          \       'journal': parts[3],\n    }\n    if len(parts) == 5:\n        obj_dict['doc_id']\
+          \ = parts[4]\n    return _normalize_obj(obj_dict)\n\n\ndef _parse_from_iteration_output(iteration_output):\n\
+          \    parsed = []\n    if not isinstance(iteration_output, list):\n     \
+          \   return parsed\n\n    for block in iteration_output:\n        # block\
+          \ can be a string OR a list of strings (when iterator outputs array[string])\n\
+          \        lines = []\n        if isinstance(block, str):\n            lines\
+          \ = block.splitlines()\n        elif isinstance(block, list):\n        \
+          \    for item in block:\n                if isinstance(item, str):\n   \
+          \                 lines.extend(item.splitlines())\n\n        for line in\
+          \ lines:\n            obj = _parse_pipe_line(line)\n            if obj is\
+          \ not None:\n                parsed.append(obj)\n\n    return parsed\n\n\
+          \ndef _dedupe(items):\n    unique = {}\n    for item in items:\n       \
+          \ obj = _normalize_obj(item)\n        if obj is None:\n            continue\n\
+          \        key = (\n            obj['title'].lower(),\n            obj['authors'].lower(),\n\
+          \            obj['year'],\n            obj['journal'].lower(),\n       \
+          \ )\n        if key not in unique:\n            unique[key] = obj\n    return\
+          \ list(unique.values())\n\n\ndef main(iteration_output=None, memory=None):\n\
+          \    parsed_docs = _dedupe(_parse_from_iteration_output(iteration_output))\n\
+          \    if parsed_docs:\n        return {'memory': parsed_docs}\n\n    existing\
+          \ = memory if isinstance(memory, list) else []\n    return {'memory': _dedupe(existing)}\n"
+        code_language: python3
+        isInIteration: false
+        isInLoop: false
+        outputs:
+          memory:
+            children: null
+            type: array[object]
+        selected: false
+        title: Update Paper Memory
+        type: code
+        variables:
+        - value_selector:
+          - '1778676584534'
+          - output
+          value_type: array[string]
+          variable: iteration_output
+        - value_selector:
+          - conversation
+          - memory
+          value_type: array[object]
+          variable: memory
+      height: 51
+      id: '1778800001029'
+      position:
+        x: 186.77736706624069
+        y: 3580
+      positionAbsolute:
+        x: 186.77736706624069
+        y: 3580
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 241
+    - data:
+        desc: ''
+        isInIteration: false
+        isInLoop: false
+        items:
+        - input_type: variable
+          operation: over-write
+          value:
+          - '1778800001029'
+          - memory
+          variable_selector:
+          - conversation
+          - memory
+          write_mode: over-write
+        selected: false
+        title: Persist Paper Memory
+        type: assigner
+        version: '2'
+      height: 83
+      id: '1778800001030'
+      position:
+        x: 515.060137315422
+        y: 3580
+      positionAbsolute:
+        x: 515.060137315422
+        y: 3580
       selected: false
       sourcePosition: right
       targetPosition: left
@@ -1583,75 +1672,6 @@ workflow:
       width: 241
       zIndex: 1002
     - data:
-        code: "def main(metadata_result=None, iteration_output=None):\n    if isinstance(metadata_result,\
-          \ list) and metadata_result:\n        return {'routed_output': metadata_result}\n\
-          \    if isinstance(iteration_output, list) and iteration_output:\n     \
-          \   return {'routed_output': iteration_output}\n    return {'routed_output':\
-          \ []}\n"
-        code_language: python3
-        isInIteration: false
-        isInLoop: false
-        outputs:
-          routed_output:
-            children: null
-            type: array[string]
-        selected: true
-        title: Converge Paths
-        type: code
-        variables:
-        - value_selector:
-          - '17786780698570'
-          - result
-          value_type: array[string]
-          variable: metadata_result
-        - value_selector:
-          - '1778676584534'
-          - output
-          value_type: array[string]
-          variable: iteration_output
-      height: 51
-      id: '1778800001026'
-      position:
-        x: -171.00527687665453
-        y: 3430.8432635628624
-      positionAbsolute:
-        x: -171.00527687665453
-        y: 3430.8432635628624
-      selected: true
-      sourcePosition: right
-      targetPosition: left
-      type: custom
-      width: 241
-    - data:
-        cases:
-        - case_id: 'true'
-          conditions:
-          - comparison_operator: is
-            id: b8c11a3f-50e4-42f3-972d-648711c97d07
-            value: '1'
-            varType: string
-            variable_selector:
-            - '17786780005730'
-            - class_id
-          id: 'true'
-          logical_operator: and
-        selected: false
-        title: Route LLM
-        type: if-else
-      height: 139
-      id: '1778800001028'
-      position:
-        x: 844.897745908094
-        y: 3580
-      positionAbsolute:
-        x: 844.897745908094
-        y: 3580
-      selected: false
-      sourcePosition: right
-      targetPosition: left
-      type: custom
-      width: 241
-    - data:
         context:
           enabled: false
           variable_selector: []
@@ -1679,7 +1699,7 @@ workflow:
           role: system
           text: "You are an academic literature assistant.\n\nThe context below contains\
             \ a numbered list of paper metadata (title | authors | year | journal).\n\
-            \nContext:\n{{#1778800001026.routed_output#}}\n\nRequested paper identities\
+            \nContext:\n{{#17786780698570.result_text#}}\n\nRequested paper identities\
             \ (authoritative order):\n{{#1778800001001.paper_list#}}\n\nResponse policy:\n\
             - State the total count, then a clean numbered list: title, year, journal.\n\
             - Answer in the same language as the user.\n\

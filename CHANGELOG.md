@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.3] - 2026-06-24
+
+### Changed
+
+- **Pfade gesplittet – Converge Paths & Route LLM entfernt**: Die beiden Intent-Pfade (Metadata / Content) laufen jetzt getrennt bis zum jeweiligen LLM durch. `Converge Paths`, die beiden Assigner-Nodes und `Route LLM` entfallen. Jeder Pfad hat eigene `Update Paper Memory` und `Persist Paper Memory` Nodes. Die Routing-Entscheidung ist damit implizit in der Graph-Topologie – kein redundanter `class_id`-Check mehr nötig.
+- **Graph vereinfacht**: 4 Nodes entfernt (Converge Paths, 2× Assigner, Route LLM), 2 Nodes dupliziert (Update + Persist Paper Memory) → Netto −2 Nodes, linearere Pfade.
+
 ## [0.2.2] - 2026-06-23
 
 ### Changed
