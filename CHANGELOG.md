@@ -5,6 +5,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.4] - 2026-06-24
+
+### Changed
+
+- **Query Rewriter vereinfacht**: `{{#conversation.memory#}}` aus Prompt entfernt. Der Query Rewriter macht jetzt nur noch Pronomen-Auflösung ("them" → "the papers from the previous turn") ohne Paper-Identitäten zu resolven.
+- **JSON Metadata Extractor fokussiert**: `{{#conversation.memory#}}` und Conversation-Window aus Prompt/Memory entfernt. Extrahiert nur noch explizite Constraints aus dem Query-Text. Prior-Turn-Referenzen werden nicht mehr im LLM aufgelöst.
+- **Resolve Paper List → Paper List Resolver**: Neuer Code-Node mit klarer Priorisierung: 1) conversation.memory bei Follow-up-Intent → 2) extracted constraints → 3) Regex-Fallback → 4) empty (→ Knowledge Retrieval). Ist der einzige Ort, der `conversation.memory` auswertet.
+- **Klare Trennung der Verantwortlichkeiten**: LLMs transformieren Text, Code-Nodes werten Memory aus – keine konkurrierenden Auflösungen mehr.
+
+### Removed
+
+- **Follow-up Memory Subset** (Code-Node `1778800001012`): Logik in Paper List Resolver integriert.
+
 ## [0.2.3] - 2026-06-24
 
 ### Changed
