@@ -76,67 +76,12 @@ workflow:
     edges:
     - data:
         isInLoop: false
-        sourceType: start
-        targetType: llm
-      id: 1711528914102-source-1778508354995-target
-      source: '1711528914102'
-      sourceHandle: source
-      target: '1778508354995'
-      targetHandle: target
-      type: custom
-      zIndex: 0
-    - data:
-        isInLoop: false
         sourceType: llm
         targetType: code
       id: 17785945559750-source-1778800001013-target
       source: '17785945559750'
       sourceHandle: source
       target: '1778800001013'
-      targetHandle: target
-      type: custom
-      zIndex: 0
-    - data:
-        isInLoop: false
-        sourceType: llm
-        targetType: llm
-      id: 1778508354995-source-1778676150362-target
-      source: '1778508354995'
-      sourceHandle: source
-      target: '1778676150362'
-      targetHandle: target
-      type: custom
-      zIndex: 0
-    - data:
-        isInLoop: false
-        sourceType: llm
-        targetType: code
-      id: 1778676150362-source-1778800001010-target
-      source: '1778676150362'
-      sourceHandle: source
-      target: '1778800001010'
-      targetHandle: target
-      type: custom
-      zIndex: 0
-    - data:
-        isInLoop: false
-        sourceType: code
-        targetType: if-else
-      id: 1778800001001-source-1778677927006-target
-      source: '1778800001001'
-      sourceHandle: source
-      target: '1778677927006'
-      targetHandle: target
-      type: custom
-      zIndex: 0
-    - data:
-        isInLoop: false
-        sourceType: if-else
-        targetType: knowledge-retrieval
-      id: 1778677927006-true-17785930638200-target
-      source: '1778677927006'
-      sourceHandle: 'true'
-      target: '17785930638200'
       targetHandle: target
       type: custom
       zIndex: 0
@@ -153,39 +98,6 @@ workflow:
       targetHandle: target
       type: custom
       zIndex: 1002
-    - data:
-        isInLoop: false
-        sourceType: question-classifier
-        targetType: code
-      id: 17786780005730-1-17786780698570-target
-      source: '17786780005730'
-      sourceHandle: '1'
-      target: '17786780698570'
-      targetHandle: target
-      type: custom
-      zIndex: 0
-    - data:
-        isInLoop: false
-        sourceType: question-classifier
-        targetType: iteration
-      id: 17786780005730-2-1778676584534-target
-      source: '17786780005730'
-      sourceHandle: '2'
-      target: '1778676584534'
-      targetHandle: target
-      type: custom
-      zIndex: 0
-    - data:
-        isInLoop: false
-        sourceType: if-else
-        targetType: question-classifier
-      id: 1778677927006-false-17786780005730-target
-      source: '1778677927006'
-      sourceHandle: 'false'
-      target: '17786780005730'
-      targetHandle: target
-      type: custom
-      zIndex: 0
     - data:
         isInLoop: false
         sourceType: knowledge-retrieval
@@ -299,12 +211,67 @@ workflow:
       zIndex: 0
     - data:
         isInLoop: false
-        sourceType: code
-        targetType: code
-      id: 1778800001010-source-1778800001001-target
-      source: '1778800001010'
+        sourceType: start
+        targetType: llm
+      id: 1711528914102-source-1778800001031-target
+      source: '1711528914102'
       sourceHandle: source
-      target: '1778800001001'
+      target: '1778800001031'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInLoop: false
+        sourceType: if-else
+        targetType: code
+      id: 1778800001032-metadata_list-17786780698570-target
+      source: '1778800001032'
+      sourceHandle: metadata_list
+      target: '17786780698570'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInLoop: false
+        sourceType: if-else
+        targetType: iteration
+      id: 1778800001032-content_summary-1778676584534-target
+      source: '1778800001032'
+      sourceHandle: content_summary
+      target: '1778676584534'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInLoop: false
+        sourceType: if-else
+        targetType: knowledge-retrieval
+      id: 1778800001032-else-17785930638200-target
+      source: '1778800001032'
+      sourceHandle: else
+      target: '17785930638200'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInLoop: false
+        sourceType: llm
+        targetType: code
+      id: 1778800001031-source-1778800001033-target
+      source: '1778800001031'
+      sourceHandle: source
+      target: '1778800001033'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInLoop: false
+        sourceType: code
+        targetType: if-else
+      id: 1778800001033-source-1778800001032-target
+      source: '1778800001033'
+      sourceHandle: source
+      target: '1778800001032'
       targetHandle: target
       type: custom
       zIndex: 0
@@ -329,68 +296,8 @@ workflow:
       type: custom
       width: 242
     - data:
-        context:
-          enabled: true
-          variable_selector:
-          - sys
-          - query
-        memory:
-          query_prompt_template: '{{#sys.query#}}
-
-
-            {{#sys.files#}}'
-          role_prefix:
-            assistant: ''
-            user: ''
-          window:
-            enabled: true
-            size: 12
-        model:
-          completion_params:
-            temperature: 0
-          mode: chat
-          name: gpt-oss
-          provider: langgenius/ollama/ollama
-        prompt_template:
-        - id: 42201b27-2ae0-414a-aa1b-c859a8060145
-          role: system
-          text: 'You are a specialized query rewriting assistant. You receive a new user query and have access to the recent conversation history.
-
-
-            Your only task is to rewrite the new user query so that it is completely understandable in isolation, without needing the conversation history.
-
-
-            If the user refers to previous turns using pronouns or underspecified references (e.g., ''these papers'', ''them'', ''this author'', ''those findings'', ''diese Paper'', ''die ersten zwei''),
-            replace them with descriptive placeholders like "the papers from the previous turn" or "the author mentioned earlier". Do NOT try to resolve them to specific paper titles or author names – a
-            downstream resolver will handle that.
-
-
-            Keep the original user intent, language, and any explicit constraints unchanged. Only make underspecified references understandable in isolation.
-
-
-            Do not answer the question! Output ONLY the rewritten, standalone query. Do not add any introductory text, quotes, or conversational filler.'
-        reasoning_format: separated
-        selected: false
-        title: Query Rewriter
-        type: llm
-        vision:
-          enabled: false
-      height: 87
-      id: '1778508354995'
-      position:
-        x: -1445.680202203922
-        y: 3238.728791906892
-      positionAbsolute:
-        x: -1445.680202203922
-        y: 3238.728791906892
-      selected: false
-      sourcePosition: right
-      targetPosition: left
-      type: custom
-      width: 241
-    - data:
         dataset_ids:
-        - sqVK0V0ePqiS6KdcMPI11GjqzdL7pU/FXV+4rtN1emfmB2MQbt3N+O2FpClGOzXSD6liW9V+Jt7IfDszXxgXkVH57SFt2tbLU0ifwSdkfrI=
+        - OtlgwH1iyTshg1aqm8FAuPTvXlzf92hCUD9Bw+CL9CKpSTGajKPQpQSAnmKbjqMXNQ6nXmrw56hfNBR3clxLzVkZjMwJXdbzkXd++UqhuYkJG00/rD91E0P2Ho6hiYcBFiecFI2VwAWyURTpWYmCkQ==
         isInIteration: false
         isInLoop: false
         metadata_filtering_conditions:
@@ -418,8 +325,8 @@ workflow:
             weight_type: customized
         query_attachment_selector: []
         query_variable_selector:
-        - '1778508354995'
-        - text
+        - '1778800001033'
+        - rewritten_query
         retrieval_mode: multiple
         selected: false
         title: Knowledge Retrieval
@@ -454,7 +361,7 @@ workflow:
         model:
           completion_params:
             max_tokens: 4000
-            num_ctx: 24576
+            num_ctx: 65536
             temperature: 0
           mode: chat
           name: gpt-oss
@@ -464,7 +371,7 @@ workflow:
           reasoning_format: separated
           role: system
           text: "You are an academic literature assistant.\n\nThe context below contains raw text excerpts of one or more papers, each tagged with a header  === <title> (<year>, <journal>) — <authors> ===.\n\
-            \nContext:\n{{#1778676584534.output#}}\n\nRequested paper identities (authoritative order):\n{{#1778800001001.paper_list#}}\n\nResponse policy:\n- **Global synthesis** first: 3–5 sentences comparing\
+            \nContext:\n{{#1778676584534.output#}}\n\nRequested paper identities (authoritative order):\n{{#1778800001033.paper_list#}}\n\nResponse policy:\n- **Global synthesis** first: 3–5 sentences comparing\
             \ and contrasting themes across all papers.\n- Then, for each paper in numbered order:\n  - Header: **N. <full title>**\n  - Exactly 3 bullet points (method / key finding / implication), each\
             \ at most 2 short sentences.\n  - If a paper's text is missing or says \"Insufficient textual context\", still emit the header and write: *Insufficient textual context — only metadata available.*\n\
             \  - STRICT GROUNDING GUARD: Do NOT fabricate methods or findings absent from the provided text.\n\nGeneral rules:\n- Answer in the same language as the user.\n- Output final answer text only.\
@@ -477,11 +384,11 @@ workflow:
       height: 87
       id: '17785945324000'
       position:
-        x: 844.897745908094
-        y: 3430.8432635628624
+        x: 569.9684418741134
+        y: 3449.300716014718
       positionAbsolute:
-        x: 844.897745908094
-        y: 3430.8432635628624
+        x: 569.9684418741134
+        y: 3449.300716014718
       selected: false
       sourcePosition: right
       targetPosition: left
@@ -547,10 +454,10 @@ workflow:
       height: 131
       id: '17785945559750'
       position:
-        x: -166.52858610343264
+        x: -313.38523297872666
         y: 3109.0521088989008
       positionAbsolute:
-        x: -166.52858610343264
+        x: -313.38523297872666
         y: 3109.0521088989008
       selected: false
       sourcePosition: right
@@ -569,12 +476,12 @@ workflow:
       height: 145
       id: '17785946070360'
       position:
-        x: 1253.2700040448444
-        y: 3123.94540903259
+        x: 947.6032622927792
+        y: 3109.0521088989008
       positionAbsolute:
-        x: 1253.2700040448444
-        y: 3123.94540903259
-      selected: false
+        x: 947.6032622927792
+        y: 3109.0521088989008
+      selected: true
       sourcePosition: right
       targetPosition: left
       type: custom
@@ -613,118 +520,11 @@ workflow:
       height: 51
       id: '1778800001013'
       position:
-        x: 922.8722476198238
-        y: 3123.94540903259
+        x: 625.7436830116708
+        y: 3109.0521088989008
       positionAbsolute:
-        x: 922.8722476198238
-        y: 3123.94540903259
-      selected: false
-      sourcePosition: right
-      targetPosition: left
-      type: custom
-      width: 241
-    - data:
-        context:
-          enabled: false
-          variable_selector: []
-        memory:
-          query_prompt_template: '{{#1778508354995.text#}}
-
-            {{#sys.query#}}'
-          role_prefix:
-            assistant: ''
-            user: ''
-          window:
-            enabled: false
-            size: 0
-        model:
-          completion_params:
-            max_tokens: 2048
-            temperature: 0
-          mode: chat
-          name: gpt-oss
-          provider: langgenius/ollama/ollama
-        prompt_template:
-        - id: a9fe8803-7835-42ac-95b4-b46cd7ac5917
-          role: system
-          text: 'Extract explicit metadata constraints from the rewritten query for downstream retrieval.
-
-
-            Return valid JSON only via structured output.
-
-
-            Rules:
-
-
-            - Output one object per explicit paper constraint found in the query.
-
-
-            - Never invent paper titles, years, journals, or authors.
-
-
-            - If the query asks for papers by author only (for example: "What papers did X author?"), output exactly one item with only authors set and keep title/year/journal empty.
-
-
-            - Allowed fields per item: title, authors, year, journal.
-
-
-            - Keep only explicit constraints from the rewritten query.
-
-
-            - If the query refers to prior turns (e.g., "summarize them", "the papers from the previous turn") without explicit paper identities, return an empty paper_list. A downstream resolver handles
-            prior-turn references.
-
-
-            - If no explicit metadata constraints are present, return an empty list.
-
-
-            - Do not add explanations.
-
-
-            - Never output <think> tags or reasoning text.'
-        selected: false
-        structured_output:
-          schema:
-            additionalProperties: false
-            properties:
-              paper_list:
-                description: List of papers extracted from a user query.
-                items:
-                  additionalProperties: false
-                  properties:
-                    author:
-                      description: Backward-compatible alias field.
-                      type: string
-                    authors:
-                      description: Comma-separated author names or one author name.
-                      type: string
-                    journal:
-                      description: Journal name if explicitly constrained.
-                      type: string
-                    title:
-                      description: Paper title if available.
-                      type: string
-                    year:
-                      description: Publication year as string.
-                      type: string
-                  type: object
-                type: array
-            required:
-            - paper_list
-            type: object
-        structured_output_enabled: false
-        title: JSON Metadata Extractor
-        type: llm
-        vision:
-          enabled: false
-      height: 87
-      id: '1778676150362'
-      position:
-        x: -1452.6825467404378
-        y: 3395.038471803343
-      positionAbsolute:
-        x: -1452.6825467404378
-        y: 3395.038471803343
+        x: 625.7436830116708
+        y: 3109.0521088989008
       selected: false
       sourcePosition: right
       targetPosition: left
@@ -737,7 +537,7 @@ workflow:
         is_parallel: false
         iterator_input_type: array[object]
         iterator_selector:
-        - '1778800001001'
+        - '1778800001033'
         - paper_list
         output_selector:
         - '1778800001025'
@@ -785,80 +585,6 @@ workflow:
       type: custom-iteration-start
       width: 44
       zIndex: 1002
-    - data:
-        cases:
-        - case_id: 'true'
-          conditions:
-          - comparison_operator: empty
-            id: 6b990a2f-40d3-43f2-871c-538601b97c06
-            value: '[]'
-            varType: array[object]
-            variable_selector:
-            - '1778800001001'
-            - paper_list
-          id: 'true'
-          logical_operator: and
-        selected: false
-        title: IF/ELSE
-        type: if-else
-      height: 139
-      id: '1778677927006'
-      position:
-        x: -1139.701522685006
-        y: 3079.906907211537
-      positionAbsolute:
-        x: -1139.701522685006
-        y: 3079.906907211537
-      selected: false
-      sourcePosition: right
-      targetPosition: left
-      type: custom
-      width: 241
-    - data:
-        classes:
-        - id: '1'
-          name: IS_COUNT_OR_LIST (Zählen, Auflisten)
-        - id: '2'
-          name: IS_CONTENT (Zusammenfassen, Erklären)
-        instruction: ''
-        instructions: ''
-        isInIteration: false
-        isInLoop: false
-        memory:
-          query_prompt_template: '{{#sys.query#}}
-
-
-            {{#sys.files#}}'
-          window:
-            enabled: true
-            size: 50
-        model:
-          completion_params:
-            temperature: 0.7
-          mode: chat
-          name: gpt-oss
-          provider: langgenius/ollama/ollama
-        query_variable_selector:
-        - '1778508354995'
-        - text
-        selected: false
-        title: Route by Intent
-        type: question-classifier
-        vision:
-          enabled: false
-      height: 177
-      id: '17786780005730'
-      position:
-        x: -1139.701522685006
-        y: 3321.576345596582
-      positionAbsolute:
-        x: -1139.701522685006
-        y: 3321.576345596582
-      selected: false
-      sourcePosition: right
-      targetPosition: left
-      type: custom
-      width: 241
     - data:
         code: "import json\nimport os\nimport re\nfrom urllib.error import HTTPError, URLError\nfrom urllib.parse import urlencode\nfrom urllib.request import Request, urlopen\n\nCODE_VERSION = \"metadata_query_v2026-05-11_dify-metadata_1\"\
           \n\n_EMPTY_TOKENS = {\n    \"\",\n    \"null\",\n    \"none\",\n    \"unknown\",\n    \"n/a\",\n    \"na\",\n    \"[]\",\n    \"{}\",\n    \"-\",\n}\n\n\ndef _is_set(value) -> bool:\n    if value\
@@ -928,7 +654,7 @@ workflow:
         type: code
         variables:
         - value_selector:
-          - '1778800001001'
+          - '1778800001033'
           - paper_list
           value_type: array[object]
           variable: paper_list
@@ -940,119 +666,6 @@ workflow:
       positionAbsolute:
         x: -765.3058361196249
         y: 3311.1615923545087
-      selected: false
-      sourcePosition: right
-      targetPosition: left
-      type: custom
-      width: 241
-    - data:
-        code: "import json\nimport re\n\n\ndef _to_text(value):\n    if value is None:\n        return \"\"\n    if isinstance(value, list):\n        return \", \".join(str(v).strip() for v in value if\
-          \ str(v).strip())[:300]\n    if isinstance(value, dict):\n        for key in (\"value\", \"name\", \"author\", \"authors\", \"text\"):\n            if key in value:\n                return _to_text(value.get(key))\n\
-          \        return \", \".join(str(v).strip() for v in value.values() if str(v).strip())[:300]\n    return str(value).strip()[:300]\n\n\ndef _clean_obj(item):\n    if not isinstance(item, dict):\n\
-          \        return None\n    year_value = _to_text(item.get(\"year\"))\n    return {\n        \"title\": _to_text(item.get(\"title\")),\n        \"authors\": _to_text(item.get(\"authors\") or item.get(\"\
-          author\")),\n        \"year\": year_value if re.fullmatch(r\"^(19|20)[0-9]{2}$\", year_value) else \"\",\n        \"journal\": _to_text(item.get(\"journal\")),\n    }\n\n\ndef _parse_json(extractor_text):\n\
-          \    if isinstance(extractor_text, (dict, list)):\n        return extractor_text\n    if not isinstance(extractor_text, str):\n        return {}\n    text = extractor_text.strip()\n    if not\
-          \ text:\n        return {}\n    text = re.sub(r\"<think>.*?</think>\", \"\", text, flags=re.DOTALL).strip()\n    if text.startswith(\"```\"):\n        text = re.sub(r\"^```(?:json)?\\s*\", \"\"\
-          , text)\n        text = re.sub(r\"\\s*```$\", \"\", text).strip()\n    try:\n        parsed = json.loads(text)\n    except Exception:\n        return {}\n    return parsed if isinstance(parsed,\
-          \ (dict, list)) else {}\n\n\ndef _clean_list(items):\n    cleaned = []\n    if not isinstance(items, list):\n        return cleaned\n    for item in items:\n        obj = _clean_obj(item)\n  \
-          \      if obj is not None and any(obj.values()):\n            cleaned.append(obj)\n    return cleaned\n\n\ndef main(extractor_text=None, extractor_structured_output=None):\n    data = extractor_structured_output\
-          \ if isinstance(extractor_structured_output, (dict, list)) else _parse_json(extractor_text)\n\n    if isinstance(data, list):\n        raw_items = data\n    elif isinstance(data.get(\"paper_list\"\
-          ), list):\n        raw_items = data.get(\"paper_list\")\n    elif any(k in data for k in (\"title\", \"authors\", \"author\", \"year\", \"journal\")):\n        raw_items = [data]\n    elif isinstance(data.get(\"\
-          authors\"), list):\n        raw_items = [{\"authors\": a} for a in data.get(\"authors\") if str(a).strip()]\n    else:\n        raw_items = []\n\n    return {\"extracted_paper_list\": _clean_list(raw_items)}\n"
-        code_language: python3
-        isInIteration: false
-        isInLoop: false
-        outputs:
-          extracted_paper_list:
-            children: null
-            type: array[object]
-        selected: false
-        title: Parse Extractor Paper List
-        type: code
-        variables:
-        - value_selector:
-          - '1778676150362'
-          - text
-          value_type: string
-          variable: extractor_text
-      height: 51
-      id: '1778800001010'
-      position:
-        x: -1468.2450258990343
-        y: 3544.4229459283233
-      positionAbsolute:
-        x: -1468.2450258990343
-        y: 3544.4229459283233
-      selected: false
-      sourcePosition: right
-      targetPosition: left
-      type: custom
-      width: 241
-    - data:
-        code: "import re\n\n\ndef _to_text(value):\n    if value is None:\n        return \"\"\n    if isinstance(value, list):\n        return \", \".join(str(v).strip() for v in value if str(v).strip())[:300]\n\
-          \    if isinstance(value, dict):\n        for key in (\"value\", \"name\", \"author\", \"authors\", \"text\"):\n            if key in value:\n                return _to_text(value.get(key))\n\
-          \        return \", \".join(str(v).strip() for v in value.values() if str(v).strip())[:300]\n    return str(value).strip()[:300]\n\n\ndef _clean_obj(item):\n    if not isinstance(item, dict):\n\
-          \        return None\n    year_value = _to_text(item.get(\"year\"))\n    return {\n        \"title\": _to_text(item.get(\"title\")),\n        \"authors\": _to_text(item.get(\"authors\") or item.get(\"\
-          author\")),\n        \"year\": year_value if re.fullmatch(r\"^(19|20)[0-9]{2}$\", year_value) else \"\",\n        \"journal\": _to_text(item.get(\"journal\")),\n        \"doc_id\": str(item.get(\"\
-          doc_id\") or \"\").strip(),\n    }\n\n\ndef _clean_list(items):\n    cleaned = []\n    if not isinstance(items, list):\n        return cleaned\n    for item in items:\n        obj = _clean_obj(item)\n\
-          \        if obj is not None and any(obj.values()):\n            cleaned.append(obj)\n    return cleaned\n\n\ndef _extract_year(item):\n    if not isinstance(item, dict):\n        return -1\n \
-          \   y = str(item.get('year', '')).strip()\n    m = re.search(r'\\d{4}', y)\n    return int(m.group()) if m else -1\n\n\ndef _extract_limit(text):\n    m = re.search(r'\\b(first|top|erste[nmrs]?)\\\
-          s+(\\d+)', str(text).lower())\n    return int(m.group(2)) if m else None\n\n\ndef _is_followup_intent(text):\n    t = str(text or '').strip().lower()\n    patterns = [\n        r'\\b(summar|zusammenfass|fass.*zusammen)\\\
-          b',\n        r'\\b(compar|vergleich|diff(erence)?)\\b',\n        r'\\bthe(se)?\\s+papers?\\b', r'\\bdiese[snrm]?\\s+paper',\n        r'\\b(first|top|erste[nmrs]?|newest|latest|oldest|neueste|aelteste|älteste)\\\
-          b',\n        r'\\b(them|davon|daraus|diese)\\b',\n        r'\\b(previous|prior|vorherig|letzte[snrm]?)\\s+(turn|query|frage|anfrage)',\n    ]\n    return any(re.search(p, t) for p in patterns)\n\
-          \n\ndef _filter_memory_subset(memory, query):\n    items = _clean_list(memory)\n    if not items:\n        return []\n\n    text = str(query or '').strip().lower()\n\n    # newest / oldest\n \
-          \   if re.search(r'\\b(newest|latest|most recent|neueste[snrm]?)\\b', text):\n        sorted_items = sorted(items, key=_extract_year, reverse=True)\n        if _extract_year(sorted_items[0]) !=\
-          \ -1:\n            return sorted_items[:1]\n\n    if re.search(r'\\b(oldest|earliest|aelteste[snrm]?|älteste[snrm]?)\\b', text):\n        sorted_items = sorted(items, key=_extract_year, reverse=False)\n\
-          \        if _extract_year(sorted_items[0]) != -1:\n            return sorted_items[:1]\n\n    # numeric limit: first N / top N\n    limit = _extract_limit(text)\n    if isinstance(limit, int):\n\
-          \        return items[:limit]\n\n    return items\n\n\ndef main(extracted_paper_list=None, conversation_memory=None, rewritten_query=None, query=None):\n    memory = conversation_memory if isinstance(conversation_memory,\
-          \ list) else []\n    rw = str(rewritten_query or '').strip()\n    q = str(query or '').strip()\n\n    # 1. If conversation memory has papers AND follow-up intent → use memory (with subset filtering)\n\
-          \    if memory and _is_followup_intent(q):\n        subset = _filter_memory_subset(memory, q)\n        if subset:\n            return {'paper_list': subset, 'paper_count': len(subset)}\n\n   \
-          \ # 2. If JSON Metadata Extractor found explicit constraints → use those\n    extracted = _clean_list(extracted_paper_list)\n    if extracted:\n        return {'paper_list': extracted, 'paper_count':\
-          \ len(extracted)}\n\n    # 3. Fallback: regex extraction for \"papers by X\" patterns\n    m = re.search(r'\\b(?:by|von)\\s+([A-Z][A-Za-z.-]+(?:\\s+[A-Z][A-Za-z.-]+){1,4})', rw or q)\n    if m:\n\
-          \        return {\n            'paper_list': [{\n                'title': '',\n                'authors': m.group(1).strip(' ,.;:'),\n                'year': '',\n                'journal': '',\n\
-          \            }],\n            'paper_count': 1\n        }\n\n    # 4. Empty → routes to Knowledge Retrieval\n    return {'paper_list': [], 'paper_count': 0}\n"
-        code_language: python3
-        isInIteration: false
-        isInLoop: false
-        outputs:
-          paper_count:
-            children: null
-            type: number
-          paper_list:
-            children: null
-            type: array[object]
-        selected: false
-        title: Paper List Resolver
-        type: code
-        variables:
-        - value_selector:
-          - '1778800001010'
-          - extracted_paper_list
-          value_type: array[object]
-          variable: extracted_paper_list
-        - value_selector:
-          - conversation
-          - memory
-          value_type: array[object]
-          variable: conversation_memory
-        - value_selector:
-          - '1778508354995'
-          - text
-          value_type: string
-          variable: rewritten_query
-        - value_selector:
-          - sys
-          - query
-          value_type: string
-          variable: query
-      height: 51
-      id: '1778800001001'
-      position:
-        x: -1468.2450258990343
-        y: 3766.249791699162
-      positionAbsolute:
-        x: -1468.2450258990343
-        y: 3766.249791699162
       selected: false
       sourcePosition: right
       targetPosition: left
@@ -1097,11 +710,11 @@ workflow:
       height: 51
       id: '1778800001002'
       position:
-        x: 186.77736706624069
-        y: 3430.8432635628624
+        x: -392.11104329102284
+        y: 3311.1615923545087
       positionAbsolute:
-        x: 186.77736706624069
-        y: 3430.8432635628624
+        x: -392.11104329102284
+        y: 3311.1615923545087
       selected: false
       sourcePosition: right
       targetPosition: left
@@ -1128,11 +741,11 @@ workflow:
       height: 83
       id: '1778800001003'
       position:
-        x: 515.060137315422
-        y: 3430.8432635628624
+        x: -65.53590847062395
+        y: 3311.1615923545087
       positionAbsolute:
-        x: 515.060137315422
-        y: 3430.8432635628624
+        x: -65.53590847062395
+        y: 3311.1615923545087
       selected: false
       sourcePosition: right
       targetPosition: left
@@ -1142,17 +755,10 @@ workflow:
         code: "def _normalize_obj(item):\n    if not isinstance(item, dict):\n        return None\n    title = str(item.get('title') or '').strip()\n    authors = str(item.get('authors') or item.get('author')\
           \ or '').strip()\n    year = str(item.get('year') or '').strip()\n    journal = str(item.get('journal') or '').strip()\n    doc_id = str(item.get('doc_id') or '').strip()\n    if not any([title,\
           \ authors, year, journal]):\n        return None\n    return {\n        'title': title,\n        'authors': authors,\n        'year': year,\n        'journal': journal,\n        'doc_id': doc_id,\n\
-          \    }\n\n\ndef _parse_pipe_line(line):\n    line = line.strip()\n    if not line or '|' not in line:\n        return None\n    # Strip leading numbering like \"1. \"\n    if '. ' in line:\n \
-          \       _, _, line = line.partition('. ')\n    parts = [p.strip() for p in line.split('|')]\n    if len(parts) not in (4, 5):\n        return None\n    obj_dict = {\n        'title': parts[0],\n\
-          \        'authors': parts[1],\n        'year': parts[2],\n        'journal': parts[3],\n    }\n    if len(parts) == 5:\n        obj_dict['doc_id'] = parts[4]\n    return _normalize_obj(obj_dict)\n\
-          \n\ndef _parse_from_iteration_output(iteration_output):\n    parsed = []\n    if not isinstance(iteration_output, list):\n        return parsed\n\n    for block in iteration_output:\n        #\
-          \ block can be a string OR a list of strings (when iterator outputs array[string])\n        lines = []\n        if isinstance(block, str):\n            lines = block.splitlines()\n        elif\
-          \ isinstance(block, list):\n            for item in block:\n                if isinstance(item, str):\n                    lines.extend(item.splitlines())\n\n        for line in lines:\n     \
-          \       obj = _parse_pipe_line(line)\n            if obj is not None:\n                parsed.append(obj)\n\n    return parsed\n\n\ndef _dedupe(items):\n    unique = {}\n    for item in items:\n\
-          \        obj = _normalize_obj(item)\n        if obj is None:\n            continue\n        key = (\n            obj['title'].lower(),\n            obj['authors'].lower(),\n            obj['year'],\n\
-          \            obj['journal'].lower(),\n        )\n        if key not in unique:\n            unique[key] = obj\n    return list(unique.values())\n\n\ndef main(iteration_output=None, memory=None):\n\
-          \    parsed_docs = _dedupe(_parse_from_iteration_output(iteration_output))\n    if parsed_docs:\n        return {'memory': parsed_docs}\n\n    existing = memory if isinstance(memory, list) else\
-          \ []\n    return {'memory': _dedupe(existing)}\n"
+          \    }\n\ndef _dedupe(items):\n    unique = {}\n    for item in items:\n        obj = _normalize_obj(item)\n        if obj is None:\n            continue\n        key = (obj['title'].lower(),\
+          \ obj['authors'].lower(), obj['year'], obj['journal'].lower())\n        if key not in unique:\n            unique[key] = obj\n    return list(unique.values())\n\ndef main(iteration_output=None,\
+          \ memory=None):\n    # For the content path, preserve paper identities from conversation.memory.\n    # The Iterator fetches full paper text but doesn't provide structured metadata.\n    existing\
+          \ = memory if isinstance(memory, list) else []\n    return {'memory': _dedupe(existing)}\n"
         code_language: python3
         isInIteration: false
         isInLoop: false
@@ -1177,11 +783,11 @@ workflow:
       height: 51
       id: '1778800001029'
       position:
-        x: 186.77736706624069
-        y: 3580
+        x: -294.77582385042103
+        y: 3449.300716014718
       positionAbsolute:
-        x: 186.77736706624069
-        y: 3580
+        x: -294.77582385042103
+        y: 3449.300716014718
       selected: false
       sourcePosition: right
       targetPosition: left
@@ -1208,11 +814,11 @@ workflow:
       height: 83
       id: '1778800001030'
       position:
-        x: 515.060137315422
-        y: 3580
+        x: 125.7192595530147
+        y: 3449.300716014718
       positionAbsolute:
-        x: 515.060137315422
-        y: 3580
+        x: 125.7192595530147
+        y: 3449.300716014718
       selected: false
       sourcePosition: right
       targetPosition: left
@@ -1245,7 +851,7 @@ workflow:
           \ '', 'paper_fetch_error': 'no doc_id and no title'}\n        resolved, err = _find_doc_id_by_title(api_base, dataset_id, title, headers)\n        if not resolved:\n            return {'paper_context':\
           \ '', 'paper_fetch_error': err or 'title lookup failed'}\n\n    text, err = _fetch_all_segments(api_base, dataset_id, resolved, headers)\n    if err:\n        return {'paper_context': '', 'paper_fetch_error':\
           \ err}\n\n    title  = _norm(item_title)\n    year   = _norm(item_year)\n    journal = _norm(item_journal)\n    authors = _norm(item_authors)\n    meta_line = f'{title} ({year}, {journal}) — {authors}'\
-          \ if (year or journal or authors) else title\n    header = f'=== {meta_line} ==='\n    n = int(paper_count) if paper_count and int(paper_count) > 0 else 1\n    chars_per_paper = max(4000, 48000\
+          \ if (year or journal or authors) else title\n    header = f'=== {meta_line} ==='\n    n = int(paper_count) if paper_count and int(paper_count) > 0 else 1\n    chars_per_paper = max(3000, 32000\
           \ // n)\n    context = f'{header}\\n\\n{text[:chars_per_paper]}'\n    return {'paper_context': context, 'paper_fetch_error': ''}\n"
         code_language: python3
         isInIteration: true
@@ -1293,7 +899,7 @@ workflow:
           value_type: string
           variable: item_journal
         - value_selector:
-          - '1778800001001'
+          - '1778800001033'
           - paper_count
           value_type: number
           variable: paper_count
@@ -1329,7 +935,7 @@ workflow:
         model:
           completion_params:
             max_tokens: 4000
-            num_ctx: 24576
+            num_ctx: 32768
             temperature: 0
           mode: chat
           name: gpt-oss
@@ -1351,7 +957,7 @@ workflow:
 
             Requested paper identities (authoritative order):
 
-            {{#1778800001001.paper_list#}}
+            {{#1778800001033.paper_list#}}
 
 
             Response policy:
@@ -1371,18 +977,208 @@ workflow:
       height: 87
       id: '1778800001027'
       position:
-        x: 1080
-        y: 3580
+        x: 267.1655358995356
+        y: 3311.1615923545087
       positionAbsolute:
-        x: 1080
-        y: 3580
+        x: 267.1655358995356
+        y: 3311.1615923545087
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 241
+    - data:
+        context:
+          enabled: false
+          variable_selector: []
+        memory:
+          query_prompt_template: '{{#sys.query#}}'
+          role_prefix:
+            assistant: ''
+            user: ''
+          window:
+            enabled: true
+            size: 12
+        model:
+          completion_params:
+            max_tokens: 4096
+            temperature: 0
+          mode: chat
+          name: gpt-oss
+          provider: langgenius/ollama/ollama
+        prompt_template:
+        - id: unified-router-prompt
+          reasoning_format: separated
+          role: system
+          text: "You are the routing brain of an academic literature chatbot. Analyze the user query and decide the single correct intent and search constraints.\n\nAuthoritative resolved paper memory from\
+            \ prior turns:\n{{#conversation.memory#}}\n\nReturn valid JSON only via structured output:\n{\n  \"intent\": \"knowledge_retrieval\" | \"metadata_list\" | \"content_summary\",\n  \"paper_list\"\
+            : [{\"title\": \"\", \"authors\": \"\", \"year\": \"\", \"journal\": \"\"}],\n  \"rewritten_query\": \"standalone version of the user query\"\n}\n\n=== INTENT RULES ===\n\n\"knowledge_retrieval\"\
+            \ — General knowledge question about a topic, method, or concept.\n  paper_list MUST be [].\n\n\"metadata_list\" — User wants to COUNT, LIST, or FILTER papers by metadata (titles, authors, years,\
+            \ journals).\n  paper_list MUST contain the SEARCH CONSTRAINTS extracted from the query.\n\n\"content_summary\" — User wants to SUMMARIZE, COMPARE, or ANALYZE specific papers by their content.\n\
+            \  paper_list MUST contain paper identities to fetch and summarize.\n\n=== WHICH INTENT WHEN? ===\n\n- Just an author name, no instruction → \"metadata_list\" (list their papers)\n- Just a topic,\
+            \ no paper reference → \"knowledge_retrieval\" (explain the topic)\n- Author + \"summarize their findings\" → \"content_summary\"\n- \"How many papers by X?\" → \"metadata_list\"\n- \"What is\
+            \ RNA methylation?\" → \"knowledge_retrieval\"\n- \"Compare the papers by X and Y\" → \"content_summary\"\n\n=== paper_list RULES ===\n\npaper_list serves TWO different purposes depending on\
+            \ whether this is a NEW query or a FOLLOW-UP:\n\nFOR NEW QUERIES (conversation.memory is empty or irrelevant):\n  → paper_list = SEARCH CONSTRAINTS for the database lookup.\n  Examples:\n  -\
+            \ \"papers by Christoph Dieterich\" → [{\"authors\": \"Christoph Dieterich\"}]\n  - \"papers about RNA from 2024\" → [{\"title\": \"RNA\", \"year\": \"2024\"}]\n  - \"papers by Smith or Jones\"\
+            \ → [{\"authors\": \"Smith\"}, {\"authors\": \"Jones\"}]\n  - \"the 2023 Nature paper about CRISPR\" → [{\"title\": \"CRISPR\", \"year\": \"2023\", \"journal\": \"Nature\"}]\n  Put each distinct\
+            \ paper/search constraint as a separate object.\n  Leave fields empty (\"\") if not constrained.\n\nFOR FOLLOW-UP QUERIES (conversation.memory has papers AND query references them):\n  → paper_list\
+            \ = the STRING \"use_memory\" (not an array). The downstream parser will fill in the actual papers from conversation.memory.\n  The query contains pronouns or references to prior turns: \"them\"\
+            , \"those\", \"these\", \"the papers\", \"diese\", \"davon\".\n  Examples:\n  - \"summarize them\" → \"use_memory\" (all papers from memory)\n  - \"summarize the first two\" → \"use_memory\"\
+            \ (parser handles subset)\n  - \"compare those\" → \"use_memory\"\n\nNEVER return an empty paper_list for \"metadata_list\" or \"content_summary\" intents. If you cannot determine the search\
+            \ constraints, use \"knowledge_retrieval\" instead.\n\n=== REWRITTEN QUERY RULES ===\n\n- Resolve pronouns and underspecified references: \"them\" → \"the papers from the previous turn\".\n\
+            - Keep original language and intent.\n- Do NOT embed specific paper titles — use generic references.\n\nOutput ONLY the JSON. No <think> tags, no explanations, no markdown fences."
+        selected: false
+        structured_output:
+          schema:
+            additionalProperties: false
+            properties:
+              intent:
+                description: Routing intent
+                enum:
+                - knowledge_retrieval
+                - metadata_list
+                - content_summary
+                type: string
+              paper_list:
+                description: Paper identities for downstream retrieval
+                items:
+                  additionalProperties: false
+                  properties:
+                    title:
+                      description: Paper title if available
+                      type: string
+                    authors:
+                      description: Author name(s)
+                      type: string
+                    year:
+                      description: Publication year
+                      type: string
+                    journal:
+                      description: Journal name if available
+                      type: string
+                  type: object
+                type: array
+              rewritten_query:
+                description: Standalone rewritten query
+                type: string
+            required:
+            - intent
+            - paper_list
+            - rewritten_query
+            type: object
+        structured_output_enabled: false
+        title: Unified Router
+        type: llm
+        vision:
+          enabled: false
+      height: 87
+      id: '1778800001031'
+      position:
+        x: -1200
+        y: 3150
+      positionAbsolute:
+        x: -1200
+        y: 3150
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 241
+    - data:
+        cases:
+        - case_id: metadata_list
+          conditions:
+          - comparison_operator: is
+            id: intent-is-metadata
+            value: metadata_list
+            varType: string
+            variable_selector:
+            - '1778800001033'
+            - intent
+          id: metadata_list
+          logical_operator: and
+        - case_id: content_summary
+          conditions:
+          - comparison_operator: is
+            id: intent-is-content
+            value: content_summary
+            varType: string
+            variable_selector:
+            - '1778800001033'
+            - intent
+          id: content_summary
+          logical_operator: and
+        selected: false
+        title: Intent Dispatcher
+        type: if-else
+      height: 139
+      id: '1778800001032'
+      position:
+        x: -900
+        y: 3150
+      positionAbsolute:
+        x: -900
+        y: 3150
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 241
+    - data:
+        code: "import json, re\n\ndef _clean_paper(item):\n    if not isinstance(item, dict):\n        return None\n    obj = {\n        'title': str(item.get('title') or '').strip(),\n        'authors':\
+          \ str(item.get('authors') or item.get('author') or '').strip(),\n        'year': str(item.get('year') or '').strip(),\n        'journal': str(item.get('journal') or '').strip(),\n    }\n    doc_id\
+          \ = str(item.get('doc_id') or '').strip()\n    if doc_id:\n        obj['doc_id'] = doc_id\n    return obj if any(obj.values()) else None\n\ndef main(router_text=None, conversation_memory=None):\n\
+          \    text = str(router_text or '').strip()\n    # Strip <think> tags\n    text = re.sub(r'<think>.*?</think>', '', text, flags=re.DOTALL).strip()\n    # Strip markdown fences\n    text = re.sub(r'^```(?:json)?\\\
+          s*', '', text)\n    text = re.sub(r'\\s*```$', '', text).strip()\n    # Find JSON object\n    m = re.search(r'\\{.*\\}', text, re.DOTALL)\n    if not m:\n        return {'intent': 'knowledge_retrieval',\
+          \ 'paper_list': [], 'rewritten_query': ''}\n    try:\n        obj = json.loads(m.group())\n    except Exception:\n        return {'intent': 'knowledge_retrieval', 'paper_list': [], 'rewritten_query':\
+          \ ''}\n\n    intent = str(obj.get('intent', '')).strip()\n    if intent not in ('metadata_list', 'content_summary', 'knowledge_retrieval'):\n        intent = 'knowledge_retrieval'\n\n    paper_list\
+          \ = obj.get('paper_list')\n    \n    # If paper_list is the string \"use_memory\", populate from conversation.memory\n    if paper_list == 'use_memory':\n        mem = conversation_memory if isinstance(conversation_memory,\
+          \ list) else []\n        paper_list = []\n        for item in mem:\n            cleaned = _clean_paper(item)\n            if cleaned:\n                paper_list.append(cleaned)\n    elif not\
+          \ isinstance(paper_list, list):\n        paper_list = []\n    else:\n        # Clean paper_list items from LLM output\n        cleaned_list = []\n        for item in paper_list:\n            if\
+          \ isinstance(item, dict):\n                c = _clean_paper(item)\n                if c:\n                    cleaned_list.append(c)\n        paper_list = cleaned_list\n\n    rw = str(obj.get('rewritten_query')\
+          \ or '').strip()\n    return {'intent': intent, 'paper_list': paper_list, 'rewritten_query': rw}\n"
+        code_language: python3
+        isInIteration: false
+        isInLoop: false
+        outputs:
+          intent:
+            children: null
+            type: string
+          paper_list:
+            children: null
+            type: array[object]
+          rewritten_query:
+            children: null
+            type: string
+        selected: false
+        title: Parse Router Output
+        type: code
+        variables:
+        - value_selector:
+          - '1778800001031'
+          - text
+          value_type: string
+          variable: router_text
+        - value_selector:
+          - conversation
+          - memory
+          value_type: array[object]
+          variable: conversation_memory
+      height: 51
+      id: '1778800001033'
+      position:
+        x: -1050
+        y: 3150
+      positionAbsolute:
+        x: -1050
+        y: 3150
       selected: false
       sourcePosition: right
       targetPosition: left
       type: custom
       width: 241
     viewport:
-      x: 1036.8653374432574
-      y: -2410.5971747357935
-      zoom: 0.7770072687840502
+      x: 1652.940066370896
+      y: -1379.3320225680568
+      zoom: 0.5856050906094055
   rag_pipeline_variables: []
