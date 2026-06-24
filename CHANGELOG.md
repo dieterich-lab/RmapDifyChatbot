@@ -1,5 +1,27 @@
 # Changelog
 
+## [0.3.0] - 2026-06-24
+
+### Added
+
+- **Unified Router**: Ein LLM-Node ersetzt Query Rewriter, JSON Metadata Extractor, Parse Extractor, Paper List Resolver und Route by Intent. Klassifiziert Intent, extrahiert Paper-Constraints und schreibt Query in einem Durchlauf.
+- **Intent Dispatcher**: IF/ELSE-Node routet anhand des `intent`-Felds zwischen Knowledge Retrieval, Metadata Query und Iterator.
+
+### Changed
+
+- **Entry Chain radikal vereinfacht**: 6 Nodes → 2 (Unified Router + Intent Dispatcher). Kein Regex mehr, keine konkurrierenden Memory-Auflösungen.
+- **Parse Router Output**: Code-Node parst das LLM-JSON, behandelt `<think>`-Tags, füllt `paper_list` aus `conversation.memory` für Follow-up-Turns.
+- **Content-Pfad Update Paper Memory**: Nutzt `conversation.memory` direkt statt Pipe-Parsing aus Iterator-Output.
+- **Summary LLM**: `num_ctx` auf 65536 erhöht, Fetch Full Paper Text-Budget reduziert.
+
+### Removed
+
+- Query Rewriter, JSON Metadata Extractor, Parse Extractor Paper List, Paper List Resolver, Route by Intent, alter IF/ELSE (6 Nodes).
+
+### Known Issue
+
+- **Dify Import korrumpiert `dataset_ids`**: Nach YAML-Import muss das Knowledge Retrieval Dataset manuell in der Dify-UI neu zugewiesen werden. Mögliche Ursache: Reverse-Proxy-Konfiguration beschädigt große Payloads.
+
 All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
