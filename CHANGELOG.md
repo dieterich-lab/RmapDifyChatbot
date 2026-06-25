@@ -1,5 +1,22 @@
 # Changelog
 
+## [0.3.1] - 2026-06-25
+
+### Added
+
+- **author_lookup & entity_lookup Intents**: Unified Router erkennt jetzt "Who has experience with X?" und "Which tRNAs/entities...?". Nutzt Knowledge Retrieval zur Inhaltssuche und Extraction LLM zur strukturierten Antwort.
+- **Extraction LLM**: Neuer LLM-Node ersetzt Content LLM. Behandelt General Knowledge, Author Extraction und Entity Extraction in einem Prompt.
+- **restore_kr_dataset.sh**: Script zum Wiederherstellen des Knowledge Retrieval Datasets nach Dify-Import (arbeitet um den Dify-Import-Bug herum).
+
+### Changed
+
+- **Final Answer Sanitizer**: Unterstützt jetzt extraction_text Input vom Extraction LLM.
+- **Content LLM entfernt**: Durch Extraction LLM ersetzt (deckt alle KR-Pfade ab).
+
+### Fixed
+
+- Orphaned Edge auf gelöschten Content LLM entfernt (verursachte MISSING_NODE Fehler).
+
 ## [0.3.0] - 2026-06-24
 
 ### Added

@@ -10,7 +10,7 @@ dependencies:
 - current_identifier: null
   type: marketplace
   value:
-    marketplace_plugin_unique_identifier: langgenius/ollama:0.2.2@ecfb32c9f22ec47693a35644eed02121ef060a1c2f557009639c5da1ce363f53
+    marketplace_plugin_unique_identifier: langgenius/ollama:1.0.0@ae50a2db261bffa7289677f2b0a60e60762ceb187b602113b72425ccbe772dc3
     version: null
 kind: app
 version: 0.6.0
@@ -75,17 +75,6 @@ workflow:
   graph:
     edges:
     - data:
-        isInLoop: false
-        sourceType: llm
-        targetType: code
-      id: 17785945559750-source-1778800001013-target
-      source: '17785945559750'
-      sourceHandle: source
-      target: '1778800001013'
-      targetHandle: target
-      type: custom
-      zIndex: 0
-    - data:
         isInIteration: true
         isInLoop: false
         iteration_id: '1778676584534'
@@ -98,17 +87,6 @@ workflow:
       targetHandle: target
       type: custom
       zIndex: 1002
-    - data:
-        isInLoop: false
-        sourceType: knowledge-retrieval
-        targetType: llm
-      id: 17785930638200-source-17785945559750-target
-      source: '17785930638200'
-      sourceHandle: source
-      target: '17785945559750'
-      targetHandle: target
-      type: custom
-      zIndex: 0
     - data:
         isInLoop: false
         sourceType: iteration
@@ -275,6 +253,50 @@ workflow:
       targetHandle: target
       type: custom
       zIndex: 0
+    - data:
+        isInLoop: false
+        sourceType: if-else
+        targetType: knowledge-retrieval
+      id: 1778800001032-author_lookup-17785930638200-target
+      source: '1778800001032'
+      sourceHandle: author_lookup
+      target: '17785930638200'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInLoop: false
+        sourceType: if-else
+        targetType: knowledge-retrieval
+      id: 1778800001032-entity_lookup-17785930638200-target
+      source: '1778800001032'
+      sourceHandle: entity_lookup
+      target: '17785930638200'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInLoop: false
+        sourceType: knowledge-retrieval
+        targetType: llm
+      id: 17785930638200-source-1778800001034-target
+      source: '17785930638200'
+      sourceHandle: source
+      target: '1778800001034'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInLoop: false
+        sourceType: llm
+        targetType: code
+      id: 1778800001034-source-1778800001013-target
+      source: '1778800001034'
+      sourceHandle: source
+      target: '1778800001013'
+      targetHandle: target
+      type: custom
+      zIndex: 0
     nodes:
     - data:
         desc: The user's question comes in here.
@@ -296,8 +318,7 @@ workflow:
       type: custom
       width: 242
     - data:
-        dataset_ids:
-        - fiCgoIRCdFcUlyjUHsSQ9Xvcmn7KQ+rUaG9hnUJbpc7JzQCYkQK1G+O2moWlBG8d
+        dataset_ids: []
         isInIteration: false
         isInLoop: false
         metadata_filtering_conditions:
@@ -404,84 +425,6 @@ workflow:
       type: custom
       width: 242
     - data:
-        context:
-          enabled: true
-          variable_selector:
-          - '17785930638200'
-          - result
-        desc: Turn retrieved content into a clear and helpful answers with AI.
-        isInIteration: false
-        isInLoop: false
-        memory:
-          role_prefix:
-            assistant: ''
-            user: ''
-          window:
-            enabled: true
-            size: 50
-        model:
-          completion_params:
-            temperature: 0.7
-            top_p: 1
-          mode: chat
-          name: gpt-oss
-          provider: langgenius/ollama/ollama
-        prompt_template:
-        - id: 943448fa-b145-4ae7-a485-d77e4a2cc77b
-          reasoning_format: separated
-          role: system
-          text: 'You are a strict academic assistant. You must summarize the requested
-            papers based ONLY on the provided {{#context#}}.
-
-
-            CRITICAL INSTRUCTIONS FOR MULTIPLE PAPERS:
-
-            1. For EVERY paper requested in the user query, check if the {{#context#}}
-            actually contains content (abstract, methods, results) that belongs to
-            those specific authors and that specific title.
-
-            2. If the {{#context#}} contains information for a paper, summarize it.
-
-            3. If the {{#context#}} contains ONLY the title/metadata or irrelevant
-            images (like `![image]`) for a specific paper, you MUST output: "Für das
-            Paper [Titel/Autor] liegt im abgerufenen Kontext kein ausreichender Textinhalt
-            vor."
-
-            4. NEVER assign the content of one paper in the context to the authors
-            of another paper.
-
-            5. Do NOT guess, infer, or use your internal knowledge to fill in missing
-            abstracts.
-
-            6. Output final answer text only. Never output <think> tags or hidden
-            reasoning.
-
-
-            Answer in the language of the user.'
-        retry_config:
-          max_retries: 3
-          retry_enabled: false
-          retry_interval: 1000
-        selected: false
-        title: Content LLM
-        type: llm
-        variables: []
-        vision:
-          enabled: false
-      height: 132
-      id: '17785945559750'
-      position:
-        x: -312.03986577020487
-        y: 3018.912505927938
-      positionAbsolute:
-        x: -312.03986577020487
-        y: 3018.912505927938
-      selected: false
-      sourcePosition: right
-      targetPosition: left
-      type: custom
-      width: 242
-    - data:
         answer: '{{#1778800001013.cleaned_text#}}'
         desc: Send the final response back to the user.
         isInIteration: false
@@ -504,16 +447,14 @@ workflow:
       type: custom
       width: 242
     - data:
-        code: "import re\n\n\ndef _strip_think(text):\n    cleaned = str(text or \"\
-          \")\n    # Remove well-formed think blocks first.\n    cleaned = re.sub(r\"\
-          <think>.*?</think>\", \"\", cleaned, flags=re.S | re.I)\n    # Also handle\
-          \ truncated outputs where </think> is missing.\n    cleaned = re.sub(r\"\
-          <think>.*$\", \"\", cleaned, flags=re.S | re.I)\n    return cleaned.strip()\n\
-          \n\ndef main(content_text=None, metadata_text=None, summary_text=None):\n\
-          \    parts = []\n    for text in (content_text, metadata_text, summary_text):\n\
-          \        cleaned = _strip_think(text)\n        if cleaned:\n           \
-          \ parts.append(cleaned)\n    merged = \"\\n\\n\".join(parts).strip()\n \
-          \   return {\"cleaned_text\": merged}\n"
+        code: "import re\n\ndef main(content_text=None, metadata_text=None, summary_text=None,\
+          \ extraction_text=None):\n    texts = [\n        ('content', content_text),\n\
+          \        ('metadata', metadata_text),\n        ('summary', summary_text),\n\
+          \        ('extraction', extraction_text),\n    ]\n    for source, text in\
+          \ texts:\n        if isinstance(text, str) and text.strip():\n         \
+          \   cleaned = re.sub(r'<think>.*?</think>', '', text, flags=re.DOTALL).strip()\n\
+          \            if cleaned:\n                return {'cleaned_text': cleaned}\n\
+          \    return {'cleaned_text': ''}\n"
         code_language: python3
         isInIteration: false
         isInLoop: false
@@ -540,6 +481,11 @@ workflow:
           - text
           value_type: string
           variable: summary_text
+        - value_selector:
+          - '1778800001034'
+          - text
+          value_type: string
+          variable: extraction_text
       height: 52
       id: '1778800001013'
       position:
@@ -1199,47 +1145,50 @@ workflow:
             \ the user query and decide the single correct intent and search constraints.\n\
             \nAuthoritative resolved paper memory from prior turns:\n{{#conversation.memory#}}\n\
             \nReturn valid JSON only via structured output:\n{\n  \"intent\": \"knowledge_retrieval\"\
-            \ | \"metadata_list\" | \"content_summary\",\n  \"paper_list\": [{\"title\"\
-            : \"\", \"authors\": \"\", \"year\": \"\", \"journal\": \"\"}],\n  \"\
-            rewritten_query\": \"standalone version of the user query\"\n}\n\n===\
-            \ INTENT RULES ===\n\n\"knowledge_retrieval\" — General knowledge question\
-            \ about a topic, method, or concept.\n  paper_list MUST be [].\n\n\"metadata_list\"\
-            \ — User wants to COUNT, LIST, or FILTER papers by metadata (titles, authors,\
-            \ years, journals).\n  paper_list MUST contain the SEARCH CONSTRAINTS\
-            \ extracted from the query.\n\n\"content_summary\" — User wants to SUMMARIZE,\
-            \ COMPARE, or ANALYZE specific papers by their content.\n  paper_list\
-            \ MUST contain paper identities to fetch and summarize.\n\n=== WHICH INTENT\
-            \ WHEN? ===\n\n- Just an author name, no instruction → \"metadata_list\"\
+            \ | \"metadata_list\" | \"content_summary\" | \"author_lookup\" | \"entity_lookup\"\
+            ,\n  \"paper_list\": [{\"title\": \"\", \"authors\": \"\", \"year\": \"\
+            \", \"journal\": \"\"}],\n  \"rewritten_query\": \"standalone version\
+            \ of the user query\"\n}\n\n=== INTENT RULES ===\n\n\"knowledge_retrieval\"\
+            \ — General knowledge question about a topic, method, or concept.\n  paper_list\
+            \ MUST be [].\n\n\"metadata_list\" — User wants to COUNT, LIST, or FILTER\
+            \ papers by metadata (titles, authors, years, journals).\n  paper_list\
+            \ MUST contain the SEARCH CONSTRAINTS extracted from the query.\n\n\"\
+            content_summary\" — User wants to SUMMARIZE, COMPARE, or ANALYZE specific\
+            \ papers by their content.\n  paper_list MUST contain paper identities\
+            \ to fetch and summarize.\n\n\"author_lookup\" — User asks WHO: \"Who\
+            \ has experience with X?\", \"Who worked on Y?\", \"Which authors studied\
+            \ Z?\".\n  paper_list MUST be []. The Knowledge Retrieval will find relevant\
+            \ papers, and a downstream\n  extraction step will identify the authors.\
+            \ This is a content-based search, not metadata filtering.\n\n\"entity_lookup\"\
+            \ — User asks WHICH/WHAT specific entities: \"Which tRNAs were...?\",\
+            \ \"What methods...?\",\n  \"Which organisms...?\". The answer is a list\
+            \ of named entities extracted from papers.\n  paper_list MUST be []. KR\
+            \ finds papers, extraction identifies entities.\n\n=== WHICH INTENT WHEN?\
+            \ ===\n\n- \"Who has experience with X?\" / \"Wer hat Erfahrung mit X?\"\
+            \ → \"author_lookup\"\n- \"Who synthesized Y?\" / \"Wer hat Y synthetisiert?\"\
+            \ → \"author_lookup\"\n- \"Which tRNAs / proteins / methods ...?\" → \"\
+            entity_lookup\"\n- Just an author name, no instruction → \"metadata_list\"\
             \ (list their papers)\n- Just a topic, no paper reference → \"knowledge_retrieval\"\
-            \ (explain the topic)\n- Author + \"summarize their findings\" → \"content_summary\"\
-            \n- \"How many papers by X?\" → \"metadata_list\"\n- \"What is RNA methylation?\"\
-            \ → \"knowledge_retrieval\"\n- \"Compare the papers by X and Y\" → \"\
-            content_summary\"\n\n=== paper_list RULES ===\n\npaper_list serves TWO\
-            \ different purposes depending on whether this is a NEW query or a FOLLOW-UP:\n\
-            \nFOR NEW QUERIES (conversation.memory is empty or irrelevant):\n  → paper_list\
-            \ = SEARCH CONSTRAINTS for the database lookup.\n  Examples:\n  - \"papers\
-            \ by Christoph Dieterich\" → [{\"authors\": \"Christoph Dieterich\"}]\n\
-            \  - \"papers about RNA from 2024\" → [{\"title\": \"RNA\", \"year\":\
-            \ \"2024\"}]\n  - \"papers by Smith or Jones\" → [{\"authors\": \"Smith\"\
-            }, {\"authors\": \"Jones\"}]\n  - \"the 2023 Nature paper about CRISPR\"\
-            \ → [{\"title\": \"CRISPR\", \"year\": \"2023\", \"journal\": \"Nature\"\
-            }]\n  Put each distinct paper/search constraint as a separate object.\n\
-            \  Leave fields empty (\"\") if not constrained.\n\nFOR FOLLOW-UP QUERIES\
-            \ (conversation.memory has papers AND query references them):\n  → paper_list\
-            \ = the STRING \"use_memory\" (not an array). The downstream parser will\
-            \ fill in the actual papers from conversation.memory.\n  The query contains\
-            \ pronouns or references to prior turns: \"them\", \"those\", \"these\"\
-            , \"the papers\", \"diese\", \"davon\".\n  Examples:\n  - \"summarize\
-            \ them\" → \"use_memory\" (all papers from memory)\n  - \"summarize the\
-            \ first two\" → \"use_memory\" (parser handles subset)\n  - \"compare\
-            \ those\" → \"use_memory\"\n\nNEVER return an empty paper_list for \"\
-            metadata_list\" or \"content_summary\" intents. If you cannot determine\
-            \ the search constraints, use \"knowledge_retrieval\" instead.\n\n===\
-            \ REWRITTEN QUERY RULES ===\n\n- Resolve pronouns and underspecified references:\
-            \ \"them\" → \"the papers from the previous turn\".\n- Keep original language\
-            \ and intent.\n- Do NOT embed specific paper titles — use generic references.\n\
-            \nOutput ONLY the JSON. No <think> tags, no explanations, no markdown\
-            \ fences."
+            \n- Author + \"summarize their findings\" → \"content_summary\"\n- \"\
+            Compare the papers by X and Y\" → \"content_summary\"\n\n=== paper_list\
+            \ RULES ===\n\nFor \"knowledge_retrieval\", \"author_lookup\", \"entity_lookup\"\
+            : paper_list MUST be [].\nFor \"metadata_list\" and \"content_summary\"\
+            : follow the same rules as before.\n\nFOR NEW QUERIES (conversation.memory\
+            \ is empty or irrelevant):\n  → paper_list = SEARCH CONSTRAINTS for the\
+            \ database lookup.\n  Examples:\n  - \"papers by Christoph Dieterich\"\
+            \ → [{\"authors\": \"Christoph Dieterich\"}]\n  - \"papers about RNA from\
+            \ 2024\" → [{\"title\": \"RNA\", \"year\": \"2024\"}]\n\nFOR FOLLOW-UP\
+            \ QUERIES (conversation.memory has papers AND query references them):\n\
+            \  → paper_list = the STRING \"use_memory\". The downstream parser will\
+            \ fill in the actual papers.\n  The query contains pronouns or references\
+            \ to prior turns.\n\nNEVER return an empty paper_list for \"metadata_list\"\
+            \ or \"content_summary\" intents.\nIf you cannot determine the search\
+            \ constraints, use \"knowledge_retrieval\" instead.\n\n=== REWRITTEN QUERY\
+            \ RULES ===\n\n- Resolve pronouns: \"them\" → \"the papers from the previous\
+            \ turn\".\n- For author_lookup and entity_lookup: keep the original query\
+            \ as-is (it will be used for KR search).\n- Keep original language and\
+            \ intent.\n\nOutput ONLY the JSON. No <think> tags, no explanations, no\
+            \ markdown fences."
         selected: false
         structured_output:
           schema:
@@ -1251,6 +1200,8 @@ workflow:
                 - knowledge_retrieval
                 - metadata_list
                 - content_summary
+                - author_lookup
+                - entity_lookup
                 type: string
               paper_list:
                 description: Paper identities for downstream retrieval
@@ -1321,10 +1272,32 @@ workflow:
             - intent
           id: content_summary
           logical_operator: and
+        - case_id: author_lookup
+          conditions:
+          - comparison_operator: is
+            id: intent-is-author
+            value: author_lookup
+            varType: string
+            variable_selector:
+            - '1778800001033'
+            - intent
+          id: author_lookup
+          logical_operator: and
+        - case_id: entity_lookup
+          conditions:
+          - comparison_operator: is
+            id: intent-is-entity
+            value: entity_lookup
+            varType: string
+            variable_selector:
+            - '1778800001033'
+            - intent
+          id: entity_lookup
+          logical_operator: and
         selected: false
         title: Intent Dispatcher
         type: if-else
-      height: 220
+      height: 364
       id: '1778800001032'
       position:
         x: -1489.7142084055456
@@ -1355,20 +1328,20 @@ workflow:
           \    except Exception:\n        return {'intent': 'knowledge_retrieval',\
           \ 'paper_list': [], 'rewritten_query': ''}\n\n    intent = str(obj.get('intent',\
           \ '')).strip()\n    if intent not in ('metadata_list', 'content_summary',\
-          \ 'knowledge_retrieval'):\n        intent = 'knowledge_retrieval'\n\n  \
-          \  paper_list = obj.get('paper_list')\n    \n    # If paper_list is the\
-          \ string \"use_memory\", populate from conversation.memory\n    if paper_list\
-          \ == 'use_memory':\n        mem = conversation_memory if isinstance(conversation_memory,\
-          \ list) else []\n        paper_list = []\n        for item in mem:\n   \
-          \         cleaned = _clean_paper(item)\n            if cleaned:\n      \
-          \          paper_list.append(cleaned)\n    elif not isinstance(paper_list,\
-          \ list):\n        paper_list = []\n    else:\n        # Clean paper_list\
-          \ items from LLM output\n        cleaned_list = []\n        for item in\
-          \ paper_list:\n            if isinstance(item, dict):\n                c\
-          \ = _clean_paper(item)\n                if c:\n                    cleaned_list.append(c)\n\
-          \        paper_list = cleaned_list\n\n    rw = str(obj.get('rewritten_query')\
-          \ or '').strip()\n    return {'intent': intent, 'paper_list': paper_list,\
-          \ 'rewritten_query': rw}\n"
+          \ 'knowledge_retrieval', 'author_lookup', 'entity_lookup'):\n        intent\
+          \ = 'knowledge_retrieval'\n\n    paper_list = obj.get('paper_list')\n  \
+          \  \n    # If paper_list is the string \"use_memory\", populate from conversation.memory\n\
+          \    if paper_list == 'use_memory':\n        mem = conversation_memory if\
+          \ isinstance(conversation_memory, list) else []\n        paper_list = []\n\
+          \        for item in mem:\n            cleaned = _clean_paper(item)\n  \
+          \          if cleaned:\n                paper_list.append(cleaned)\n   \
+          \ elif not isinstance(paper_list, list):\n        paper_list = []\n    else:\n\
+          \        # Clean paper_list items from LLM output\n        cleaned_list\
+          \ = []\n        for item in paper_list:\n            if isinstance(item,\
+          \ dict):\n                c = _clean_paper(item)\n                if c:\n\
+          \                    cleaned_list.append(c)\n        paper_list = cleaned_list\n\
+          \n    rw = str(obj.get('rewritten_query') or '').strip()\n    return {'intent':\
+          \ intent, 'paper_list': paper_list, 'rewritten_query': rw}\n"
         code_language: python3
         isInIteration: false
         isInLoop: false
@@ -1409,8 +1382,68 @@ workflow:
       targetPosition: left
       type: custom
       width: 242
+    - data:
+        context:
+          enabled: true
+          variable_selector:
+          - '17785930638200'
+          - result
+        memory:
+          query_prompt_template: '{{#sys.query#}}'
+          role_prefix:
+            assistant: ''
+            user: ''
+          window:
+            enabled: false
+            size: 0
+        model:
+          completion_params:
+            max_tokens: 4000
+            temperature: 0
+          mode: chat
+          name: gpt-oss
+          provider: langgenius/ollama/ollama
+        prompt_template:
+        - id: extraction-llm-prompt
+          role: system
+          text: "You are an academic literature assistant. Answer the user query using\
+            \ ONLY the provided context from retrieved papers.\n\nContext:\n{{#context#}}\n\
+            \nResponse rules:\n\nIF the user asks a GENERAL KNOWLEDGE question (e.g.,\
+            \ \"What is X?\", \"Tell me about Y\", \"How does Z work?\"):\n  - Summarize\
+            \ the key information from the context in 3-5 paragraphs.\n  - Cite specific\
+            \ papers when making factual claims.\n  - If the context is insufficient,\
+            \ say so clearly and suggest reformulation.\n\nIF the user asks WHO (authors,\
+            \ e.g., \"Who has experience with X?\", \"Who synthesized Y?\"):\n  -\
+            \ Extract unique author names from each paper in the context.\n  - Format:\
+            \ \"Found in N papers: Author1 (Paper Title, Year), Author2 (...), ...\"\
+            \n  - Only include authors that appear in the provided context.\n\nIF\
+            \ the user asks WHICH/WHAT entities (e.g., \"Which tRNAs...\", \"What\
+            \ methods...\", \"Which organisms...\"):\n  - Extract specific named entities\
+            \ from the context.\n  - List each entity with its source paper.\n  -\
+            \ Group by entity type if the query is broad.\n\nGeneral rules:\n- NEVER\
+            \ invent or hallucinate. Only use the provided context.\n- Output final\
+            \ answer text only. No <think> tags or hidden reasoning.\n- Answer in\
+            \ the same language as the user."
+        selected: false
+        title: Extraction LLM
+        type: llm
+        vision:
+          enabled: false
+      height: 88
+      id: '1778800001034'
+      position:
+        x: -294.77582385042103
+        y: 3200.8856531387696
+      positionAbsolute:
+        x: -294.77582385042103
+        y: 3200.8856531387696
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 242
     viewport:
-      x: 1236.368448732459
-      y: -1972.3728338719907
+      x: 1381.368448732459
+      y: -2086.3728338719907
       zoom: 0.7432914922155072
   rag_pipeline_variables: []
