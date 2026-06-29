@@ -26,7 +26,38 @@ workflow:
     value_type: array[object]
   environment_variables: []
   features:
-    file_upload: {}
+    file_upload:
+      allowed_file_extensions:
+      - .JPG
+      - .JPEG
+      - .PNG
+      - .GIF
+      - .WEBP
+      - .SVG
+      allowed_file_types:
+      - image
+      allowed_file_upload_methods:
+      - local_file
+      - remote_url
+      enabled: false
+      fileUploadConfig:
+        attachment_image_file_size_limit: 2
+        audio_file_size_limit: 50
+        batch_count_limit: 5
+        file_size_limit: 15
+        file_upload_limit: 20
+        image_file_batch_limit: 10
+        image_file_size_limit: 10
+        single_chunk_attachment_limit: 10
+        video_file_size_limit: 100
+        workflow_file_upload_limit: 10
+      image:
+        enabled: false
+        number_limits: 3
+        transfer_methods:
+        - local_file
+        - remote_url
+      number_limits: 3
     opening_statement: ''
     retriever_resource:
       enabled: false
@@ -284,7 +315,7 @@ workflow:
         title: Start
         type: start
         variables: []
-      height: 101
+      height: 100
       id: '1711528914102'
       position:
         x: -1479.2766666643752
@@ -330,22 +361,22 @@ workflow:
         - '1778800001035'
         - text
         retrieval_mode: multiple
-        selected: true
+        selected: false
         title: Knowledge Retrieval
         type: knowledge-retrieval
-      height: 90
+      height: 89
       id: '17785930638200'
       position:
-        x: -1046.150332440784
-        y: 3687.859752821411
+        x: -707.0828016038357
+        y: 3681.1329167788017
       positionAbsolute:
-        x: -1046.150332440784
-        y: 3687.859752821411
+        x: -707.0828016038357
+        y: 3681.1329167788017
       selected: false
       sourcePosition: right
       targetPosition: left
       type: custom
-      width: 242
+      width: 241
     - data:
         context:
           enabled: false
@@ -392,7 +423,7 @@ workflow:
         type: llm
         vision:
           enabled: false
-      height: 88
+      height: 87
       id: '17785945324000'
       position:
         x: 245.7349446203532
@@ -404,7 +435,7 @@ workflow:
       sourcePosition: right
       targetPosition: left
       type: custom
-      width: 242
+      width: 241
     - data:
         answer: '{{#1778800001013.cleaned_text#}}'
         desc: Send the final response back to the user.
@@ -414,7 +445,7 @@ workflow:
         title: Answer
         type: answer
         variables: []
-      height: 146
+      height: 145
       id: '17785946070360'
       position:
         x: 920.6959181223426
@@ -426,7 +457,7 @@ workflow:
       sourcePosition: right
       targetPosition: left
       type: custom
-      width: 242
+      width: 241
     - data:
         code: "import re\n\ndef main(metadata_text=None, summary_text=None, extraction_text=None):\n\
           \    texts = [\n        ('metadata', metadata_text),\n        ('summary',\
@@ -461,7 +492,7 @@ workflow:
           - text
           value_type: string
           variable: extraction_text
-      height: 52
+      height: 51
       id: '1778800001013'
       position:
         x: 623.0529485946272
@@ -473,7 +504,7 @@ workflow:
       sourcePosition: right
       targetPosition: left
       type: custom
-      width: 242
+      width: 241
     - data:
         error_handle_mode: terminated
         flatten_output: false
@@ -496,12 +527,12 @@ workflow:
       height: 152
       id: '1778676584534'
       position:
-        x: -1079.7845126538296
+        x: -1120.6146341682265
         y: 3469.4812241425457
       positionAbsolute:
-        x: -1079.7845126538296
+        x: -1120.6146341682265
         y: 3469.4812241425457
-      selected: false
+      selected: true
       sourcePosition: right
       targetPosition: left
       type: custom
@@ -521,7 +552,7 @@ workflow:
         x: 24
         y: 68
       positionAbsolute:
-        x: -1055.7845126538296
+        x: -1096.6146341682265
         y: 3537.4812241425457
       selectable: false
       sourcePosition: right
@@ -687,7 +718,7 @@ workflow:
           - paper_list
           value_type: array[object]
           variable: paper_list
-      height: 52
+      height: 51
       id: '17786780698570'
       position:
         x: -1072.0495596626015
@@ -699,7 +730,7 @@ workflow:
       sourcePosition: right
       targetPosition: left
       type: custom
-      width: 242
+      width: 241
     - data:
         code: "def _normalize_obj(item):\n    if not isinstance(item, dict):\n   \
           \     return None\n    title = str(item.get('title') or '').strip()\n  \
@@ -756,7 +787,7 @@ workflow:
           - memory
           value_type: array[object]
           variable: memory
-      height: 52
+      height: 51
       id: '1778800001002'
       position:
         x: -628.8956719908643
@@ -768,7 +799,7 @@ workflow:
       sourcePosition: right
       targetPosition: left
       type: custom
-      width: 242
+      width: 241
     - data:
         desc: ''
         isInIteration: false
@@ -787,7 +818,7 @@ workflow:
         title: Persist Paper Memory
         type: assigner
         version: '2'
-      height: 84
+      height: 83
       id: '1778800001003'
       position:
         x: -319.81031088124917
@@ -799,7 +830,7 @@ workflow:
       sourcePosition: right
       targetPosition: left
       type: custom
-      width: 242
+      width: 241
     - data:
         code: "def _normalize_obj(item):\n    if not isinstance(item, dict):\n   \
           \     return None\n    title = str(item.get('title') or '').strip()\n  \
@@ -840,7 +871,7 @@ workflow:
           - memory
           value_type: array[object]
           variable: memory
-      height: 52
+      height: 51
       id: '1778800001029'
       position:
         x: -628.8956719908643
@@ -852,7 +883,7 @@ workflow:
       sourcePosition: right
       targetPosition: left
       type: custom
-      width: 242
+      width: 241
     - data:
         desc: ''
         isInIteration: false
@@ -871,7 +902,7 @@ workflow:
         title: Persist Paper Memory
         type: assigner
         version: '2'
-      height: 84
+      height: 83
       id: '1778800001030'
       position:
         x: -62.63214964004112
@@ -883,7 +914,7 @@ workflow:
       sourcePosition: right
       targetPosition: left
       type: custom
-      width: 242
+      width: 241
     - data:
         code: "import json\nimport os\nfrom urllib.error import HTTPError, URLError\n\
           from urllib.parse import urlencode\nfrom urllib.request import Request,\
@@ -1007,20 +1038,20 @@ workflow:
           - paper_count
           value_type: number
           variable: paper_count
-      height: 52
+      height: 51
       id: '1778800001025'
       parentId: '1778676584534'
       position:
         x: 129.36682773149482
         y: 68.71826501922305
       positionAbsolute:
-        x: -950.4176849223347
+        x: -991.2478064367317
         y: 3538.1994891617687
       selected: false
       sourcePosition: right
       targetPosition: left
       type: custom
-      width: 242
+      width: 241
       zIndex: 1002
     - data:
         context:
@@ -1080,7 +1111,7 @@ workflow:
         type: llm
         vision:
           enabled: false
-      height: 88
+      height: 87
       id: '1778800001027'
       position:
         x: 201.24254268196614
@@ -1092,7 +1123,7 @@ workflow:
       sourcePosition: right
       targetPosition: left
       type: custom
-      width: 242
+      width: 241
     - data:
         context:
           enabled: false
@@ -1210,7 +1241,7 @@ workflow:
         type: llm
         vision:
           enabled: false
-      height: 88
+      height: 87
       id: '1778800001031'
       position:
         x: -1479.2766666643752
@@ -1222,7 +1253,7 @@ workflow:
       sourcePosition: right
       targetPosition: left
       type: custom
-      width: 242
+      width: 241
     - data:
         cases:
         - case_id: metadata_list
@@ -1272,7 +1303,7 @@ workflow:
         selected: false
         title: Intent Dispatcher
         type: if-else
-      height: 364
+      height: 363
       id: '1778800001032'
       position:
         x: -1489.7142084055456
@@ -1284,7 +1315,7 @@ workflow:
       sourcePosition: right
       targetPosition: left
       type: custom
-      width: 242
+      width: 241
     - data:
         code: "import json, re\n\ndef _clean_paper(item):\n    if not isinstance(item,\
           \ dict):\n        return None\n    obj = {\n        'title': str(item.get('title')\
@@ -1352,7 +1383,7 @@ workflow:
           - memory
           value_type: array[object]
           variable: conversation_memory
-      height: 52
+      height: 51
       id: '1778800001033'
       position:
         x: -1484.4326543241668
@@ -1364,7 +1395,7 @@ workflow:
       sourcePosition: right
       targetPosition: left
       type: custom
-      width: 242
+      width: 241
     - data:
         context:
           enabled: true
@@ -1412,7 +1443,7 @@ workflow:
         type: llm
         vision:
           enabled: false
-      height: 88
+      height: 87
       id: '1778800001034'
       position:
         x: -271.90458130555
@@ -1420,11 +1451,11 @@ workflow:
       positionAbsolute:
         x: -271.90458130555
         y: 3681.1329167788017
-      selected: true
+      selected: false
       sourcePosition: right
       targetPosition: left
       type: custom
-      width: 242
+      width: 241
     - data:
         context:
           enabled: false
@@ -1475,21 +1506,21 @@ workflow:
         type: llm
         vision:
           enabled: false
-      height: 88
+      height: 87
       id: '1778800001035'
       position:
-        x: -1046.150332440784
-        y: 3550
+        x: -1040.8246644171672
+        y: 3681.1329167788017
       positionAbsolute:
-        x: -1046.150332440784
-        y: 3550
+        x: -1040.8246644171672
+        y: 3681.1329167788017
       selected: false
       sourcePosition: right
       targetPosition: left
       type: custom
-      width: 242
+      width: 241
     viewport:
-      x: 1496.368448732459
-      y: -2057.3728338719907
-      zoom: 0.7432914922155072
+      x: 1116.3468925217094
+      y: -1577.862999944213
+      zoom: 0.5633096142486395
   rag_pipeline_variables: []
