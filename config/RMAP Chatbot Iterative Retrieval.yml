@@ -1475,13 +1475,14 @@ workflow:
             size: 0
         model:
           completion_params:
-            max_tokens: 256
+            max_tokens: 512
             temperature: 0
           mode: chat
           name: gpt-oss
           provider: langgenius/ollama/ollama
         prompt_template:
         - id: kr-rewriter-prompt
+          reasoning_format: hidden
           role: system
           text: 'You are a search query optimizer for an academic literature database.
             Rewrite the given query into keyword-dense search terms optimized for
