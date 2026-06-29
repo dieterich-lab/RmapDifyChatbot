@@ -294,6 +294,123 @@ else:
   "
 }
 
+# ── KR dataset fix ─────────────────────────────────────────────────────────
+# Dify import strips dataset_ids from Knowledge Retrieval nodes.
+# This function restores them from saved ID or Meta Routing config.
+fix_kr_dataset() {
+  [[ -n "${DIFY_APP_ID:-}" ]] || { echo "Skipping KR dataset fix: DIFY_APP_ID not set."; return 0; }
+  [[ -n "${DIFY_CONSOLE_COOKIE:-}" && -n "${DIFY_CSRF_TOKEN:-}" ]] || {
+    echo "Skipping KR dataset fix: no cookie session available."; return 0
+  }
+
+  DRAFT_URL="${DIFY_BASE_URL%/}/console/api/apps/${DIFY_APP_ID}/workflows/draft"
+  TMP_KR_GET=$(mktemp)
+  TMP_KR_PAYLOAD=$(mktemp)
+  TMP_KR_RESP=$(mktemp)
+  TMP_KR_PY=$(mktemp)
+
+  DRAFT_GET_HTTP=$(curl -sS -o "$TMP_KR_GET" -w "%{http_code}" "$DRAFT_URL" \
+    -H "Cookie: ${DIFY_CONSOLE_COOKIE}" -H "x-csrf-token: ${DIFY_CSRF_TOKEN}")
+  if [[ "$DRAFT_GET_HTTP" != "200" ]]; then
+    echo "Warning: could not fetch draft for KR fix (HTTP $DRAFT_GET_HTTP)."
+    return 0
+  fi
+
+  cat > "$TMP_KR_PY" << 'PYEOF'
+import json, os, sys
+
+draft = json.load(open(os.environ["TMP_KR_GET"], encoding="utf-8"))
+graph = draft.get("graph", {})
+
+for node in graph.get("nodes", []):
+    if node.get("id") == "17785930638200":
+        dids = node.get("data", {}).get("dataset_ids", [])
+        if dids and len(dids) > 0 and dids[0]:
+            print("unchanged")
+            sys.exit(0)
+
+        # Try saved ID first
+        saved_file = os.environ.get("SAVED_ID_FILE", "")
+        if saved_file and os.path.isfile(saved_file):
+            saved = open(saved_file).read().strip()
+            if saved:
+                node["data"]["dataset_ids"] = [saved]
+                # Write back modified draft and build payload
+                payload = {
+                    "graph": graph,
+                    "features": draft.get("features", {}),
+                    "environment_variables": draft.get("environment_variables", []),
+                    "conversation_variables": draft.get("conversation_variables", []),
+                    "hash": draft.get("hash", ""),
+                }
+                json.dump(payload, open(os.environ["TMP_KR_PAYLOAD"], "w"))
+                print("fixed")
+                sys.exit(0)
+
+        # Fallback: Meta Routing config
+        try:
+            import yaml
+            with open(os.environ["META_ROUTING_YML"]) as f:
+                mr = yaml.safe_load(f)
+            for n in mr["workflow"]["graph"]["nodes"]:
+                if "Knowledge Retrieval" in n.get("data", {}).get("title", ""):
+                    ref = n["data"].get("dataset_ids", [])
+                    if ref and ref[0]:
+                        node["data"]["dataset_ids"] = ref
+                        payload = {
+                            "graph": graph,
+                            "features": draft.get("features", {}),
+                            "environment_variables": draft.get("environment_variables", []),
+                            "conversation_variables": draft.get("conversation_variables", []),
+                            "hash": draft.get("hash", ""),
+                        }
+                        json.dump(payload, open(os.environ["TMP_KR_PAYLOAD"], "w"))
+                        print("fixed")
+                        sys.exit(0)
+        except Exception as e:
+            print(f"error:fallback_failed:{e}")
+            sys.exit(1)
+
+        print("unchanged")
+        sys.exit(0)
+
+print("unchanged")
+PYEOF
+
+  local fixed
+  fixed=$(TMP_KR_GET="$TMP_KR_GET" \
+    TMP_KR_PAYLOAD="$TMP_KR_PAYLOAD" \
+    SAVED_ID_FILE="$REPO_ROOT/.secrets/kr_dataset_id.txt" \
+    META_ROUTING_YML="$REPO_ROOT/config/RMAP Chatbot Meta Routing.yml" \
+    "$PYTHON_BIN" "$TMP_KR_PY")
+
+  if [[ "$fixed" == "unchanged" ]]; then
+    echo "KR dataset: unchanged."
+    return 0
+  elif [[ "$fixed" != "fixed" ]]; then
+    echo "KR dataset fix skipped: $fixed"
+    return 0
+  fi
+
+  # Post updated draft (payload already built by fix script)
+  KR_POST_HTTP=$(curl -sS -o "$TMP_KR_RESP" -w "%{http_code}" \
+    -X POST "$DRAFT_URL" \
+    -H "Cookie: ${DIFY_CONSOLE_COOKIE}" \
+    -H "x-csrf-token: ${DIFY_CSRF_TOKEN}" \
+    -H "Content-Type: application/json" \
+    --data @"$TMP_KR_PAYLOAD")
+
+  echo "KR dataset fix HTTP: $KR_POST_HTTP"
+  "$PYTHON_BIN" -c "
+import json
+d = json.load(open('$TMP_KR_RESP'))
+if d.get('result') == 'success':
+    print('KR dataset restored ✓')
+else:
+    print('KR fix may have failed:', json.dumps(d)[:200])
+"
+}
+
 run_import_with_retries
 
 echo "Import endpoint: $IMPORT_URL"
@@ -304,6 +421,8 @@ echo
 [[ "$HTTP_CODE" =~ ^20(0|1|2)$ ]] || exit 1
 
 sync_draft
+
+fix_kr_dataset
 
 [[ "${AUTO_CONFIRM:-false}" == "true" ]] || exit 0
 
