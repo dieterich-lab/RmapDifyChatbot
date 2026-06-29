@@ -86,3 +86,35 @@ if not yaml_content:
 open(sys.argv[2], "w").write(yaml_content)
 print(f"Exported {len(yaml_content)} chars to {sys.argv[2]}")
 PY
+
+# ---- Patch KR dataset -------------------------------------------------------
+# Dify export may strip dataset_ids; restore from saved file or hardcoded UUID.
+"$PYTHON_BIN" - "$OUT_PATH" "$REPO_ROOT" <<'PY'
+import sys, os, yaml
+out_path = sys.argv[1]
+repo_root = sys.argv[2]
+
+with open(out_path) as f:
+    dsl = yaml.safe_load(f)
+
+kr_fixed = False
+for node in dsl["workflow"]["graph"]["nodes"]:
+    if node.get("id") == "17785930638200":
+        dids = node.get("data", {}).get("dataset_ids", [])
+        if not dids or not dids[0] or "fiCgoIRC" in str(dids[0]):
+            # Try saved file first
+            saved_file = os.path.join(repo_root, ".secrets", "kr_dataset_id.txt")
+            new_id = "<your-dataset-id>"
+            if os.path.isfile(saved_file):
+                saved = open(saved_file).read().strip()
+                if saved and "-" in saved:  # UUID has hyphens
+                    new_id = saved
+            node["data"]["dataset_ids"] = [new_id]
+            kr_fixed = True
+            print(f"KR dataset patched in export: {new_id}")
+        break
+
+if kr_fixed:
+    with open(out_path, "w") as f:
+        yaml.dump(dsl, f, sort_keys=False, allow_unicode=True, width=1000)
+PY
