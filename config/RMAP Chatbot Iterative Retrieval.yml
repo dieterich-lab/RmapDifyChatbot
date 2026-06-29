@@ -1463,7 +1463,10 @@ workflow:
         isInIteration: false
         isInLoop: false
         memory:
-          query_prompt_template: '{{#1778800001033.rewritten_query#}}'
+          query_prompt_template: '{{#1778800001033.rewritten_query#}}
+
+
+            {{#sys.query#}}'
           role_prefix:
             assistant: ''
             user: ''
