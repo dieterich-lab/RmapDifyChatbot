@@ -278,9 +278,20 @@ workflow:
     - data:
         isInLoop: false
         sourceType: llm
-        targetType: knowledge-retrieval
-      id: 1778800001035-source-17785930638200-target
+        targetType: code
+      id: 1778800001035-source-1778800001036-target
       source: '1778800001035'
+      sourceHandle: source
+      target: '1778800001036'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInLoop: false
+        sourceType: code
+        targetType: knowledge-retrieval
+      id: 1778800001036-source-17785930638200-target
+      source: '1778800001036'
       sourceHandle: source
       target: '17785930638200'
       targetHandle: target
@@ -358,7 +369,7 @@ workflow:
             weight_type: customized
         query_attachment_selector: []
         query_variable_selector:
-        - '1778800001035'
+        - '1778800001036'
         - text
         retrieval_mode: multiple
         selected: false
@@ -1518,6 +1529,37 @@ workflow:
       positionAbsolute:
         x: -1040.8246644171672
         y: 3681.1329167788017
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 241
+    - data:
+        code: "import re\ndef main(text=None):\n    if not text:\n        return {'text': ''}\n    cleaned = re.sub(r'<think>.*?</think>', '', str(text), flags=re.DOTALL).strip()\n    return {'text': cleaned if cleaned else str(text).strip()}\n"
+        code_language: python3
+        isInIteration: false
+        isInLoop: false
+        outputs:
+          text:
+            children: null
+            type: string
+        selected: false
+        title: KR Output Cleaner
+        type: code
+        variables:
+        - value_selector:
+          - '1778800001035'
+          - text
+          value_type: string
+          variable: text
+      height: 52
+      id: '1778800001036'
+      position:
+        x: -850
+        y: 3680
+      positionAbsolute:
+        x: -850
+        y: 3680
       selected: false
       sourcePosition: right
       targetPosition: left
