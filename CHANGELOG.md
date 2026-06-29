@@ -1,5 +1,23 @@
 # Changelog
 
+## [0.3.2] - 2026-06-29
+
+### Added
+
+- **KR Query Rewriter**: Neuer LLM-Node vor Knowledge Retrieval, der Such-Queries für hybrid vector+keyword Retrieval optimiert. Expandiert Akronyme, fügt technische Synonyme hinzu und konvertiert Meta-Fragen ("Who worked on X?") in Content-Queries.
+- **KR Dataset Auto-Fix**: `import_dify_dsl.sh` stellt nach jedem Import automatisch das Knowledge Retrieval Dataset wieder her (aus `.secrets/kr_dataset_id.txt` oder Meta Routing Config).
+
+### Changed
+
+- **Parse Router Output Auto-Fallback**: Wenn `paper_list` leer ist aber der Intent `metadata_list`/`content_summary`, wird automatisch aus `conversation.memory` befüllt. Keine Abhängigkeit mehr vom `"use_memory"`-String.
+- **3 KR-Routen über KR Query Rewriter**: Alle drei Knowledge Retrieval Pfade (`knowledge_retrieval`, `author_lookup`, `entity_lookup`) laufen jetzt durch den Query Rewriter für optimierte semantische Suche.
+
+### Fixed
+
+- **Dataset UUID**: `fiCgoIRC...` (API-Key) durch echte Dataset-UUID `5a231cec-...` ersetzt. PostgreSQL benötigt UUID-Format.
+- **Final Answer Sanitizer**: Orphaned `content_text` Variable auf gelöschten Content LLM entfernt.
+- **Paper Count in Parse Router Output**: `paper_count` Output fehlte – Fetch Full Paper bekam keinen Count.
+
 ## [0.3.1] - 2026-06-25
 
 ### Added
