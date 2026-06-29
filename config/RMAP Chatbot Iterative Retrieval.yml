@@ -1200,7 +1200,7 @@ workflow:
                 - entity_lookup
                 type: string
               paper_list:
-                description: Paper identities for downstream retrieval
+                description: Paper identities or "use_memory" for follow-up queries
                 items:
                   additionalProperties: false
                   properties:
@@ -1326,16 +1326,20 @@ workflow:
           \ '')).strip()\n    if intent not in ('metadata_list', 'content_summary',\
           \ 'knowledge_retrieval', 'author_lookup', 'entity_lookup'):\n        intent\
           \ = 'knowledge_retrieval'\n\n    paper_list = obj.get('paper_list')\n  \
-          \  \n    # If paper_list is the string \"use_memory\", populate from conversation.memory\n\
-          \    if paper_list == 'use_memory':\n        mem = conversation_memory if\
-          \ isinstance(conversation_memory, list) else []\n        paper_list = []\n\
-          \        for item in mem:\n            cleaned = _clean_paper(item)\n  \
-          \          if cleaned:\n                paper_list.append(cleaned)\n   \
-          \ elif not isinstance(paper_list, list):\n        paper_list = []\n    else:\n\
-          \        # Clean paper_list items from LLM output\n        cleaned_list\
-          \ = []\n        for item in paper_list:\n            if isinstance(item,\
-          \ dict):\n                c = _clean_paper(item)\n                if c:\n\
-          \                    cleaned_list.append(c)\n        paper_list = cleaned_list\n\
+          \  mem = conversation_memory if isinstance(conversation_memory, list) else []\n\
+          \n    # If paper_list is the string \"use_memory\", populate from conversation.memory\n\
+          \    if paper_list == 'use_memory':\n        paper_list = []\n        for\
+          \ item in mem:\n            cleaned = _clean_paper(item)\n            if\
+          \ cleaned:\n                paper_list.append(cleaned)\n    elif not isinstance(paper_list,\
+          \ list):\n        paper_list = []\n    else:\n        # Clean paper_list\
+          \ items from LLM output\n        cleaned_list = []\n        for item in\
+          \ paper_list:\n            if isinstance(item, dict):\n                c\
+          \ = _clean_paper(item)\n                if c:\n                    cleaned_list.append(c)\n\
+          \        paper_list = cleaned_list\n\n    # Auto-fallback: if paper_list\
+          \ is empty but intent requires papers, use conversation.memory\n    if not\
+          \ paper_list and intent in ('metadata_list', 'content_summary') and mem:\n\
+          \        paper_list = []\n        for item in mem:\n            cleaned\
+          \ = _clean_paper(item)\n            if cleaned:\n                paper_list.append(cleaned)\n\
           \n    rw = str(obj.get('rewritten_query') or '').strip()\n    return {'intent':\
           \ intent, 'paper_list': paper_list, 'paper_count': len(paper_list), 'rewritten_query': rw}\n"
         code_language: python3
