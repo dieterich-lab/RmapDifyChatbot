@@ -1486,7 +1486,7 @@ workflow:
             size: 0
         model:
           completion_params:
-            max_tokens: 512
+            max_tokens: 1024
             temperature: 0
           mode: chat
           name: gpt-oss
@@ -1534,7 +1534,7 @@ workflow:
       type: custom
       width: 241
     - data:
-        code: "import re\ndef main(text=None):\n    if not text:\n        return {'text': ''}\n    cleaned = re.sub(r'<think>.*?</think>', '', str(text), flags=re.DOTALL).strip()\n    return {'text': cleaned if cleaned else str(text).strip()}\n"
+        code: "import re\ndef main(text=None):\n    if not text:\n        return {'text': ''}\n    t = str(text)\n    # Extract content after </think> if present\n    if '</think>' in t:\n        t = t.split('</think>', 1)[1].strip()\n    else:\n        t = re.sub(r'<think>.*', '', t, flags=re.DOTALL).strip()\n    return {'text': t if t else str(text).strip()}\n"
         code_language: python3
         isInIteration: false
         isInLoop: false
