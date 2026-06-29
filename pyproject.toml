@@ -1,6 +1,6 @@
 [project]
 name = "rmap-chatbot"
-version = "0.2.2"
+version = "0.3.2"
 description = "Metadata-aware Dify chatbot operations and paper ingestion tooling."
 authors = [
     {name = "Philipp Wiesenbach",email = "philipp.wiesenbach@uni-heidelberg.de"}
