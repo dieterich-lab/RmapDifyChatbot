@@ -102,9 +102,13 @@ for i, fn in enumerate(files):
         meta["_filename"] = fn
         meta["_filepath"] = fp
         results.append(meta)
-        print(f"  title: {meta.get(\"title\",\"\")[:100]}")
-        print(f"  authors: {meta.get(\"authors\",\"\")[:100]}")
-        print(f"  year: {meta.get(\"year\")}, journal: {meta.get(\"journal\")}")
+        t = meta.get("title", "")
+        a = meta.get("authors", "")
+        y = meta.get("year", "")
+        j = meta.get("journal", "")
+        print("  title:", t[:100])
+        print("  authors:", a[:100])
+        print(f"  year: {y}, journal: {j}")
     except Exception as e:
         print(f"  ERROR: {e}")
         errors.append({"filename": fn, "error": str(e)})
