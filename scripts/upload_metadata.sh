@@ -1,13 +1,22 @@
 #!/usr/bin/env bash
+#SBATCH --job-name=rmap_meta_upload
+#SBATCH --output=logs/slurm/rmap_meta_upload_%j.out
+#SBATCH --partition=medium
+#SBATCH --mem=2G
+
 set -euo pipefail
 #
 # Upload metadata from a JSON dump to the parent-child dataset.
 # Matches documents by filename, then patches title/authors/year/journal.
 #
 # Usage:
-#   bash scripts/upload_metadata.sh [metadata_dump.json]
+#   sbatch scripts/upload_metadata.sh [metadata_dump.json]
+#   (or run directly: bash scripts/upload_metadata.sh [metadata_dump.json])
 #
-# Requires: DIFY_BASE_URL, DIFY_DATASET_API_KEY in environment or .secrets/
+# SLURM: submit with --dependency=afterok:<extract_job_id>
+#   sbatch --dependency=afterok:668391 scripts/upload_metadata.sh
+#
+# Requires: DIFY_BASE_URL, DIFY_DATASET_API_KEY in environment or defaults.
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 METADATA_FILE="${1:-$REPO_ROOT/reports/metadata_dump_$(date '+%Y-%m-%d').json}"
