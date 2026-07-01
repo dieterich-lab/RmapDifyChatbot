@@ -357,7 +357,7 @@ workflow:
           reranking_enable: false
           reranking_mode: weighted_score
           score_threshold: null
-          top_k: 10
+          top_k: 25
           weights:
             keyword_setting:
               keyword_weight: 0.7
@@ -1295,17 +1295,7 @@ workflow:
       type: custom
       width: 242
     - data:
-        code: "import re\n\ndef _get_text(chunk):\n    if isinstance(chunk, dict):\n        return str(chunk.get('content') or chunk.get('text') or '')\n    return str(chunk or '')\n\ndef _is_reference_chunk(text):\n\
-          \    t = str(text or '').strip()\n    if not t:\n        return True\n    lines = [l.strip() for l in t.split('\\n') if l.strip()]\n    if not lines:\n        return True\n    # Count lines that\
-          \ look like reference entries\n    ref_line = re.compile(r'^\\s*(?:\\d+\\.?\\s+|\\*\\s+|\\[\\d+\\]\\s+)')\n    ref_lines = sum(1 for l in lines if ref_line.match(l))\n    # Also count lines with\
-          \ et al. or doi\n    etal_lines = sum(1 for l in lines if re.search(r'\\bet\\s+al\\.?\\b', l, re.IGNORECASE))\n    # If >70% of lines are reference format, filter out\n    ref_ratio = (ref_lines\
-          \ + etal_lines * 0.5) / max(1, len(lines))\n    if ref_ratio > 0.7:\n        return True\n    # If chunk is very short and looks like pure reference, filter\n    if len(t) < 300 and ref_ratio\
-          \ > 0.5:\n        return True\n    return False\n\ndef _extract_text(chunk):\n    if isinstance(chunk, dict):\n        return str(chunk.get('content') or chunk.get('text') or '')\n    return str(chunk\
-          \ or '')\n\ndef main(kr_result=None):\n    if not isinstance(kr_result, list):\n        return {'filtered_chunks': [], 'chunk_count': 0, 'chunks_removed': 0}\n    kept = []\n    removed = 0\n\
-          \    for c in kr_result:\n        text = _get_text(c)\n        if _is_reference_chunk(text):\n            removed += 1\n        else:\n            kept.append(c)\n    # If everything got filtered,\
-          \ return all (better than nothing)\n    # Convert dict chunks to strings\n    kept_str = [_extract_text(c) for c in kept]\n    if not kept_str and kr_result:\n        fallback = [_extract_text(c)\
-          \ for c in kr_result]\n        return {'filtered_chunks': fallback, 'chunk_count': len(fallback), 'chunks_removed': 0}\n    return {'filtered_chunks': kept_str, 'chunk_count': len(kept_str), 'chunks_removed':\
-          \ removed}\n"
+        code: "import re\n\ndef _is_reference_chunk(text):\n    t = str(text or '').strip()\n    if not t:\n        return True\n    lines = [l.strip() for l in t.split('\\n') if l.strip()]\n    if not lines:\n        return True\n    ref_line = re.compile(r'^\\s*(?:\\d+\\.?\\s+|\\*\\s+|\\[\\d+\\]\\s+)')\n    ref_lines = sum(1 for l in lines if ref_line.match(l))\n    etal_lines = sum(1 for l in lines if re.search(r'\\bet\\s+al\\.?\\b', l, re.IGNORECASE))\n    # Also detect DOI/URL heavy lines\n    doi_lines = sum(1 for l in lines if 'doi.org' in l.lower())\n    ref_ratio = (ref_lines + etal_lines * 0.5 + doi_lines * 0.3) / max(1, len(lines))\n    # >70% reference lines or heavy DOI presence = reference chunk\n    if ref_ratio > 0.6:\n        return True\n    if len(t) < 300 and ref_ratio > 0.4:\n        return True\n    return False\n\ndef main(kr_result=None):\n    if not isinstance(kr_result, list):\n        return {'filtered_chunks': [], 'chunk_count': 0, 'chunks_removed': 0}\n    kept = []\n    removed = 0\n    for c in kr_result:\n        text = str(c or '')\n        if _is_reference_chunk(text):\n            removed += 1\n        else:\n            kept.append(text)\n    # If everything got filtered, return EMPTY (better than feeding reference lists to LLM)\n    # The Extraction LLM will report insufficient context.\n    return {'filtered_chunks': kept, 'chunk_count': len(kept), 'chunks_removed': removed}\n"
         code_language: python3
         isInIteration: false
         isInLoop: false
