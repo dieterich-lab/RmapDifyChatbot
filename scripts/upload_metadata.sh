@@ -20,7 +20,7 @@ set -euo pipefail
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 METADATA_FILE="${1:-$REPO_ROOT/reports/metadata_dump_$(date '+%Y-%m-%d').json}"
-DATASET_ID="${DATASET_ID:-4e1451a3-cd06-4750-bd23-f501d7b65b67}"
+DATASET_ID="${DATASET_ID:-65b46261-2c5e-48e9-8de4-3ca0785281e3}"
 DIFY_BASE_URL="${DIFY_BASE_URL:-http://rmap-chatbot-demo-dify}"
 DIFY_DATASET_API_KEY="${DIFY_DATASET_API_KEY:-REDACTED}"
 
