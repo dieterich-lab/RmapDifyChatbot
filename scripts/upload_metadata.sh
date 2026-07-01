@@ -26,35 +26,49 @@ DIFY_DATASET_API_KEY="${DIFY_DATASET_API_KEY:-REDACTED}"
 
 cd "$REPO_ROOT"
 
-if [[ ! -f "$METADATA_FILE" ]]; then
-  echo "ERROR: Metadata file not found: $METADATA_FILE"
-  exit 1
-fi
-
 echo "===== METADATA UPLOAD ====="
 echo "dataset=$DATASET_ID"
-echo "metadata_file=$METADATA_FILE"
 echo "api_base=$DIFY_BASE_URL"
 
 DIFY_BASE_URL="$DIFY_BASE_URL" \
 DATASET_ID="$DATASET_ID" \
 DIFY_DATASET_API_KEY="$DIFY_DATASET_API_KEY" \
+FOLDER="${FOLDER:-$REPO_ROOT/RMaP papers first funding period}" \
+METADATA_FILE="$METADATA_FILE" \
 "$REPO_ROOT/.venv/bin/python" -c '
 import json, os, sys, time, requests
 
 API_BASE = os.environ["DIFY_BASE_URL"].rstrip("/")
 DS_ID = os.environ["DATASET_ID"]
 API_KEY = os.environ["DIFY_DATASET_API_KEY"]
-META_FILE = sys.argv[1] if len(sys.argv) > 1 else os.environ.get("METADATA_FILE", "")
+META_FILE = os.environ.get("METADATA_FILE", "")
+FOLDER = os.environ.get("FOLDER", "RMaP papers first funding period")
 
 H = {"Authorization": f"Bearer {API_KEY}", "Content-Type": "application/json"}
 
-# ── Load metadata dump ──────────────────────────────────────────────
-with open(META_FILE, encoding="utf-8") as f:
-    dump = json.load(f)
-
-entries = dump.get("results", [])
-print(f"Loaded {len(entries)} metadata entries")
+# ── Load or extract metadata ────────────────────────────────────────
+if META_FILE and os.path.isfile(META_FILE):
+    with open(META_FILE, encoding="utf-8") as f:
+        dump = json.load(f)
+    entries = dump.get("results", [])
+    print(f"Loaded {len(entries)} metadata entries from {META_FILE}")
+else:
+    print("No metadata file found, extracting from PDFs (basic pipeline, no LLM)...")
+    from dify_uploader.metadata import extract_metadata
+    files = sorted([f for f in os.listdir(FOLDER) if f.lower().endswith(".pdf")])
+    print(f"PDFs found: {len(files)}")
+    entries = []
+    for i, fn in enumerate(files):
+        fp = os.path.join(FOLDER, fn)
+        try:
+            meta = extract_metadata(fn, fp, use_hybrid_pipeline=False)  # no LLM needed
+            meta["_filename"] = fn
+            entries.append(meta)
+        except Exception as e:
+            print(f"  SKIP {fn}: {e}")
+        if (i+1) % 10 == 0:
+            print(f"  [{i+1}/{len(files)}]")
+    print(f"Extracted {len(entries)} metadata entries")
 
 # ── Fetch all documents from dataset ────────────────────────────────
 print("Fetching document list...")
@@ -168,4 +182,4 @@ print(f"Errors:           {len(errors)}")
 if errors:
     for e in errors[:10]:
         print(f"  - {e['filename']}: HTTP {e['status']}")
-' "$METADATA_FILE"
+'
