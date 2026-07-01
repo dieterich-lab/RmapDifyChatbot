@@ -340,7 +340,8 @@ workflow:
       type: custom
       width: 242
     - data:
-        dataset_ids: []
+        dataset_ids:
+        - <your-dataset-id>
         isInIteration: false
         isInLoop: false
         metadata_filtering_conditions:
@@ -357,7 +358,7 @@ workflow:
           reranking_enable: false
           reranking_mode: weighted_score
           score_threshold: null
-          top_k: 25
+          top_k: 10
           weights:
             keyword_setting:
               keyword_weight: 0.7
