@@ -60,7 +60,7 @@ workflow:
       number_limits: 3
     opening_statement: ''
     retriever_resource:
-      enabled: false
+      enabled: true
     sensitive_word_avoidance:
       enabled: false
     speech_to_text:
@@ -334,7 +334,7 @@ workflow:
       positionAbsolute:
         x: -1479.2766666643752
         y: 3002.861688967774
-      selected: false
+      selected: true
       sourcePosition: right
       targetPosition: left
       type: custom
@@ -1096,8 +1096,7 @@ workflow:
         prompt_template:
         - id: extraction-llm-prompt
           role: system
-          text: "You are an academic literature assistant. Answer the user query using ONLY the provided context from retrieved papers.\n\nContext:\n{{#context#}}\n\n=== CRITICAL CITATION RULES ===\n- Every factual claim MUST be supported by the context. If a claim cannot be backed by context text, do NOT make it.\n- Cite ONLY papers whose title, authors, or findings appear VERBATIM in the context above. Never cite papers from memory.\n- When citing, include a short verbatim quote from the context that supports your statement.\n- If the context lacks information to answer the query, say: \"The provided excerpts do not contain sufficient information to answer this question.\" Then suggest what kind of information would be needed.\n\n=== RESPONSE RULES ===\n\nIF the user asks a GENERAL KNOWLEDGE question:\n  - Summarize key information from the context in 2-4 paragraphs.\n  - Each paragraph must reference at least one verbatim piece of context.\n\nIF the user asks WHO (authors):\n  - Extract\
-            \ author names EXACTLY as they appear in the context.\n  - Format: \"Found in N excerpts: Author1 (context: '...'), Author2 (context: '...')\"\n\nIF the user asks WHICH/WHAT entities (methods, tRNAs, organisms...):\n  - List entities found in the context with verbatim supporting quotes.\n  - Group by entity type if broad.\n\nGeneral:\n- NEVER invent. Only use the provided context.\n- Output final answer text only. No <think> tags.\n- Answer in the same language as the user."
+          text: "You are an academic literature assistant. Answer the user query using ONLY the provided context from retrieved papers.\n\nContext:\n{{#context#}}\n\n=== CRITICAL: ANTI-HALLUCINATION RULES ===\n1. EVERY word you write about facts MUST be traceable to text in the context above. If you cannot point to the exact sentence in the context that supports a claim, DELETE that claim.\n2. DO NOT mention any method name, author name, paper title, journal name, or year that does NOT appear explicitly in the context text above.\n3. DO NOT use ANY citation markers like 【1】, 【2】, [1], 【context】, or (Author, Year). They are forbidden.\n4. When you quote the context, copy-paste the EXACT words between quotation marks. Do not paraphrase or summarize methods you know from training.\n5. If the context does not contain sufficient information to answer, say EXACTLY: \"The provided excerpts do not contain sufficient information to answer this question.\"\n\n=== RESPONSE FORMAT ===\nIF the user asks a GENERAL KNOWLEDGE question:\n  - Start with 1-2 sentences of what the context says.\n  - Then list specific claims with exact quotes in \"quotation marks\".\n\nIF the user asks WHO or ENTITIES:\n  - List only names/entities found literally in the context.\n  - Format: \"Found in context: Name — 'supporting quote from context'\"\n\nGeneral: Output final answer text only. No <think> tags. No numbered citations."
         reasoning_format: separated
         selected: false
         title: Extraction LLM
@@ -1196,7 +1195,7 @@ workflow:
           filtered_chunks:
             children: null
             type: array[string]
-        selected: true
+        selected: false
         title: KR Chunk Filter
         type: code
         variables:
@@ -1213,13 +1212,13 @@ workflow:
       positionAbsolute:
         x: -389.0488118411729
         y: 3681.1329167788017
-      selected: true
+      selected: false
       sourcePosition: right
       targetPosition: left
       type: custom
       width: 242
     viewport:
-      x: 604.8357395869442
-      y: -2291.9675687547206
+      x: 1378.8357395869443
+      y: -2252.9675687547206
       zoom: 0.7748559309591706
   rag_pipeline_variables: []
