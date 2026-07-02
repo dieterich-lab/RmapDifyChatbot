@@ -1434,33 +1434,53 @@ workflow:
         prompt_template:
         - id: extraction-llm-prompt
           role: system
-          text: 'You are a strict academic assistant. You MUST answer ONLY using text
-            copied from the context below. You are FORBIDDEN from using your own knowledge.
-
-
-            Context:
-
-            {{#context#}}
-
-
-            RULES:
-
-            - Every sentence you write MUST contain words copied from the context.
-
-            - If the context lacks information, write exactly: "Insufficient context."
-
-            - NO paper titles, author names, method names, or years unless they literally
-            appear in the context.
-
-            - NO citations, NO 【markers】, NO (Author, Year).
-
-            - Keep answer under 150 words.'
-        reasoning_format: separated
+          text: "You are a strict academic assistant. Output ONLY valid JSON.\n\n\
+            Context:\n{{#context#}}\n\nOutput this exact JSON structure:\n{\n  \"\
+            claims\": [\n    {\"statement\": \"A factual claim\", \"quote\": \"VERBATIM\
+            \ text from context\"}\n  ],\n  \"insufficient\": false\n}\n\nRULES:\n\
+            - \"statement\" must be a single factual sentence.\n- \"quote\" MUST be\
+            \ copy-pasted VERBATIM from the context above. NEVER invent quotes.\n\
+            - If no quote exists for a claim, DELETE that claim.\n- If the context\
+            \ lacks information, set \"insufficient\": true and \"claims\": [].\n\
+            - NO paper titles, author names, or method names unless they literally\
+            \ appear in the context.\n- Output ONLY the JSON. No markdown fences,\
+            \ no <think> tags."
+        reasoning_format: structured
         selected: false
         title: Extraction LLM
         type: llm
         vision:
           enabled: false
+        structured_output:
+          schema:
+            additionalProperties: false
+            properties:
+              claims:
+                description: List of factual claims grounded in the context
+                items:
+                  additionalProperties: false
+                  properties:
+                    statement:
+                      description: A factual statement derived from the context
+                      type: string
+                    quote:
+                      description: VERBATIM text from the context that supports this
+                        statement. Must be copy-pasted exactly.
+                      type: string
+                  required:
+                  - statement
+                  - quote
+                  type: object
+                type: array
+              insufficient:
+                description: Set to true if the context lacks information to answer
+                  the query
+                type: boolean
+            required:
+            - claims
+            - insufficient
+            type: object
+        structured_output_enabled: true
       height: 88
       id: '1778800001034'
       position:
