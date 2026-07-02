@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-usage() { echo "Usage: $0 <dsl-yaml-path> [--app-id <app-id>] [--allow-cookie-auth] [--auto-login]"; }
+usage() { echo "Usage: $0 <dsl-yaml-path> [--app-id <app-id>] [--allow-cookie-auth] [--auto-login] [--skip-build]"; }
 fail() { echo "$*"; exit 1; }
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -13,12 +13,14 @@ PYTHON_BIN="${PYTHON_BIN:-$REPO_ROOT/.venv/bin/python}"
 DSL_PATH="$1"; shift
 ALLOW_COOKIE_AUTH=0
 AUTO_LOGIN=0
+SKIP_BUILD=0
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --app-id) shift; [[ $# -ge 1 ]] || fail "Missing value for --app-id"; DIFY_APP_ID="$1"; shift ;;
     --allow-cookie-auth) ALLOW_COOKIE_AUTH=1; shift ;;
     --auto-login) AUTO_LOGIN=1; shift ;;
+    --skip-build) SKIP_BUILD=1; shift ;;
     *) echo "Unknown argument: $1"; usage; exit 1 ;;
   esac
 done
@@ -77,6 +79,17 @@ if [[ "$BOOTSTRAP_REQUESTED" == "1" ]]; then
 fi
 
 IMPORT_URL="${DIFY_BASE_URL%/}/console/api/apps/imports"
+
+# ── Pre-import: build DSL from workflow_scripts/ ──────────────────────────
+if [[ "$SKIP_BUILD" != "1" ]]; then
+  BUILD_SCRIPT="$REPO_ROOT/scripts/build_dsl.py"
+  if [[ -x "$BUILD_SCRIPT" || -f "$BUILD_SCRIPT" ]]; then
+    echo "Building DSL from workflow_scripts/..."
+    "$PYTHON_BIN" "$BUILD_SCRIPT" || fail "DSL build failed"
+    echo ""
+  fi
+fi
+
 PAYLOAD=$(DSL_PATH="$DSL_PATH" DIFY_APP_ID="${DIFY_APP_ID:-}" "$PYTHON_BIN" - <<'PY'
 import json, os
 from pathlib import Path
