@@ -1429,7 +1429,7 @@ workflow:
             max_tokens: 4000
             temperature: 0
           mode: chat
-          name: gpt-oss
+          name: qwen2.5:14b
           provider: langgenius/ollama/ollama
         prompt_template:
         - id: extraction-llm-prompt
