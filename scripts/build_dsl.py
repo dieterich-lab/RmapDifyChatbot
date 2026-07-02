@@ -20,6 +20,7 @@ CONFIG_DIR = REPO_ROOT / "config"
 # Map node titles to script filenames
 NODE_TO_SCRIPT = {
     "Final Answer Sanitizer": "final_answer_sanitizer.py",
+    "KR Chunk Filter": "kr_chunk_filter.py",
     "Metadata Query": "metadata_query.py",
     "Parse Extractor Paper List": "parse_extractor_paper_list.py",
     "Follow-up Memory Subset": "follow_up_memory_subset.py",

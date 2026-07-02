@@ -334,7 +334,7 @@ workflow:
       positionAbsolute:
         x: -1479.2766666643752
         y: 3002.861688967774
-      selected: true
+      selected: false
       sourcePosition: right
       targetPosition: left
       type: custom
@@ -471,13 +471,16 @@ workflow:
       type: custom
       width: 242
     - data:
-        code: "import re\n\ndef main(metadata_text=None, summary_text=None, extraction_text=None):\n\
-          \    texts = [\n        ('metadata', metadata_text),\n        ('summary',\
-          \ summary_text),\n        ('extraction', extraction_text),\n    ]\n    for\
-          \ source, text in texts:\n        if isinstance(text, str) and text.strip():\n\
-          \            cleaned = re.sub(r'<think>.*?</think>', '', text, flags=re.DOTALL).strip()\n\
-          \            if cleaned:\n                return {'cleaned_text': cleaned}\n\
-          \    return {'cleaned_text': ''}\n"
+        code: "import re\n\n\ndef _strip_think(text):\n    cleaned = str(text or \"\
+          \")\n    # Remove well-formed think blocks first.\n    cleaned = re.sub(r\"\
+          <think>.*?</think>\", \"\", cleaned, flags=re.S | re.I)\n    # Also handle\
+          \ truncated outputs where </think> is missing.\n    cleaned = re.sub(r\"\
+          <think>.*$\", \"\", cleaned, flags=re.S | re.I)\n    return cleaned.strip()\n\
+          \n\ndef main(knowledge_text=None, metadata_text=None):\n    parts = []\n\
+          \    first = _strip_think(knowledge_text)\n    second = _strip_think(metadata_text)\n\
+          \    if first:\n        parts.append(first)\n    if second:\n        parts.append(second)\n\
+          \    merged = \"\\n\\n\".join(parts).strip()\n    return {\"cleaned_text\"\
+          : merged}\n"
         code_language: python3
         isInIteration: false
         isInLoop: false
@@ -682,35 +685,31 @@ workflow:
           \ | {doc['year']} | {doc['journal']} | {doc.get('id', '')}\"\n        )\n\
           \    header = (\n        f\"Code-Version: {CODE_VERSION}; Dokumente geprueft:\
           \ {total_docs}; \"\n        f\"Treffer: {len(matches)}\"\n    )\n    return\
-          \ header + \"\\n\" + \"\\n\".join(lines)\n\n\ndef main(paper_list=None):\n\
-          \    api_base = (os.getenv(\"DIFY_API_URL\") or \"http://rmap-chatbot-demo-dify/v1\"\
-          ).rstrip(\n        \"/\"\n    )\n    dataset_id = os.getenv(\"DIFY_DATASET_ID\"\
-          ) or \"<your-dataset-id>\"\n    api_key = os.getenv(\"\
-          DIFY_API_KEY\") or \"REDACTED\"\n\n    if not _is_set(api_base)\
-          \ or not _is_set(dataset_id) or not _is_set(api_key):\n        return {\n\
-          \            \"result\": (\n                \"Dify API Konfiguration unvollstaendig.\
-          \ \"\n                \"Erwarte DIFY_API_URL, DIFY_DATASET_ID und DIFY_API_KEY.\"\
-          \n            )\n        }\n\n    items = paper_list if isinstance(paper_list,\
-          \ list) else []\n    if not items:\n        return {\"result\": [], \"result_text\"\
-          : \"\"}\n\n    headers = _build_headers(str(api_key).strip())\n    docs,\
-          \ errors = _collect_documents(str(api_base), str(dataset_id).strip(), headers)\n\
-          \n    all_matches = []\n    for item in items:\n        if not isinstance(item,\
-          \ dict):\n            continue\n        year_filter = _sanitize_year_filter(item.get(\"\
-          year\"))\n        journal_filter = _sanitize_free_text_filter(item.get(\"\
-          journal\"), max_len=80)\n        title_filter = _sanitize_free_text_filter(item.get(\"\
-          title\"), max_len=160)\n        authors = item.get(\"authors\") or item.get(\"\
-          author\")\n        for doc in docs:\n            if _matches_filters(doc,\
-          \ year_filter, authors, journal_filter, title_filter):\n               \
-          \ all_matches.append(doc)\n\n    unique = {}\n    for doc in all_matches:\n\
-          \        key = (\n            (doc.get(\"title\") or \"\").strip().lower(),\n\
-          \            (doc.get(\"authors\") or \"\").strip().lower(),\n         \
-          \   (doc.get(\"year\") or \"\").strip(),\n            (doc.get(\"journal\"\
-          ) or \"\").strip().lower(),\n        )\n        if key not in unique:\n\
-          \            unique[key] = doc\n    final_docs = list(unique.values())\n\
-          \n    result_text = _render_result(final_docs, total_docs=len(docs))\n \
-          \   if errors:\n        result_text += \"\\nFehlerdetails:\\n\" + \"\\n\"\
-          .join(f\"- {e}\" for e in errors[:8])\n    return {\"result\": (result_text.split(\"\
-          \\n\") if result_text else []), \"result_text\": result_text}\n"
+          \ header + \"\\n\" + \"\\n\".join(lines)\n\n\ndef main(year=None, authors=None,\
+          \ journal=None, title=None):\n    api_base = (os.getenv(\"DIFY_API_URL\"\
+          ) or \"http://rmap-chatbot-demo-dify/v1\").rstrip(\n        \"/\"\n    )\n\
+          \    dataset_id = os.getenv(\"DIFY_DATASET_ID\") or \"<your-dataset-id>\"\
+          \n    api_key = os.getenv(\"DIFY_API_KEY\") or \"REDACTED\"\
+          \n\n    if not _is_set(api_base) or not _is_set(dataset_id) or not _is_set(api_key):\n\
+          \        return {\n            \"result\": (\n                \"Dify API\
+          \ Konfiguration unvollstaendig. \"\n                \"Erwarte DIFY_API_URL,\
+          \ DIFY_DATASET_ID und DIFY_API_KEY.\"\n            )\n        }\n\n    headers\
+          \ = _build_headers(str(api_key).strip())\n    docs, errors = _collect_documents(str(api_base),\
+          \ str(dataset_id).strip(), headers)\n\n    year_filter = _sanitize_year_filter(year)\n\
+          \    journal_filter = _sanitize_free_text_filter(journal, max_len=80)\n\
+          \    title_filter = _sanitize_free_text_filter(title, max_len=160)\n\n \
+          \   matches = []\n    for doc in docs:\n        if _matches_filters(doc,\
+          \ year_filter, authors, journal_filter, title_filter):\n            matches.append(doc)\n\
+          \n    unique = {}\n    for doc in matches:\n        key = (\n          \
+          \  (doc.get(\"title\") or \"\").strip().lower(),\n            (doc.get(\"\
+          authors\") or \"\").strip().lower(),\n            (doc.get(\"year\") or\
+          \ \"\").strip(),\n            (doc.get(\"journal\") or \"\").strip().lower(),\n\
+          \        )\n        if key not in unique:\n            unique[key] = doc\n\
+          \    final_docs = list(unique.values())\n\n    result_text = _render_result(final_docs,\
+          \ total_docs=len(docs))\n    if errors:\n        result_text += \"\\nFehlerdetails:\\\
+          n\" + \"\\n\".join(f\"- {e}\" for e in errors[:8])\n    return {\"result\"\
+          : (result_text.split(\"\\n\") if result_text else []), \"result_text\":\
+          \ result_text}\n"
         code_language: python3
         isInIteration: false
         isInLoop: false
@@ -752,25 +751,22 @@ workflow:
           \   if not any([title, authors, year, journal]):\n        return None\n\
           \    return {\n        'title': title,\n        'authors': authors,\n  \
           \      'year': year,\n        'journal': journal,\n        'doc_id': doc_id,\n\
-          \    }\n\n\ndef _parse_pipe_line(line):\n    line = line.strip()\n    if\
-          \ not line or '|' not in line:\n        return None\n    # Strip leading\
-          \ numbering like \"1. \"\n    if '. ' in line:\n        _, _, line = line.partition('.\
-          \ ')\n    parts = [p.strip() for p in line.split('|')]\n    if len(parts)\
-          \ not in (4, 5):\n        return None\n    obj_dict = {\n        'title':\
-          \ parts[0],\n        'authors': parts[1],\n        'year': parts[2],\n \
-          \       'journal': parts[3],\n    }\n    if len(parts) == 5:\n        obj_dict['doc_id']\
-          \ = parts[4]\n    return _normalize_obj(obj_dict)\n\n\ndef _parse_from_iteration_output(iteration_output):\n\
-          \    parsed = []\n    if not isinstance(iteration_output, list):\n     \
-          \   return parsed\n\n    for block in iteration_output:\n        # block\
-          \ can be a string OR a list of strings (when iterator outputs array[string])\n\
-          \        lines = []\n        if isinstance(block, str):\n            lines\
-          \ = block.splitlines()\n        elif isinstance(block, list):\n        \
-          \    for item in block:\n                if isinstance(item, str):\n   \
-          \                 lines.extend(item.splitlines())\n\n        for line in\
-          \ lines:\n            obj = _parse_pipe_line(line)\n            if obj is\
-          \ not None:\n                parsed.append(obj)\n\n    return parsed\n\n\
-          \ndef _dedupe(items):\n    unique = {}\n    for item in items:\n       \
-          \ obj = _normalize_obj(item)\n        if obj is None:\n            continue\n\
+          \    }\n\n\ndef _parse_from_iteration_output(iteration_output):\n    parsed\
+          \ = []\n    if not isinstance(iteration_output, list):\n        return parsed\n\
+          \n    for block in iteration_output:\n        if not isinstance(block, str):\n\
+          \            continue\n        for line in block.splitlines():\n       \
+          \     line = line.strip()\n            if not line:\n                continue\n\
+          \            if '|' not in line:\n                continue\n           \
+          \ if '. ' in line:\n                _, _, line = line.partition('. ')\n\
+          \            parts = [p.strip() for p in line.split('|')]\n            if\
+          \ len(parts) not in (4, 5):\n                continue\n            obj_dict\
+          \ = {\n                'title': parts[0],\n                'authors': parts[1],\n\
+          \                'year': parts[2],\n                'journal': parts[3],\n\
+          \            }\n            if len(parts) == 5:\n                obj_dict['doc_id']\
+          \ = parts[4]\n            obj = _normalize_obj(obj_dict)\n            if\
+          \ obj is not None:\n                parsed.append(obj)\n    return parsed\n\
+          \n\ndef _dedupe(items):\n    unique = {}\n    for item in items:\n     \
+          \   obj = _normalize_obj(item)\n        if obj is None:\n            continue\n\
           \        key = (\n            obj['title'].lower(),\n            obj['authors'].lower(),\n\
           \            obj['year'],\n            obj['journal'].lower(),\n       \
           \ )\n        if key not in unique:\n            unique[key] = obj\n    return\
@@ -852,16 +848,29 @@ workflow:
           \   if not any([title, authors, year, journal]):\n        return None\n\
           \    return {\n        'title': title,\n        'authors': authors,\n  \
           \      'year': year,\n        'journal': journal,\n        'doc_id': doc_id,\n\
-          \    }\n\ndef _dedupe(items):\n    unique = {}\n    for item in items:\n\
-          \        obj = _normalize_obj(item)\n        if obj is None:\n         \
-          \   continue\n        key = (obj['title'].lower(), obj['authors'].lower(),\
-          \ obj['year'], obj['journal'].lower())\n        if key not in unique:\n\
-          \            unique[key] = obj\n    return list(unique.values())\n\ndef\
-          \ main(iteration_output=None, memory=None):\n    # For the content path,\
-          \ preserve paper identities from conversation.memory.\n    # The Iterator\
-          \ fetches full paper text but doesn't provide structured metadata.\n   \
-          \ existing = memory if isinstance(memory, list) else []\n    return {'memory':\
-          \ _dedupe(existing)}\n"
+          \    }\n\n\ndef _parse_from_iteration_output(iteration_output):\n    parsed\
+          \ = []\n    if not isinstance(iteration_output, list):\n        return parsed\n\
+          \n    for block in iteration_output:\n        if not isinstance(block, str):\n\
+          \            continue\n        for line in block.splitlines():\n       \
+          \     line = line.strip()\n            if not line:\n                continue\n\
+          \            if '|' not in line:\n                continue\n           \
+          \ if '. ' in line:\n                _, _, line = line.partition('. ')\n\
+          \            parts = [p.strip() for p in line.split('|')]\n            if\
+          \ len(parts) not in (4, 5):\n                continue\n            obj_dict\
+          \ = {\n                'title': parts[0],\n                'authors': parts[1],\n\
+          \                'year': parts[2],\n                'journal': parts[3],\n\
+          \            }\n            if len(parts) == 5:\n                obj_dict['doc_id']\
+          \ = parts[4]\n            obj = _normalize_obj(obj_dict)\n            if\
+          \ obj is not None:\n                parsed.append(obj)\n    return parsed\n\
+          \n\ndef _dedupe(items):\n    unique = {}\n    for item in items:\n     \
+          \   obj = _normalize_obj(item)\n        if obj is None:\n            continue\n\
+          \        key = (\n            obj['title'].lower(),\n            obj['authors'].lower(),\n\
+          \            obj['year'],\n            obj['journal'].lower(),\n       \
+          \ )\n        if key not in unique:\n            unique[key] = obj\n    return\
+          \ list(unique.values())\n\n\ndef main(iteration_output=None, memory=None):\n\
+          \    parsed_docs = _dedupe(_parse_from_iteration_output(iteration_output))\n\
+          \    if parsed_docs:\n        return {'memory': parsed_docs}\n\n    existing\
+          \ = memory if isinstance(memory, list) else []\n    return {'memory': _dedupe(existing)}\n"
         code_language: python3
         isInIteration: false
         isInLoop: false
@@ -998,7 +1007,7 @@ workflow:
           \ = f'{title} ({year}, {journal}) — {authors}' if (year or journal or authors)\
           \ else title\n    header = f'=== {meta_line} ==='\n    n = int(paper_count)\
           \ if paper_count and int(paper_count) > 0 else 1\n    chars_per_paper =\
-          \ max(3000, 32000 // n)\n    context = f'{header}\\n\\n{text[:chars_per_paper]}'\n\
+          \ max(4000, 48000 // n)\n    context = f'{header}\\n\\n{text[:chars_per_paper]}'\n\
           \    return {'paper_context': context, 'paper_fetch_error': ''}\n"
         code_language: python3
         isInIteration: true
@@ -1523,35 +1532,46 @@ workflow:
       type: custom
       width: 242
     - data:
-        code: "import re\nimport json\n\ndef _extract_text(chunk):\n    if isinstance(chunk,\
-          \ dict):\n        seg = chunk.get('segment', {})\n        if isinstance(seg,\
-          \ dict) and seg.get('content', '').strip():\n            return str(seg['content']).strip()\n\
-          \        if chunk.get('content', '').strip():\n            return str(chunk['content']).strip()\n\
-          \        ccs = chunk.get('child_chunks', [])\n        if ccs:\n        \
-          \    parts = [str(c.get('content','')).strip() for c in ccs if isinstance(c,\
-          \ dict)]\n            return chr(10).join(p for p in parts if p)\n     \
-          \   return ''\n    text = str(chunk or '').strip()\n    if text.startswith('{')\
-          \ or text.startswith('['):\n        try:\n            obj = json.loads(text)\n\
+        code: "import json\nimport re\n\nNL = chr(10)  # newline - avoids YAML escaping\
+          \ issues\n\n\ndef _extract_text(chunk):\n    if isinstance(chunk, dict):\n\
+          \        seg = chunk.get(\"segment\", {})\n        if isinstance(seg, dict)\
+          \ and seg.get(\"content\", \"\").strip():\n            return str(seg[\"\
+          content\"]).strip()\n        if chunk.get(\"content\", \"\").strip():\n\
+          \            return str(chunk[\"content\"]).strip()\n        ccs = chunk.get(\"\
+          child_chunks\", [])\n        if ccs:\n            parts = [\n          \
+          \      str(c.get(\"content\", \"\")).strip() for c in ccs if isinstance(c,\
+          \ dict)\n            ]\n            return NL.join(p for p in parts if p)\n\
+          \        return \"\"\n    text = str(chunk or \"\").strip()\n    if text.startswith(\"\
+          {\") or text.startswith(\"[\"):\n        try:\n            obj = json.loads(text)\n\
           \            if isinstance(obj, dict):\n                return _extract_text(obj)\n\
           \            if isinstance(obj, list):\n                parts = [_extract_text(i)\
-          \ for i in obj[:3]]\n                return chr(10).join(p for p in parts\
-          \ if p)\n        except Exception:\n            pass\n    return text\n\n\
-          def _is_reference_chunk(text):\n    t = str(text or '').strip()\n    if\
-          \ not t or len(t) < 20:\n        return False\n    lines = [l.strip() for\
-          \ l in t.split(chr(10)) if l.strip()]\n    if not lines:\n        return\
-          \ False\n    ref_line = re.compile(r'^\\s*(?:\\d+\\.?\\s+|\\*\\s+|\\[\\\
-          d+\\]\\s+)')\n    ref_lines = sum(1 for l in lines if ref_line.match(l))\n\
-          \    etal_lines = sum(1 for l in lines if re.search(r'\\bet\\s+al\\.?\\\
-          b', l, re.IGNORECASE))\n    doi_lines = sum(1 for l in lines if 'doi.org'\
-          \ in l.lower())\n    ref_ratio = (ref_lines + etal_lines * 0.5 + doi_lines\
-          \ * 0.3) / max(1, len(lines))\n    if ref_ratio > 0.6:\n        return True\n\
-          \    return False\n\ndef main(kr_result=None):\n    if not isinstance(kr_result,\
-          \ list):\n        return {'filtered_chunks': [], 'chunk_count': 0, 'chunks_removed':\
-          \ 0}\n    kept = []\n    removed = 0\n    for c in kr_result:\n        text\
+          \ for i in obj[:3]]\n                return NL.join(p for p in parts if\
+          \ p)\n        except Exception:\n            pass\n    return text\n\n\n\
+          def _is_reference_chunk(text):\n    t = str(text or \"\").strip()\n    if\
+          \ not t or len(t) < 20:\n        return False\n\n    doi_count = len(re.findall(r\"\
+          doi\\.org/\\S+|DOI:\\s*\\S+\", t, re.IGNORECASE))\n    numbered_refs = len(\n\
+          \        re.findall(r\"(?:^|\" + NL + r\")\\s*(?:\\d+\\.[ \\t]|\\[\\d+\\\
+          ][ \\t])\", t)\n    )\n    etal_count = len(re.findall(r\"\\bet\\s+al\\\
+          b\", t, re.IGNORECASE))\n    year_parens = len(re.findall(r\"\\((?:19|20)\\\
+          d{2}[a-z]?\\)\", t))\n\n    score = doi_count * 3.0 + numbered_refs * 1.5\
+          \ + etal_count * 0.5 + year_parens * 0.3\n    density = score / max(1.0,\
+          \ len(t) / 500.0)\n\n    if doi_count >= 2:\n        return True\n    if\
+          \ numbered_refs >= 4:\n        return True\n    if density > 3.0:\n    \
+          \    return True\n\n    first_line = t.split(NL)[0].strip()\n    if re.match(r\"\
+          ^\\d+[\\.,]\\s\", first_line) or re.match(r\"^\\[\\d+\\]\", first_line):\n\
+          \        if density > 1.5:\n            return True\n\n    return False\n\
+          \n\ndef main(kr_result=None):\n    if not isinstance(kr_result, list):\n\
+          \        return {\"filtered_chunks\": [], \"chunk_count\": 0, \"chunks_removed\"\
+          : 0}\n    kept = []\n    removed = 0\n    for c in kr_result:\n        text\
           \ = _extract_text(c)\n        if not text or len(text) < 20:\n         \
           \   continue\n        if _is_reference_chunk(text):\n            removed\
-          \ += 1\n        else:\n            kept.append(text)\n    return {'filtered_chunks':\
-          \ kept, 'chunk_count': len(kept), 'chunks_removed': removed}\n"
+          \ += 1\n        else:\n            kept.append(text)\n    if not kept:\n\
+          \        kept.append(\n            \"ALL \"\n            + str(len(kr_result))\n\
+          \            + \" RETRIEVED CHUNKS WERE REFERENCE LISTS AND FILTERED OUT.\
+          \ The query may match bibliography sections rather than paper body text.\
+          \ Try a more specific query or different search terms.\"\n        )\n  \
+          \  return {\n        \"filtered_chunks\": kept,\n        \"chunk_count\"\
+          : len(kept),\n        \"chunks_removed\": removed,\n    }\n"
         code_language: python3
         isInIteration: false
         isInLoop: false
@@ -1565,7 +1585,7 @@ workflow:
           filtered_chunks:
             children: null
             type: array[string]
-        selected: false
+        selected: true
         title: KR Chunk Filter
         type: code
         variables:
@@ -1582,13 +1602,13 @@ workflow:
       positionAbsolute:
         x: -389.0488118411729
         y: 3681.1329167788017
-      selected: false
+      selected: true
       sourcePosition: right
       targetPosition: left
       type: custom
       width: 242
     viewport:
-      x: 1378.8357395869443
-      y: -2252.9675687547206
+      x: 604.8357395869442
+      y: -2291.9675687547206
       zoom: 0.7748559309591706
   rag_pipeline_variables: []
