@@ -1,25 +1,28 @@
 # Code Node: KR Chunk Filter
 # Node ID: 1778800001036
 
-import re
 import json
+import re
 
 NL = chr(10)  # newline - avoids YAML escaping issues
 
+
 def _extract_text(chunk):
     if isinstance(chunk, dict):
-        seg = chunk.get('segment', {})
-        if isinstance(seg, dict) and seg.get('content', '').strip():
-            return str(seg['content']).strip()
-        if chunk.get('content', '').strip():
-            return str(chunk['content']).strip()
-        ccs = chunk.get('child_chunks', [])
+        seg = chunk.get("segment", {})
+        if isinstance(seg, dict) and seg.get("content", "").strip():
+            return str(seg["content"]).strip()
+        if chunk.get("content", "").strip():
+            return str(chunk["content"]).strip()
+        ccs = chunk.get("child_chunks", [])
         if ccs:
-            parts = [str(c.get('content','')).strip() for c in ccs if isinstance(c, dict)]
+            parts = [
+                str(c.get("content", "")).strip() for c in ccs if isinstance(c, dict)
+            ]
             return NL.join(p for p in parts if p)
-        return ''
-    text = str(chunk or '').strip()
-    if text.startswith('{') or text.startswith('['):
+        return ""
+    text = str(chunk or "").strip()
+    if text.startswith("{") or text.startswith("["):
         try:
             obj = json.loads(text)
             if isinstance(obj, dict):
@@ -31,38 +34,79 @@ def _extract_text(chunk):
             pass
     return text
 
+
 def _is_reference_chunk(text):
-    t = str(text or '').strip()
+    t = str(text or "").strip()
     if not t or len(t) < 20:
         return False
-    
-    doi_count = len(re.findall(r'doi\.org/\S+|DOI:\s*\S+', t, re.IGNORECASE))
-    numbered_refs = len(re.findall(r'(?:^|' + NL + r')\s*(?:\d+\.[ \t]|\[\d+\][ \t])', t))
-    etal_count = len(re.findall(r'\bet\s+al\b', t, re.IGNORECASE))
-    year_parens = len(re.findall(r'\((?:19|20)\d{2}[a-z]?\)', t))
-    
-    score = doi_count * 3.0 + numbered_refs * 1.5 + etal_count * 0.5 + year_parens * 0.3
+
+    doi_count = len(re.findall(r"doi\.org/\S+|DOI:\s*\S+", t, re.IGNORECASE))
+    numbered_refs = len(
+        re.findall(r"(?:^|" + NL + r")\s*(?:\d+\.[ \t]|\[\d+\][ \t]|\(\d+\)\s)", t)
+    )
+    # also catch parenthetical refs anywhere (e.g. "...e99777. (83) de Crecy...")
+    paren_refs_anywhere = len(re.findall(r"\(\d+\)\s", t))
+    etal_count = len(re.findall(r"\bet\s+al\b", t, re.IGNORECASE))
+    year_parens = len(re.findall(r"\((?:19|20)\d{2}[a-z]?\)", t))
+
+    score = (
+        doi_count * 3.0
+        + numbered_refs * 1.5
+        + paren_refs_anywhere * 1.0
+        + etal_count * 0.5
+        + year_parens * 0.3
+    )
     density = score / max(1.0, len(t) / 500.0)
-    
-    if doi_count >= 2:
+
+    if doi_count >= 4:
         return True
-    if numbered_refs >= 4:
+    if numbered_refs >= 8:
         return True
-    if density > 3.0:
+    if density > 1.8:
         return True
-    
+
     first_line = t.split(NL)[0].strip()
-    if re.match(r'^\d+[\.,]\s', first_line) or re.match(r'^\[\d+\]', first_line):
-        if density > 1.5:
+    if re.match(r"^\d+[\.,]\s", first_line) or re.match(r"^\[\d+\]", first_line):
+        if density > 0.8:
             return True
-    
+
     return False
+
+
+def _clean_doc_name(raw):
+    """Strip .pdf extension and Dify upload suffix like __two_pass_1781511154."""
+    name = str(raw or "").strip()
+    if not name:
+        return None
+    # Strip .pdf extension (may or may not be present)
+    name = re.sub(r"\.pdf$", "", name, flags=re.IGNORECASE)
+    # Strip Dify upload suffix: __variant_timestamp
+    name = re.sub(r"__[a-z_]+_\d{10,}$", "", name, flags=re.IGNORECASE)
+    name = name.strip()
+    return name or None
+
+
+def _get_doc_name(chunk):
+    """Extract document name from a Dify KR result item."""
+    if not isinstance(chunk, dict):
+        return None
+    # Try metadata block first
+    meta = chunk.get("metadata", {})
+    if isinstance(meta, dict):
+        name = _clean_doc_name(meta.get("document_name", ""))
+        if name:
+            return name
+    # Fall back to title field (Dify includes author/year/journal here)
+    name = _clean_doc_name(chunk.get("title", ""))
+    return name
+
 
 def main(kr_result=None):
     if not isinstance(kr_result, list):
-        return {'filtered_chunks': [], 'chunk_count': 0, 'chunks_removed': 0}
+        return {"filtered_chunks": [], "chunk_count": 0, "chunks_removed": 0}
     kept = []
     removed = 0
+    seen_docs = set()
     for c in kr_result:
         text = _extract_text(c)
         if not text or len(text) < 20:
@@ -70,7 +114,48 @@ def main(kr_result=None):
         if _is_reference_chunk(text):
             removed += 1
         else:
+            doc_name = _get_doc_name(c)
+            if doc_name:
+                seen_docs.add(doc_name)
+                text = "From paper: " + doc_name + NL + text
             kept.append(text)
-    if not kept:
-        kept.append('ALL ' + str(len(kr_result)) + ' RETRIEVED CHUNKS WERE REFERENCE LISTS AND FILTERED OUT. The query may match bibliography sections rather than paper body text. Try a more specific query or different search terms.')
-    return {'filtered_chunks': kept, 'chunk_count': len(kept), 'chunks_removed': removed}
+    # Safety: if too few chunks survived, pass all through unfiltered
+    if len(kept) < 3 and len(kr_result) >= 3:
+        kept = []
+        removed = 0
+        for c in kr_result:
+            text = _extract_text(c)
+            if not text or len(text) < 20:
+                continue
+            doc_name = _get_doc_name(c)
+            if doc_name:
+                seen_docs.add(doc_name)
+                text = "From paper: " + doc_name + NL + text
+            kept.append(text)
+
+    # Deduplicate by paper: merge chunks from same document
+    by_doc = {}
+    for chunk in kept:
+        parts = chunk.split(NL, 1)
+        doc_key = parts[0] if parts[0].startswith("From paper:") else "_unknown"
+        content = parts[1] if len(parts) > 1 else chunk
+        if doc_key not in by_doc:
+            by_doc[doc_key] = []
+        by_doc[doc_key].append(content)
+    deduped = []
+    for doc_key, contents in by_doc.items():
+        merged = NL.join(contents[:3])  # max 3 chunks per paper
+        deduped.append(doc_key + NL + merged)
+
+    if not deduped:
+        deduped.append(
+            "ALL "
+            + str(len(kr_result))
+            + " RETRIEVED CHUNKS WERE REFERENCE LISTS AND FILTERED OUT. The query may match bibliography sections rather than paper body text. Try a more specific query or different search terms."
+        )
+    return {
+        "filtered_chunks": deduped,
+        "chunk_count": len(deduped),
+        "chunks_removed": removed,
+        "doc_names": sorted(seen_docs),
+    }

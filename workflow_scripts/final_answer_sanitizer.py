@@ -13,13 +13,13 @@ def _strip_think(text):
     return cleaned.strip()
 
 
-def main(knowledge_text=None, metadata_text=None):
+def main(**kwargs):
     parts = []
-    first = _strip_think(knowledge_text)
-    second = _strip_think(metadata_text)
-    if first:
-        parts.append(first)
-    if second:
-        parts.append(second)
+    for key in ("extraction_text", "summary_text", "knowledge_text", "metadata_text"):
+        text = kwargs.get(key)
+        if text:
+            cleaned = _strip_think(text)
+            if cleaned:
+                parts.append(cleaned)
     merged = "\n\n".join(parts).strip()
     return {"cleaned_text": merged}

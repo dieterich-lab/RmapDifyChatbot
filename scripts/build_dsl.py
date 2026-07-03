@@ -10,8 +10,9 @@ corresponding code nodes, and writes the result to config/.
 """
 
 import sys
-import yaml
 from pathlib import Path
+
+import yaml
 
 REPO_ROOT = Path(__file__).parent.parent
 SCRIPTS_DIR = REPO_ROOT / "workflow_scripts"
@@ -83,7 +84,9 @@ def build_dsl(input_path: Path, output_path: Path) -> None:
 
     print(f"\nWriting final DSL to: {output_path}")
     with open(output_path, "w") as f:
-        yaml.dump(data, f, default_flow_style=False, allow_unicode=True, sort_keys=False)
+        yaml.dump(
+            data, f, default_flow_style=False, allow_unicode=True, sort_keys=False
+        )
 
     print("✅ Build complete!")
 

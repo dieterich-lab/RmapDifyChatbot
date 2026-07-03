@@ -60,7 +60,7 @@ workflow:
       number_limits: 3
     opening_statement: ''
     retriever_resource:
-      enabled: true
+      enabled: false
     sensitive_word_avoidance:
       enabled: false
     speech_to_text:
@@ -357,15 +357,15 @@ workflow:
         multiple_retrieval_config:
           reranking_enable: false
           reranking_mode: weighted_score
-          score_threshold: null
-          top_k: 10
+          score_threshold: 0.2
+          top_k: 15
           weights:
             keyword_setting:
-              keyword_weight: 0.7
+              keyword_weight: 0.4
             vector_setting:
               embedding_model_name: nomic-embed-text-v2-moe
               embedding_provider_name: langgenius/ollama/ollama
-              vector_weight: 0.3
+              vector_weight: 0.6
             weight_type: customized
         query_attachment_selector: []
         query_variable_selector:
@@ -383,7 +383,7 @@ workflow:
       positionAbsolute:
         x: -707.0828016038357
         y: 3681.1329167788017
-      selected: false
+      selected: true
       sourcePosition: right
       targetPosition: left
       type: custom
@@ -476,11 +476,11 @@ workflow:
           <think>.*?</think>\", \"\", cleaned, flags=re.S | re.I)\n    # Also handle\
           \ truncated outputs where </think> is missing.\n    cleaned = re.sub(r\"\
           <think>.*$\", \"\", cleaned, flags=re.S | re.I)\n    return cleaned.strip()\n\
-          \n\ndef main(knowledge_text=None, metadata_text=None):\n    parts = []\n\
-          \    first = _strip_think(knowledge_text)\n    second = _strip_think(metadata_text)\n\
-          \    if first:\n        parts.append(first)\n    if second:\n        parts.append(second)\n\
-          \    merged = \"\\n\\n\".join(parts).strip()\n    return {\"cleaned_text\"\
-          : merged}\n"
+          \n\ndef main(**kwargs):\n    parts = []\n    for key in (\"extraction_text\"\
+          , \"summary_text\", \"knowledge_text\", \"metadata_text\"):\n        text\
+          \ = kwargs.get(key)\n        if text:\n            cleaned = _strip_think(text)\n\
+          \            if cleaned:\n                parts.append(cleaned)\n    merged\
+          \ = \"\\n\\n\".join(parts).strip()\n    return {\"cleaned_text\": merged}\n"
         code_language: python3
         isInIteration: false
         isInLoop: false
@@ -1193,6 +1193,7 @@ workflow:
             \ of named entities extracted from papers.\n  paper_list MUST be []. KR\
             \ finds papers, extraction identifies entities.\n\n=== WHICH INTENT WHEN?\
             \ ===\n\n- \"Who has experience with X?\" / \"Wer hat Erfahrung mit X?\"\
+            \ → \"author_lookup\"\n- \"Who has worked on X?\" / \"Wer hat an X gearbeitet?\"\
             \ → \"author_lookup\"\n- \"Who synthesized Y?\" / \"Wer hat Y synthetisiert?\"\
             \ → \"author_lookup\"\n- \"Which tRNAs / proteins / methods ...?\" → \"\
             entity_lookup\"\n- Just an author name, no instruction → \"metadata_list\"\
@@ -1443,27 +1444,32 @@ workflow:
         prompt_template:
         - id: extraction-llm-prompt
           role: system
-          text: 'You are a strict academic assistant. You MUST answer ONLY using text
-            copied from the context below. You are FORBIDDEN from using your own knowledge.
+          text: 'Intent: {{#1778800001033.intent#}}
 
-
-            Context:
-
+            Context (each chunk starts with "From paper:" followed by paper info):
             {{#context#}}
 
 
-            RULES:
+            === author_lookup (user asks WHO) === - For EACH paper found in the context,
+            list its authors and what they studied. - Format: **Paper Title** (Journal)
+            - Author Name: what they specifically did per the paper (quote from context)
+            - Extract author names from "From paper:" headers, email addresses, and
+            affiliation lines (e.g. "ann.ehrenhofer-murray@..." → Ann Ehrenhofer-Murray).
+            - Each bullet must contain evidence from the context showing the author''s
+            work on this topic. - If the same author appears in multiple papers, list
+            them under each paper. - If no author names are found: "Insufficient context."
 
-            - Every sentence you write MUST contain words copied from the context.
+            === entity_lookup (user asks WHICH/WHAT entities) === - List specific
+            named entities (tRNAs, proteins, methods, organisms) from the context.
+            - Format: "- Entity — found in [Paper Title]"
 
-            - If the context lacks information, write exactly: "Insufficient context."
+            === knowledge_retrieval (general knowledge question) === - Summarize using
+            verbatim quotes from the context. - Every sentence MUST contain words
+            from the context.
 
-            - NO paper titles, author names, method names, or years unless they literally
-            appear in the context.
-
-            - NO citations, NO 【markers】, NO (Author, Year).
-
-            - Keep answer under 150 words.'
+            CRITICAL RULES (all intents): - If the context lacks information: "Insufficient
+            context." - NO fabricated names, NO citations, NO 【markers】. - Keep answer
+            under 500 words.'
         reasoning_format: separated
         selected: false
         title: Extraction LLM
@@ -1551,27 +1557,62 @@ workflow:
           \ not t or len(t) < 20:\n        return False\n\n    doi_count = len(re.findall(r\"\
           doi\\.org/\\S+|DOI:\\s*\\S+\", t, re.IGNORECASE))\n    numbered_refs = len(\n\
           \        re.findall(r\"(?:^|\" + NL + r\")\\s*(?:\\d+\\.[ \\t]|\\[\\d+\\\
-          ][ \\t])\", t)\n    )\n    etal_count = len(re.findall(r\"\\bet\\s+al\\\
-          b\", t, re.IGNORECASE))\n    year_parens = len(re.findall(r\"\\((?:19|20)\\\
-          d{2}[a-z]?\\)\", t))\n\n    score = doi_count * 3.0 + numbered_refs * 1.5\
-          \ + etal_count * 0.5 + year_parens * 0.3\n    density = score / max(1.0,\
-          \ len(t) / 500.0)\n\n    if doi_count >= 2:\n        return True\n    if\
-          \ numbered_refs >= 4:\n        return True\n    if density > 3.0:\n    \
-          \    return True\n\n    first_line = t.split(NL)[0].strip()\n    if re.match(r\"\
-          ^\\d+[\\.,]\\s\", first_line) or re.match(r\"^\\[\\d+\\]\", first_line):\n\
-          \        if density > 1.5:\n            return True\n\n    return False\n\
+          ][ \\t]|\\(\\d+\\)\\s)\", t)\n    )\n    # also catch parenthetical refs\
+          \ anywhere (e.g. \"...e99777. (83) de Crecy...\")\n    paren_refs_anywhere\
+          \ = len(re.findall(r\"\\(\\d+\\)\\s\", t))\n    etal_count = len(re.findall(r\"\
+          \\bet\\s+al\\b\", t, re.IGNORECASE))\n    year_parens = len(re.findall(r\"\
+          \\((?:19|20)\\d{2}[a-z]?\\)\", t))\n\n    score = (\n        doi_count *\
+          \ 3.0\n        + numbered_refs * 1.5\n        + paren_refs_anywhere * 1.0\n\
+          \        + etal_count * 0.5\n        + year_parens * 0.3\n    )\n    density\
+          \ = score / max(1.0, len(t) / 500.0)\n\n    if doi_count >= 4:\n       \
+          \ return True\n    if numbered_refs >= 8:\n        return True\n    if density\
+          \ > 1.8:\n        return True\n\n    first_line = t.split(NL)[0].strip()\n\
+          \    if re.match(r\"^\\d+[\\.,]\\s\", first_line) or re.match(r\"^\\[\\\
+          d+\\]\", first_line):\n        if density > 0.8:\n            return True\n\
+          \n    return False\n\n\ndef _clean_doc_name(raw):\n    \"\"\"Strip .pdf\
+          \ extension and Dify upload suffix like __two_pass_1781511154.\"\"\"\n \
+          \   name = str(raw or \"\").strip()\n    if not name:\n        return None\n\
+          \    # Strip .pdf extension (may or may not be present)\n    name = re.sub(r\"\
+          \\.pdf$\", \"\", name, flags=re.IGNORECASE)\n    # Strip Dify upload suffix:\
+          \ __variant_timestamp\n    name = re.sub(r\"__[a-z_]+_\\d{10,}$\", \"\"\
+          , name, flags=re.IGNORECASE)\n    name = name.strip()\n    return name or\
+          \ None\n\n\ndef _get_doc_name(chunk):\n    \"\"\"Extract document name from\
+          \ a Dify KR result item.\"\"\"\n    if not isinstance(chunk, dict):\n  \
+          \      return None\n    # Try metadata block first\n    meta = chunk.get(\"\
+          metadata\", {})\n    if isinstance(meta, dict):\n        name = _clean_doc_name(meta.get(\"\
+          document_name\", \"\"))\n        if name:\n            return name\n   \
+          \ # Fall back to title field (Dify includes author/year/journal here)\n\
+          \    name = _clean_doc_name(chunk.get(\"title\", \"\"))\n    return name\n\
           \n\ndef main(kr_result=None):\n    if not isinstance(kr_result, list):\n\
           \        return {\"filtered_chunks\": [], \"chunk_count\": 0, \"chunks_removed\"\
-          : 0}\n    kept = []\n    removed = 0\n    for c in kr_result:\n        text\
-          \ = _extract_text(c)\n        if not text or len(text) < 20:\n         \
-          \   continue\n        if _is_reference_chunk(text):\n            removed\
-          \ += 1\n        else:\n            kept.append(text)\n    if not kept:\n\
-          \        kept.append(\n            \"ALL \"\n            + str(len(kr_result))\n\
-          \            + \" RETRIEVED CHUNKS WERE REFERENCE LISTS AND FILTERED OUT.\
-          \ The query may match bibliography sections rather than paper body text.\
-          \ Try a more specific query or different search terms.\"\n        )\n  \
-          \  return {\n        \"filtered_chunks\": kept,\n        \"chunk_count\"\
-          : len(kept),\n        \"chunks_removed\": removed,\n    }\n"
+          : 0}\n    kept = []\n    removed = 0\n    seen_docs = set()\n    for c in\
+          \ kr_result:\n        text = _extract_text(c)\n        if not text or len(text)\
+          \ < 20:\n            continue\n        if _is_reference_chunk(text):\n \
+          \           removed += 1\n        else:\n            doc_name = _get_doc_name(c)\n\
+          \            if doc_name:\n                seen_docs.add(doc_name)\n   \
+          \             text = \"From paper: \" + doc_name + NL + text\n         \
+          \   kept.append(text)\n    # Safety: if too few chunks survived, pass all\
+          \ through unfiltered\n    if len(kept) < 3 and len(kr_result) >= 3:\n  \
+          \      kept = []\n        removed = 0\n        for c in kr_result:\n   \
+          \         text = _extract_text(c)\n            if not text or len(text)\
+          \ < 20:\n                continue\n            doc_name = _get_doc_name(c)\n\
+          \            if doc_name:\n                seen_docs.add(doc_name)\n   \
+          \             text = \"From paper: \" + doc_name + NL + text\n         \
+          \   kept.append(text)\n\n    # Deduplicate by paper: merge chunks from same\
+          \ document\n    by_doc = {}\n    for chunk in kept:\n        parts = chunk.split(NL,\
+          \ 1)\n        doc_key = parts[0] if parts[0].startswith(\"From paper:\"\
+          ) else \"_unknown\"\n        content = parts[1] if len(parts) > 1 else chunk\n\
+          \        if doc_key not in by_doc:\n            by_doc[doc_key] = []\n \
+          \       by_doc[doc_key].append(content)\n    deduped = []\n    for doc_key,\
+          \ contents in by_doc.items():\n        merged = NL.join(contents[:3])  #\
+          \ max 3 chunks per paper\n        deduped.append(doc_key + NL + merged)\n\
+          \n    if not deduped:\n        deduped.append(\n            \"ALL \"\n \
+          \           + str(len(kr_result))\n            + \" RETRIEVED CHUNKS WERE\
+          \ REFERENCE LISTS AND FILTERED OUT. The query may match bibliography sections\
+          \ rather than paper body text. Try a more specific query or different search\
+          \ terms.\"\n        )\n    return {\n        \"filtered_chunks\": deduped,\n\
+          \        \"chunk_count\": len(deduped),\n        \"chunks_removed\": removed,\n\
+          \        \"doc_names\": sorted(seen_docs),\n    }\n"
         code_language: python3
         isInIteration: false
         isInLoop: false
@@ -1582,10 +1623,13 @@ workflow:
           chunks_removed:
             children: null
             type: number
+          doc_names:
+            children: null
+            type: array[string]
           filtered_chunks:
             children: null
             type: array[string]
-        selected: true
+        selected: false
         title: KR Chunk Filter
         type: code
         variables:
@@ -1602,13 +1646,13 @@ workflow:
       positionAbsolute:
         x: -389.0488118411729
         y: 3681.1329167788017
-      selected: true
+      selected: false
       sourcePosition: right
       targetPosition: left
       type: custom
       width: 242
     viewport:
-      x: 604.8357395869442
-      y: -2291.9675687547206
+      x: 1360.8357395869443
+      y: -2269.9675687547206
       zoom: 0.7748559309591706
   rag_pipeline_variables: []
