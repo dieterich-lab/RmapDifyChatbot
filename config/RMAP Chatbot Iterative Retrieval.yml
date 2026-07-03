@@ -26,38 +26,7 @@ workflow:
     value_type: array[object]
   environment_variables: []
   features:
-    file_upload:
-      allowed_file_extensions:
-      - .JPG
-      - .JPEG
-      - .PNG
-      - .GIF
-      - .WEBP
-      - .SVG
-      allowed_file_types:
-      - image
-      allowed_file_upload_methods:
-      - local_file
-      - remote_url
-      enabled: false
-      fileUploadConfig:
-        attachment_image_file_size_limit: 2
-        audio_file_size_limit: 50
-        batch_count_limit: 5
-        file_size_limit: 15
-        file_upload_limit: 20
-        image_file_batch_limit: 10
-        image_file_size_limit: 10
-        single_chunk_attachment_limit: 10
-        video_file_size_limit: 100
-        workflow_file_upload_limit: 10
-      image:
-        enabled: false
-        number_limits: 3
-        transfer_methods:
-        - local_file
-        - remote_url
-      number_limits: 3
+    file_upload: {}
     opening_statement: ''
     retriever_resource:
       enabled: false
@@ -358,7 +327,7 @@ workflow:
           reranking_enable: false
           reranking_mode: weighted_score
           score_threshold: 0.2
-          top_k: 15
+          top_k: 30
           weights:
             keyword_setting:
               keyword_weight: 0.4
@@ -1450,26 +1419,59 @@ workflow:
             {{#context#}}
 
 
-            === author_lookup (user asks WHO) === - For EACH paper found in the context,
-            list its authors and what they studied. - Format: **Paper Title** (Journal)
-            - Author Name: what they specifically did per the paper (quote from context)
-            - Extract author names from "From paper:" headers, email addresses, and
-            affiliation lines (e.g. "ann.ehrenhofer-murray@..." → Ann Ehrenhofer-Murray).
-            - Each bullet must contain evidence from the context showing the author''s
-            work on this topic. - If the same author appears in multiple papers, list
-            them under each paper. - If no author names are found: "Insufficient context."
+            IMPORTANT: Only execute the ONE section below that matches the Intent
+            above. Ignore the other sections.
 
-            === entity_lookup (user asks WHICH/WHAT entities) === - List specific
-            named entities (tRNAs, proteins, methods, organisms) from the context.
-            - Format: "- Entity — found in [Paper Title]"
 
-            === knowledge_retrieval (general knowledge question) === - Summarize using
-            verbatim quotes from the context. - Every sentence MUST contain words
-            from the context.
+            === author_lookup ===
 
-            CRITICAL RULES (all intents): - If the context lacks information: "Insufficient
-            context." - NO fabricated names, NO citations, NO 【markers】. - Keep answer
-            under 500 words.'
+            For EACH paper in the context, list its authors with evidence. Format:
+
+            **Paper Title** (Journal)
+
+            - Author Name: what they did (verbatim quote from context)
+
+            Extract names from headers, emails (ann.ehrenhofer@... → Ann Ehrenhofer),
+            affiliations.
+
+            Each bullet MUST quote the context. If no authors: "Insufficient context."
+
+
+            === entity_lookup ===
+
+            Scan ALL chunks and extract every named entity you can FIND IN THE CONTEXT:
+            RNA modifications, methods, organisms, cell lines, proteins, tools.
+
+            ONLY list entities that actually appear in the context - do NOT list entities
+            just because they were mentioned in these instructions.
+
+            Format as a table:
+
+            | Entity | Type | Paper |
+
+            |---------|------|-------|
+
+            List at least 3 entities if possible. If fewer than 3 found, that''s OK
+            - only list what you actually find. If context lacks entities: "Insufficient
+            context."
+
+
+            === knowledge_retrieval ===
+
+            Summarize using verbatim quotes from the context. Every sentence MUST
+            contain words from the context. If context lacks information: "Insufficient
+            context."
+
+
+            CRITICAL RULES (all intents):
+
+            - NEVER fabricate names, citations, or entities not in the context
+
+            - NO 【markers】, NO <think> tags
+
+            - Keep answer under 500 words
+
+            - Answer in the same language as the user'
         reasoning_format: separated
         selected: false
         title: Extraction LLM
