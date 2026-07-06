@@ -1,5 +1,34 @@
 # Changelog
 
+## [0.4.0] - 2026-07-06
+
+### Added
+
+- **3-LLM Intent Architecture**: Extraction LLM durch drei dedizierte, intent-geroutete LLMs ersetzt: `Author Extraction LLM`, `Entity Extraction LLM`, `KR Extraction LLM`. Routing via neuen `KR Intent Router` (IF/ELSE auf `{{#1778800001033.intent#}}`). Kein Mixed Output mehr, jeder Prompt ist single-purpose.
+- **`migrate_to_3llm.py`**: Python-Script zur Transformation des YAML-Workflows von Single-LLM zu 3-LLM-Architektur.
+
+### Changed
+
+- **KR Query Rewriter entfernt**: Query wird unverändert (pass-through) an Knowledge Retrieval weitergereicht. Der HyDE-style Rewriter produzierte keyword-dichte Queries, die überproportional Bibliographie-Sections matchten.
+- **top_k: 50**: `TOP_K_MAX_VALUE=50` im Dify-Container gesetzt, DSL auf `top_k: 50`. Retrieval-Qualität signifikant verbessert (11 unique papers statt 2-3).
+- **Extraction LLM → qwen2.5:14b**: `gpt-oss` halluzinierte Papers außerhalb des Korpus. `qwen2.5:14b` ist strikter grounded bei vergleichbarer Qualität.
+- **Chunk Filter**: Reference-Filter mit Signal-Density (DOI, nummerierte Refs, Jahreszahlen), Doc-Deduplizierung, Safety-Net bei <3 überlebenden Chunks.
+- **Final Answer Sanitizer**: Unterstützt jetzt `entity_text` Input (neben extraction/summary/knowledge/metadata_text).
+
+### Fixed
+
+- **Author-Halluzination**: Prompt hardened: „ONLY extract authors from \"From paper:\" headers". Keine halluzinierten Papers mehr.
+- **top_k Glass Ceiling**: Dify-GUI limitierte auf 10 – via `TOP_K_MAX_VALUE` Env-Variable aufgehoben.
+- **Doc-Name Suffix**: `__two_pass_1781511154` Upload-Suffixe werden zuverlässig gestrippt.
+
+### Results (2026-07-06, qwen2.5:14b, top_k=50)
+
+| Intent | Query | Result |
+|--------|-------|--------|
+| `author_lookup` | Who has worked on tRNA modifications or queuosine detection? | ✅ 5 papers, 3 authors (Ehrenhofer-Murray, Helm, Tuorto), verbatim evidence quotes, 61s |
+| `entity_lookup` | Which RNA modifications are most studied in epitranscriptomics? | ✅ Entity table: m6A, pseudouridines, tRNA/rRNA, EBER2, writers, 64s |
+| `knowledge_retrieval` | What is m6A and which methods are used to detect it? | ✅ Grounded answer: MeRIP-seq, miCLIP, MazF, Illumina sequencing, 81s |
+
 ## [0.3.2] - 2026-06-29
 
 ### Added

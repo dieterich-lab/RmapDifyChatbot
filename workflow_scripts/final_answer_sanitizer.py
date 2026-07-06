@@ -15,7 +15,13 @@ def _strip_think(text):
 
 def main(**kwargs):
     parts = []
-    for key in ("extraction_text", "summary_text", "knowledge_text", "metadata_text"):
+    for key in (
+        "extraction_text",
+        "entity_text",
+        "summary_text",
+        "knowledge_text",
+        "metadata_text",
+    ):
         text = kwargs.get(key)
         if text:
             cleaned = _strip_think(text)

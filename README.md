@@ -3,14 +3,15 @@
 RmapDifyChatbot is a production-oriented Python project for operating a Dify-based
 academic assistant with explicit metadata routing.
 
-## Status Snapshot (2026-06-23)
+## Status Snapshot (2026-07-06)
 
-1. **Question Classifier ausgelagert**: Der QC (`Route by Intent`) sitzt nach IF/ELSE außerhalb des Iterators – der Iterator enthält nur noch `Fetch Full Paper`.
-2. **Drei separate LLMs**: `Content LLM` (Knowledge), `Metadata LLM` (Zählen/Auflisten), `Summary LLM` (Zusammenfassen) – jeweils mit fokussiertem Prompt.
-3. **Metadata Query eigenständig**: Akzeptiert `paper_list` direkt und iteriert intern über alle Papers.
-4. **Converge Paths**: Merged beide Pfade (Metadata Query + Iterator) vor `Update Paper Memory` – Memory jetzt auch bei reinen Metadata-Queries aktuell.
-5. **Route LLM**: Neue IF/ELSE nach `Persist Paper Memory` routet per QC-`class_id` zwischen Metadata/Summary LLM.
-6. Two-turn workflow end-to-end validiert (Turn 1: IS_COUNT_OR_LIST → Metadata LLM, Turn 2: IS_CONTENT → Summary LLM).
+**v0.4.0 — 3-LLM Intent Architecture**
+
+1. **3-LLM Intent Routing**: `Author Extraction LLM`, `Entity Extraction LLM`, `KR Extraction LLM` — geroutet via `KR Intent Router` (IF/ELSE auf `{{#intent#}}`). Kein Mixed Output mehr.
+2. **top_k: 50**: `TOP_K_MAX_VALUE=50` im Dify-Container, volle 50 Chunks pro Retrieval.
+3. **qwen2.5:14b**: Grounded, keine Paper-Halluzinationen. `gpt-oss` entfernt.
+4. **KR Query Rewriter entfernt**: Pass-through — bessere Retrieval-Qualität ohne Keyword-Overfitting.
+5. **Chunk Filter**: Signal-Density-basierte Reference-Erkennung, Doc-Deduplizierung, Safety-Net.
 
 ## Overview
 

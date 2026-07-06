@@ -257,17 +257,6 @@ workflow:
       zIndex: 0
     - data:
         isInLoop: false
-        sourceType: llm
-        targetType: code
-      id: 1778800001034-source-1778800001013-target
-      source: '1778800001034'
-      sourceHandle: source
-      target: '1778800001013'
-      targetHandle: target
-      type: custom
-      zIndex: 0
-    - data:
-        isInLoop: false
         sourceType: knowledge-retrieval
         targetType: code
       id: 17785930638200-source-1778800001036-target
@@ -277,17 +266,83 @@ workflow:
       targetHandle: target
       type: custom
       zIndex: 0
-    - data:
-        isInLoop: false
-        sourceType: code
-        targetType: llm
-      id: 1778800001036-source-1778800001034-target
+    - id: 1778800001036-source-1778800001039-target
       source: '1778800001036'
       sourceHandle: source
+      target: '1778800001039'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+      data:
+        isInLoop: false
+        sourceType: code
+        targetType: if-else
+    - id: 1778800001039-author_lookup-1778800001034-target
+      source: '1778800001039'
+      sourceHandle: author_lookup
       target: '1778800001034'
       targetHandle: target
       type: custom
       zIndex: 0
+      data:
+        isInLoop: false
+        sourceType: if-else
+        targetType: llm
+    - id: 1778800001039-entity_lookup-1778800001037-target
+      source: '1778800001039'
+      sourceHandle: entity_lookup
+      target: '1778800001037'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+      data:
+        isInLoop: false
+        sourceType: if-else
+        targetType: llm
+    - id: 1778800001039-else-1778800001038-target
+      source: '1778800001039'
+      sourceHandle: 'false'
+      target: '1778800001038'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+      data:
+        isInLoop: false
+        sourceType: if-else
+        targetType: llm
+    - id: 1778800001034-source-1778800001013-target
+      source: '1778800001034'
+      sourceHandle: source
+      target: '1778800001013'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+      data:
+        isInLoop: false
+        sourceType: llm
+        targetType: code
+    - id: 1778800001037-source-1778800001013-target
+      source: '1778800001037'
+      sourceHandle: source
+      target: '1778800001013'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+      data:
+        isInLoop: false
+        sourceType: llm
+        targetType: code
+    - id: 1778800001038-source-1778800001013-target
+      source: '1778800001038'
+      sourceHandle: source
+      target: '1778800001013'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+      data:
+        isInLoop: false
+        sourceType: llm
+        targetType: code
     nodes:
     - data:
         desc: The user's question comes in here.
@@ -327,7 +382,7 @@ workflow:
           reranking_enable: false
           reranking_mode: weighted_score
           score_threshold: 0.2
-          top_k: 30
+          top_k: 50
           weights:
             keyword_setting:
               keyword_weight: 0.4
@@ -446,10 +501,11 @@ workflow:
           \ truncated outputs where </think> is missing.\n    cleaned = re.sub(r\"\
           <think>.*$\", \"\", cleaned, flags=re.S | re.I)\n    return cleaned.strip()\n\
           \n\ndef main(**kwargs):\n    parts = []\n    for key in (\"extraction_text\"\
-          , \"summary_text\", \"knowledge_text\", \"metadata_text\"):\n        text\
-          \ = kwargs.get(key)\n        if text:\n            cleaned = _strip_think(text)\n\
-          \            if cleaned:\n                parts.append(cleaned)\n    merged\
-          \ = \"\\n\\n\".join(parts).strip()\n    return {\"cleaned_text\": merged}\n"
+          , \"entity_text\", \"summary_text\", \"knowledge_text\", \"metadata_text\"\
+          ):\n        text = kwargs.get(key)\n        if text:\n            cleaned\
+          \ = _strip_think(text)\n            if cleaned:\n                parts.append(cleaned)\n\
+          \    merged = \"\\n\\n\".join(parts).strip()\n    return {\"cleaned_text\"\
+          : merged}\n"
         code_language: python3
         isInIteration: false
         isInLoop: false
@@ -476,6 +532,16 @@ workflow:
           - text
           value_type: string
           variable: extraction_text
+        - value_selector:
+          - '1778800001037'
+          - text
+          value_type: string
+          variable: entity_text
+        - value_selector:
+          - '1778800001038'
+          - text
+          value_type: string
+          variable: knowledge_text
       height: 52
       id: '1778800001013'
       position:
@@ -1391,108 +1457,6 @@ workflow:
       width: 242
     - data:
         context:
-          enabled: true
-          variable_selector:
-          - '1778800001036'
-          - filtered_chunks
-        memory:
-          query_prompt_template: '{{#sys.query#}}'
-          role_prefix:
-            assistant: ''
-            user: ''
-          window:
-            enabled: false
-            size: 0
-        model:
-          completion_params:
-            max_tokens: 4000
-            temperature: 0
-          mode: chat
-          name: qwen2.5:14b
-          provider: langgenius/ollama/ollama
-        prompt_template:
-        - id: extraction-llm-prompt
-          role: system
-          text: 'Intent: {{#1778800001033.intent#}}
-
-            Context (each chunk starts with "From paper:" followed by paper info):
-            {{#context#}}
-
-
-            IMPORTANT: Only execute the ONE section below that matches the Intent
-            above. Ignore the other sections.
-
-
-            === author_lookup ===
-
-            For EACH paper in the context, list its authors with evidence. Format:
-
-            **Paper Title** (Journal)
-
-            - Author Name: what they did (verbatim quote from context)
-
-            Extract names from headers, emails (ann.ehrenhofer@... → Ann Ehrenhofer),
-            affiliations.
-
-            Each bullet MUST quote the context. If no authors: "Insufficient context."
-
-
-            === entity_lookup ===
-
-            Scan ALL chunks and extract every named entity you can FIND IN THE CONTEXT:
-            RNA modifications, methods, organisms, cell lines, proteins, tools.
-
-            ONLY list entities that actually appear in the context - do NOT list entities
-            just because they were mentioned in these instructions.
-
-            Format as a table:
-
-            | Entity | Type | Paper |
-
-            |---------|------|-------|
-
-            List at least 3 entities if possible. If fewer than 3 found, that''s OK
-            - only list what you actually find. If context lacks entities: "Insufficient
-            context."
-
-
-            === knowledge_retrieval ===
-
-            Summarize using verbatim quotes from the context. Every sentence MUST
-            contain words from the context. If context lacks information: "Insufficient
-            context."
-
-
-            CRITICAL RULES (all intents):
-
-            - NEVER fabricate names, citations, or entities not in the context
-
-            - NO 【markers】, NO <think> tags
-
-            - Keep answer under 500 words
-
-            - Answer in the same language as the user'
-        reasoning_format: separated
-        selected: false
-        title: Extraction LLM
-        type: llm
-        vision:
-          enabled: false
-      height: 88
-      id: '1778800001034'
-      position:
-        x: -34.44108306242242
-        y: 3681.1329167788017
-      positionAbsolute:
-        x: -34.44108306242242
-        y: 3681.1329167788017
-      selected: false
-      sourcePosition: right
-      targetPosition: left
-      type: custom
-      width: 242
-    - data:
-        context:
           enabled: false
           variable_selector: []
         isInIteration: false
@@ -1653,6 +1617,256 @@ workflow:
       targetPosition: left
       type: custom
       width: 242
+    - data:
+        context:
+          enabled: true
+          variable_selector:
+          - '1778800001036'
+          - filtered_chunks
+        memory:
+          query_prompt_template: '{{#sys.query#}}'
+          role_prefix:
+            assistant: ''
+            user: ''
+          window:
+            enabled: false
+            size: 0
+        model:
+          completion_params:
+            max_tokens: 4000
+            temperature: 0
+          mode: chat
+          name: qwen2.5:14b
+          provider: langgenius/ollama/ollama
+        prompt_template:
+        - id: author-extraction-prompt
+          role: system
+          text: 'Context (each chunk starts with "From paper:" followed by paper info):
+
+            {{#context#}}
+
+
+            You are answering: "{{#sys.query#}}"
+
+
+            === CRITICAL RULES ===
+
+            1. ONLY extract authors from the "From paper:" headers.
+            Header format: "From paper: LastName1 Initials1, LastName2 Initials2, Year,
+            Journal"
+
+            2. ONLY list papers whose "From paper:" header appears in the context above.
+
+            3. For each header, list EVERY author name found in it.
+
+            4. Use the header''s journal as the paper''s journal.
+
+            5. Derive a short paper topic from the chunk content as the title.
+
+            6. Use a verbatim quote from the chunk as evidence of what they did.
+
+
+            Format:
+
+            **Paper Topic** (Journal)
+
+            - FirstName LastName: "verbatim evidence quote from chunk"
+
+
+            If no "From paper:" headers found: "Insufficient context."
+
+            CRITICAL: NEVER list a paper or author NOT found in a "From paper:" header.
+
+            NO fabricated names. NO <think>. Keep under 300 words.'
+        reasoning_format: separated
+        selected: false
+        title: Author Extraction LLM
+        type: llm
+        vision:
+          enabled: false
+      height: 88
+      id: '1778800001034'
+      position:
+        x: -34.44108306242242
+        y: 3681.1329167788017
+      positionAbsolute:
+        x: -34.44108306242242
+        y: 3681.1329167788017
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 242
+    - data:
+        context:
+          enabled: true
+          variable_selector:
+          - '1778800001036'
+          - filtered_chunks
+        memory:
+          query_prompt_template: '{{#sys.query#}}'
+          role_prefix:
+            assistant: ''
+            user: ''
+          window:
+            enabled: false
+            size: 0
+        model:
+          completion_params:
+            max_tokens: 4000
+            temperature: 0
+          mode: chat
+          name: qwen2.5:14b
+          provider: langgenius/ollama/ollama
+        prompt_template:
+        - id: entity-extraction-prompt
+          role: system
+          text: 'Context (each chunk starts with "From paper:" followed by paper info):
+
+            {{#context#}}
+
+
+            You are answering: "{{#sys.query#}}"
+
+
+            Scan ALL chunks and extract every named entity you can FIND IN THE CONTEXT:
+
+            RNA modifications, methods, organisms, cell lines, proteins, tools.
+
+
+            ONLY list entities that actually appear in the context.
+
+            Format as a table:
+
+            | Entity | Type | Paper |
+
+            |--------|------|-------|
+
+
+            If context lacks entities: "Insufficient context."
+
+
+            CRITICAL: NEVER fabricate entities. NO <think>. Keep under 300 words.'
+        reasoning_format: separated
+        selected: false
+        title: Entity Extraction LLM
+        type: llm
+        vision:
+          enabled: false
+      height: 88
+      id: '1778800001037'
+      position:
+        x: -34.44108306242242
+        y: 3801.1329167788017
+      positionAbsolute:
+        x: -34.44108306242242
+        y: 3801.1329167788017
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 242
+    - data:
+        context:
+          enabled: true
+          variable_selector:
+          - '1778800001036'
+          - filtered_chunks
+        memory:
+          query_prompt_template: '{{#sys.query#}}'
+          role_prefix:
+            assistant: ''
+            user: ''
+          window:
+            enabled: false
+            size: 0
+        model:
+          completion_params:
+            max_tokens: 4000
+            temperature: 0
+          mode: chat
+          name: qwen2.5:14b
+          provider: langgenius/ollama/ollama
+        prompt_template:
+        - id: kr-extraction-prompt
+          role: system
+          text: 'Context (each chunk starts with "From paper:" followed by paper info):
+
+            {{#context#}}
+
+
+            You are answering: "{{#sys.query#}}"
+
+
+            Summarize using verbatim quotes from the context.
+
+            Every sentence MUST contain words from the context.
+
+            If context lacks information: "Insufficient context."
+
+
+            CRITICAL: NEVER fabricate information. NO <think>. Keep under 300 words.
+
+            Answer in the same language as the user.'
+        reasoning_format: separated
+        selected: false
+        title: KR Extraction LLM
+        type: llm
+        vision:
+          enabled: false
+      height: 88
+      id: '1778800001038'
+      position:
+        x: -34.44108306242242
+        y: 3921.1329167788017
+      positionAbsolute:
+        x: -34.44108306242242
+        y: 3921.1329167788017
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 242
+    - id: '1778800001039'
+      type: custom
+      position:
+        x: -129.0488118411729
+        y: 3681.1329167788017
+      positionAbsolute:
+        x: -129.0488118411729
+        y: 3681.1329167788017
+      sourcePosition: right
+      targetPosition: left
+      width: 242
+      height: 200
+      selected: false
+      data:
+        type: if-else
+        title: KR Intent Router
+        selected: false
+        cases:
+        - case_id: author_lookup
+          conditions:
+          - id: intent-is-author
+            varType: string
+            variable_selector:
+            - '1778800001033'
+            - intent
+            comparison_operator: is
+            value: author_lookup
+          id: author_lookup
+          logical_operator: and
+        - case_id: entity_lookup
+          conditions:
+          - id: intent-is-entity
+            varType: string
+            variable_selector:
+            - '1778800001033'
+            - intent
+            comparison_operator: is
+            value: entity_lookup
+          id: entity_lookup
+          logical_operator: and
     viewport:
       x: 1360.8357395869443
       y: -2269.9675687547206
