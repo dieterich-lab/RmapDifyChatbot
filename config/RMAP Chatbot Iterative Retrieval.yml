@@ -191,17 +191,6 @@ workflow:
       zIndex: 0
     - data:
         isInLoop: false
-        sourceType: if-else
-        targetType: code
-      id: 1778800001032-else-17785930638200-target
-      source: '1778800001032'
-      sourceHandle: 'false'
-      target: '1778800001035'
-      targetHandle: target
-      type: custom
-      zIndex: 0
-    - data:
-        isInLoop: false
         sourceType: llm
         targetType: code
       id: 1778800001031-source-1778800001033-target
@@ -219,39 +208,6 @@ workflow:
       source: '1778800001033'
       sourceHandle: source
       target: '1778800001032'
-      targetHandle: target
-      type: custom
-      zIndex: 0
-    - data:
-        isInLoop: false
-        sourceType: if-else
-        targetType: code
-      id: 1778800001032-author_lookup-17785930638200-target
-      source: '1778800001032'
-      sourceHandle: author_lookup
-      target: '1778800001035'
-      targetHandle: target
-      type: custom
-      zIndex: 0
-    - data:
-        isInLoop: false
-        sourceType: if-else
-        targetType: code
-      id: 1778800001032-entity_lookup-17785930638200-target
-      source: '1778800001032'
-      sourceHandle: entity_lookup
-      target: '1778800001035'
-      targetHandle: target
-      type: custom
-      zIndex: 0
-    - data:
-        isInLoop: false
-        sourceType: llm
-        targetType: knowledge-retrieval
-      id: 1778800001035-source-1778800001036-target
-      source: '1778800001035'
-      sourceHandle: source
-      target: '17785930638200'
       targetHandle: target
       type: custom
       zIndex: 0
@@ -343,6 +299,39 @@ workflow:
         isInLoop: false
         sourceType: llm
         targetType: code
+    - id: 1778800001032-else-17785930638200-target
+      source: '1778800001032'
+      sourceHandle: 'false'
+      target: '17785930638200'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+      data:
+        isInLoop: false
+        sourceType: if-else
+        targetType: knowledge-retrieval
+    - id: 1778800001032-author_lookup-17785930638200-target
+      source: '1778800001032'
+      sourceHandle: author_lookup
+      target: '17785930638200'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+      data:
+        isInLoop: false
+        sourceType: if-else
+        targetType: knowledge-retrieval
+    - id: 1778800001032-entity_lookup-17785930638200-target
+      source: '1778800001032'
+      sourceHandle: entity_lookup
+      target: '17785930638200'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+      data:
+        isInLoop: false
+        sourceType: if-else
+        targetType: knowledge-retrieval
     nodes:
     - data:
         desc: The user's question comes in here.
@@ -393,8 +382,8 @@ workflow:
             weight_type: customized
         query_attachment_selector: []
         query_variable_selector:
-        - '1778800001035'
-        - text
+        - sys
+        - query
         retrieval_mode: multiple
         selected: false
         title: Knowledge Retrieval
@@ -500,12 +489,12 @@ workflow:
           <think>.*?</think>\", \"\", cleaned, flags=re.S | re.I)\n    # Also handle\
           \ truncated outputs where </think> is missing.\n    cleaned = re.sub(r\"\
           <think>.*$\", \"\", cleaned, flags=re.S | re.I)\n    return cleaned.strip()\n\
-          \n\ndef main(**kwargs):\n    parts = []\n    for key in (\"extraction_text\"\
-          , \"entity_text\", \"summary_text\", \"knowledge_text\", \"metadata_text\"\
-          ):\n        text = kwargs.get(key)\n        if text:\n            cleaned\
-          \ = _strip_think(text)\n            if cleaned:\n                parts.append(cleaned)\n\
-          \    merged = \"\\n\\n\".join(parts).strip()\n    return {\"cleaned_text\"\
-          : merged}\n"
+          \n\ndef main(**kwargs):\n    parts = []\n    for key in (\n        \"extraction_text\"\
+          ,\n        \"entity_text\",\n        \"summary_text\",\n        \"knowledge_text\"\
+          ,\n        \"metadata_text\",\n    ):\n        text = kwargs.get(key)\n\
+          \        if text:\n            cleaned = _strip_think(text)\n          \
+          \  if cleaned:\n                parts.append(cleaned)\n    merged = \"\\\
+          n\\n\".join(parts).strip()\n    return {\"cleaned_text\": merged}\n"
         code_language: python3
         isInIteration: false
         isInLoop: false
@@ -1450,54 +1439,6 @@ workflow:
       positionAbsolute:
         x: -1484.4326543241668
         y: 3264.4811834209427
-      selected: false
-      sourcePosition: right
-      targetPosition: left
-      type: custom
-      width: 242
-    - data:
-        context:
-          enabled: false
-          variable_selector: []
-        isInIteration: false
-        isInLoop: false
-        memory:
-          query_prompt_template: '{{#1778800001033.rewritten_query#}}
-
-
-            {{#sys.query#}}'
-          role_prefix:
-            assistant: ''
-            user: ''
-          window:
-            enabled: false
-            size: 0
-        model:
-          completion_params:
-            max_tokens: 1024
-            temperature: 0
-          mode: chat
-          name: gpt-oss
-          provider: langgenius/ollama/ollama
-        prompt_template:
-        - id: kr-rewriter-prompt
-          role: system
-          text: 'PASS-THROUGH: Output the user query exactly as received. Do not modify,
-            expand, rewrite, or add any words. Just echo the input.'
-        reasoning_format: separated
-        selected: false
-        title: KR Query Rewriter
-        type: llm
-        vision:
-          enabled: false
-      height: 88
-      id: '1778800001035'
-      position:
-        x: -1120.6146341682265
-        y: 3681.1329167788017
-      positionAbsolute:
-        x: -1120.6146341682265
-        y: 3681.1329167788017
       selected: false
       sourcePosition: right
       targetPosition: left
