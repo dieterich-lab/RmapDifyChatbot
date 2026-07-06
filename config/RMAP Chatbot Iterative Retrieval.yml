@@ -1651,11 +1651,11 @@ workflow:
 
             === CRITICAL RULES ===
 
-            1. ONLY extract authors from the "From paper:" headers.
-            Header format: "From paper: LastName1 Initials1, LastName2 Initials2, Year,
-            Journal"
+            1. ONLY extract authors from the "From paper:" headers. Header format:
+            "From paper: LastName1 Initials1, LastName2 Initials2, Year, Journal"
 
-            2. ONLY list papers whose "From paper:" header appears in the context above.
+            2. ONLY list papers whose "From paper:" header appears in the context
+            above.
 
             3. For each header, list EVERY author name found in it.
 
@@ -1687,11 +1687,11 @@ workflow:
       height: 88
       id: '1778800001034'
       position:
-        x: -34.44108306242242
-        y: 3681.1329167788017
+        x: 209.4752276329641
+        y: 3710.8158540591926
       positionAbsolute:
-        x: -34.44108306242242
-        y: 3681.1329167788017
+        x: 209.4752276329641
+        y: 3710.8158540591926
       selected: false
       sourcePosition: right
       targetPosition: left
@@ -1756,11 +1756,11 @@ workflow:
       height: 88
       id: '1778800001037'
       position:
-        x: -34.44108306242242
-        y: 3801.1329167788017
+        x: 209.4752276329641
+        y: 3832.1064165496446
       positionAbsolute:
-        x: -34.44108306242242
-        y: 3801.1329167788017
+        x: 209.4752276329641
+        y: 3832.1064165496446
       selected: false
       sourcePosition: right
       targetPosition: left
@@ -1817,11 +1817,11 @@ workflow:
       height: 88
       id: '1778800001038'
       position:
-        x: -34.44108306242242
-        y: 3921.1329167788017
+        x: 209.4752276329641
+        y: 3954.687541530548
       positionAbsolute:
-        x: -34.44108306242242
-        y: 3921.1329167788017
+        x: 209.4752276329641
+        y: 3954.687541530548
       selected: false
       sourcePosition: right
       targetPosition: left
@@ -1838,7 +1838,7 @@ workflow:
       sourcePosition: right
       targetPosition: left
       width: 242
-      height: 200
+      height: 220
       selected: false
       data:
         type: if-else
