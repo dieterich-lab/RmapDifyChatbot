@@ -1476,33 +1476,39 @@ workflow:
           \ > 1.8:\n        return True\n\n    first_line = t.split(NL)[0].strip()\n\
           \    if re.match(r\"^\\d+[\\.,]\\s\", first_line) or re.match(r\"^\\[\\\
           d+\\]\", first_line):\n        if density > 0.8:\n            return True\n\
-          \n    return False\n\n\ndef _clean_doc_name(raw):\n    \"\"\"Strip .pdf\
-          \ extension and Dify upload suffix like __two_pass_1781511154.\"\"\"\n \
-          \   name = str(raw or \"\").strip()\n    if not name:\n        return None\n\
-          \    # Strip .pdf extension (may or may not be present)\n    name = re.sub(r\"\
-          \\.pdf$\", \"\", name, flags=re.IGNORECASE)\n    # Strip Dify upload suffix:\
-          \ __variant_timestamp\n    name = re.sub(r\"__[a-z_]+_\\d{10,}$\", \"\"\
-          , name, flags=re.IGNORECASE)\n    name = name.strip()\n    return name or\
-          \ None\n\n\ndef _get_doc_name(chunk):\n    \"\"\"Extract document name from\
-          \ a Dify KR result item.\"\"\"\n    if not isinstance(chunk, dict):\n  \
-          \      return None\n    # Try metadata block first\n    meta = chunk.get(\"\
-          metadata\", {})\n    if isinstance(meta, dict):\n        name = _clean_doc_name(meta.get(\"\
-          document_name\", \"\"))\n        if name:\n            return name\n   \
-          \ # Fall back to title field (Dify includes author/year/journal here)\n\
-          \    name = _clean_doc_name(chunk.get(\"title\", \"\"))\n    return name\n\
-          \n\ndef main(kr_result=None):\n    if not isinstance(kr_result, list):\n\
-          \        return {\"filtered_chunks\": [], \"chunk_count\": 0, \"chunks_removed\"\
-          : 0}\n    kept = []\n    removed = 0\n    seen_docs = set()\n    for c in\
-          \ kr_result:\n        text = _extract_text(c)\n        if not text or len(text)\
-          \ < 20:\n            continue\n        if _is_reference_chunk(text):\n \
-          \           removed += 1\n        else:\n            doc_name = _get_doc_name(c)\n\
+          \n    return False\n\n\ndef _get_doc_info(chunk):\n    \"\"\"Extract rich\
+          \ document info from a Dify KR result item using real metadata.\"\"\"\n\
+          \    if not isinstance(chunk, dict):\n        return None\n    meta = chunk.get(\"\
+          metadata\", {})\n    if not isinstance(meta, dict):\n        return None\n\
+          \n    doc_meta = meta.get(\"doc_metadata\", {})\n    if isinstance(doc_meta,\
+          \ dict):\n        title = str(doc_meta.get(\"title\", \"\")).strip()\n \
+          \       authors = str(doc_meta.get(\"authors\", \"\")).strip()\n       \
+          \ journal = str(doc_meta.get(\"journal\", \"\")).strip()\n        year =\
+          \ str(doc_meta.get(\"year\", \"\")).strip()\n\n        if title:\n     \
+          \       header = f'\"{title}\"'\n            if authors:\n             \
+          \   header += f\" by {authors}\"\n            if journal or year:\n    \
+          \            header += \" (\"\n                if journal:\n           \
+          \         header += journal\n                if year:\n                \
+          \    if journal:\n                        header += \", \"\n           \
+          \         header += year\n                header += \")\"\n            return\
+          \ header\n\n    # Fallback: use filename-based title field\n    title =\
+          \ str(chunk.get(\"title\", \"\")).strip()\n    if title:\n        title\
+          \ = re.sub(r\"__[a-z_]+_\\d{10,}(?:\\.pdf)?$\", \"\", title, flags=re.IGNORECASE)\n\
+          \        title = re.sub(r\"\\.pdf$\", \"\", title, flags=re.IGNORECASE)\n\
+          \        title = title.strip()\n        if title:\n            return title\n\
+          \    return None\n\n\ndef main(kr_result=None):\n    if not isinstance(kr_result,\
+          \ list):\n        return {\"filtered_chunks\": [], \"chunk_count\": 0, \"\
+          chunks_removed\": 0}\n    kept = []\n    removed = 0\n    seen_docs = set()\n\
+          \    for c in kr_result:\n        text = _extract_text(c)\n        if not\
+          \ text or len(text) < 20:\n            continue\n        if _is_reference_chunk(text):\n\
+          \            removed += 1\n        else:\n            doc_name = _get_doc_info(c)\n\
           \            if doc_name:\n                seen_docs.add(doc_name)\n   \
           \             text = \"From paper: \" + doc_name + NL + text\n         \
           \   kept.append(text)\n    # Safety: if too few chunks survived, pass all\
           \ through unfiltered\n    if len(kept) < 3 and len(kr_result) >= 3:\n  \
           \      kept = []\n        removed = 0\n        for c in kr_result:\n   \
           \         text = _extract_text(c)\n            if not text or len(text)\
-          \ < 20:\n                continue\n            doc_name = _get_doc_name(c)\n\
+          \ < 20:\n                continue\n            doc_name = _get_doc_info(c)\n\
           \            if doc_name:\n                seen_docs.add(doc_name)\n   \
           \             text = \"From paper: \" + doc_name + NL + text\n         \
           \   kept.append(text)\n\n    # Deduplicate by paper: merge chunks from same\
@@ -1582,7 +1588,7 @@ workflow:
         prompt_template:
         - id: author-extraction-prompt
           role: system
-          text: 'Context (each chunk starts with "From paper:" followed by paper info):
+          text: 'Context (each chunk starts with "From paper:" followed by real metadata):
 
             {{#context#}}
 
@@ -1593,31 +1599,34 @@ workflow:
             === CRITICAL RULES ===
 
             1. ONLY extract authors from the "From paper:" headers. Header format:
-            "From paper: LastName1 Initials1, LastName2 Initials2, Year, Journal"
+            "From paper: \"Paper Title\" by Author1, Author2, ... (Journal, Year)"
 
-            2. ONLY list papers whose "From paper:" header appears in the context
-            above.
+            2. Use EXACTLY the author names from the header. If it says "Yu Sun",
+            write "Yu Sun" — do NOT expand initials or guess first names.
 
-            3. For each header, list EVERY author name found in it.
+            3. Use the paper title from the header — do NOT generate a new title.
 
-            4. Use the header''s journal as the paper''s journal.
+            4. Use the journal and year from the header.
 
-            5. Derive a short paper topic from the chunk content as the title.
+            5. Pick a verbatim quote from the chunk that SHOWS what the author(s)
+            specifically studied about tRNA modifications or queuosine. Choose the
+            most topic-relevant sentence, not background context.
 
-            6. Use a verbatim quote from the chunk as evidence of what they did.
+            6. ONLY include a paper if its quote is clearly about tRNA modifications
+            or queuosine detection. Skip papers about unrelated topics (e.g. tRNA
+            splicing, protein translation, other RNA biology).
 
 
             Format:
 
-            **Paper Topic** (Journal)
+            **"Paper Title"** (Journal, Year)
 
-            - FirstName LastName: "verbatim evidence quote from chunk"
+            - Author Name: "verbatim evidence quote from chunk"
 
 
             If no "From paper:" headers found: "Insufficient context."
 
             CRITICAL: NEVER list a paper or author NOT found in a "From paper:" header.
-
             NO fabricated names. NO <think>. Keep under 300 words.'
         reasoning_format: separated
         selected: false

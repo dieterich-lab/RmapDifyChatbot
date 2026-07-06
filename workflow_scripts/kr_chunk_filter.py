@@ -73,32 +73,45 @@ def _is_reference_chunk(text):
     return False
 
 
-def _clean_doc_name(raw):
-    """Strip .pdf extension and Dify upload suffix like __two_pass_1781511154."""
-    name = str(raw or "").strip()
-    if not name:
-        return None
-    # Strip .pdf extension (may or may not be present)
-    name = re.sub(r"\.pdf$", "", name, flags=re.IGNORECASE)
-    # Strip Dify upload suffix: __variant_timestamp
-    name = re.sub(r"__[a-z_]+_\d{10,}$", "", name, flags=re.IGNORECASE)
-    name = name.strip()
-    return name or None
-
-
-def _get_doc_name(chunk):
-    """Extract document name from a Dify KR result item."""
+def _get_doc_info(chunk):
+    """Extract rich document info from a Dify KR result item using real metadata."""
     if not isinstance(chunk, dict):
         return None
-    # Try metadata block first
     meta = chunk.get("metadata", {})
-    if isinstance(meta, dict):
-        name = _clean_doc_name(meta.get("document_name", ""))
-        if name:
-            return name
-    # Fall back to title field (Dify includes author/year/journal here)
-    name = _clean_doc_name(chunk.get("title", ""))
-    return name
+    if not isinstance(meta, dict):
+        return None
+
+    doc_meta = meta.get("doc_metadata", {})
+    if isinstance(doc_meta, dict):
+        title = str(doc_meta.get("title", "")).strip()
+        authors = str(doc_meta.get("authors", "")).strip()
+        journal = str(doc_meta.get("journal", "")).strip()
+        year = str(doc_meta.get("year", "")).strip()
+
+        if title:
+            header = f'"{title}"'
+            if authors:
+                header += f" by {authors}"
+            if journal or year:
+                header += " ("
+                if journal:
+                    header += journal
+                if year:
+                    if journal:
+                        header += ", "
+                    header += year
+                header += ")"
+            return header
+
+    # Fallback: use filename-based title field
+    title = str(chunk.get("title", "")).strip()
+    if title:
+        title = re.sub(r"__[a-z_]+_\d{10,}(?:\.pdf)?$", "", title, flags=re.IGNORECASE)
+        title = re.sub(r"\.pdf$", "", title, flags=re.IGNORECASE)
+        title = title.strip()
+        if title:
+            return title
+    return None
 
 
 def main(kr_result=None):
@@ -114,7 +127,7 @@ def main(kr_result=None):
         if _is_reference_chunk(text):
             removed += 1
         else:
-            doc_name = _get_doc_name(c)
+            doc_name = _get_doc_info(c)
             if doc_name:
                 seen_docs.add(doc_name)
                 text = "From paper: " + doc_name + NL + text
@@ -127,7 +140,7 @@ def main(kr_result=None):
             text = _extract_text(c)
             if not text or len(text) < 20:
                 continue
-            doc_name = _get_doc_name(c)
+            doc_name = _get_doc_info(c)
             if doc_name:
                 seen_docs.add(doc_name)
                 text = "From paper: " + doc_name + NL + text
