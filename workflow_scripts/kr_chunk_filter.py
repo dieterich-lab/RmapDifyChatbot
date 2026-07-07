@@ -73,6 +73,39 @@ def _is_reference_chunk(text):
     return False
 
 
+def _metadata_looks_garbled(title, authors, year, journal):
+    """Detect clearly broken metadata (book chapters, extraction failures)."""
+    t = str(title or "").strip()
+    a = str(authors or "").strip()
+    y = str(year or "").strip()
+    j = str(journal or "").strip()
+
+    # Title has no spaces → garbled concatenation (e.g. "ComputationalEpigenomicsandEpitranscriptomics")
+    if len(t) > 15 and " " not in t:
+        return True
+
+    # Authors contain structural text, not person names
+    a_lower = a.lower()
+    garbled_author_markers = [
+        "editor",
+        "series",
+        "ethods in",
+        "olecular biology",
+    ]
+    if any(m in a_lower for m in garbled_author_markers):
+        return True
+
+    # Year is not a 4-digit year
+    if y and not re.fullmatch(r"(19|20)\d{2}", y):
+        return True
+
+    # Journal is just numbers / page ranges (e.g. "241-260")
+    if j and re.fullmatch(r"\d+[\-–]\d+", j):
+        return True
+
+    return False
+
+
 def _get_doc_info(chunk):
     """Extract rich document info from a Dify KR result item using real metadata."""
     if not isinstance(chunk, dict):
@@ -88,7 +121,8 @@ def _get_doc_info(chunk):
         journal = str(doc_meta.get("journal", "")).strip()
         year = str(doc_meta.get("year", "")).strip()
 
-        if title:
+        # Detect garbled metadata (common with book chapters)
+        if title and not _metadata_looks_garbled(title, authors, year, journal):
             header = f'"{title}"'
             if authors:
                 header += f" by {authors}"
@@ -103,13 +137,25 @@ def _get_doc_info(chunk):
                 header += ")"
             return header
 
-    # Fallback: use filename-based title field
+    # Fallback: use filename-based title field, parse structured info
     title = str(chunk.get("title", "")).strip()
     if title:
         title = re.sub(r"__[a-z_]+_\d{10,}(?:\.pdf)?$", "", title, flags=re.IGNORECASE)
         title = re.sub(r"\.pdf$", "", title, flags=re.IGNORECASE)
         title = title.strip()
         if title:
+            # Try to parse structured filename: "Authors, Year, Journal, ..."
+            parts = [p.strip() for p in title.split(",")]
+            if len(parts) >= 3:
+                maybe_authors = parts[0]
+                maybe_year = parts[1].strip()
+                maybe_journal = parts[2].strip()
+                if re.fullmatch(r"(19|20)\d{2}", maybe_year):
+                    header = f'"{title}"'
+                    if maybe_authors:
+                        header += f" by {maybe_authors}"
+                    header += f" ({maybe_journal}, {maybe_year})"
+                    return header
             return title
     return None
 

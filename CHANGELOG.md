@@ -1,5 +1,25 @@
 # Changelog
 
+## [0.4.1] - 2026-07-07
+
+### Fixed
+
+- **"Critical Reviews"-Bug (entity_lookup)**: Journal-Section-Header "Critical Reviews and Perspectives" wurde als Autor geparst. Gefixt durch Prompt-Redesign: "Use EXACT 'From paper:' header" + "NEVER extract author names from chunk body".
+- **Buchkapitel-Metadaten (knowledge_retrieval)**: "ComputationalEpigenomicsandEpitranscriptomics" by "Pedro H. Oliveira Editor, Ethods In, ..." – kaputte Dify-Metadaten für Buchkapitel (Methods Mol Biol). Gefixt durch `_metadata_looks_garbled()` im Chunk-Filter: erkennt titel ohne Leerzeichen, "Editor"/"Series" in authors, nicht-numerisches Jahr, Seitenzahlen als Journal → fällt auf Dateinamen-Parsing zurück.
+
+### Changed
+
+- **Entity Extraction LLM**: Komplettes Prompt-Redesign. "Be COMPREHENSIVE – NO word limit", Entity-Gruppierung über Papers, "Use EXACT 'From paper:' header", Entity-Typen aus Content ableiten statt hardcoden.
+- **KR Extraction LLM**: "Never extract author names from the chunk body — use only the 'From paper:' header" als subtile Guard-Message (kein CRITICAL-Block, der Inline-Citations zerstört).
+- **KR Chunk Filter**: `_metadata_looks_garbled()` erkennt defekte Metadaten (Buchkapitel, fehlgeschlagene Extraktion). Verbesserter Dateinamen-Fallback parst strukturierte Info aus "Authors, Year, Journal, ..."-Format.
+
+### Results (2026-07-07, qwen2.5:14b, top_k=50)
+
+| Intent | Query | Result |
+|--------|-------|--------|
+| `entity_lookup` | Which RNA modifications are most studied in epitranscriptomics? | ✅ Kein "Critical Reviews"-Bug, Entity-Gruppierung (m6A mit 4 Papers), saubere Header-Citations. ⚠️ LLM stoppt bei 3 Mods ("Insufficient context") – Modell-Limit. |
+| `knowledge_retrieval` | What is m6A and which methods are used to detect it? | ✅ Kein Buchkapitel-Garbling, Inline-Citations funktionieren, 4/4 Methoden mit sauberen Author-Listen. ⚠️ Methode 3 zitiert falsches Paper (DNA Adenine methylation statt m6A antibody methods) – Retrieval-Issue. |
+
 ## [0.4.0] - 2026-07-06
 
 ### Added

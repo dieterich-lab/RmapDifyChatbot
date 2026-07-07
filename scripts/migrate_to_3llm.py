@@ -42,28 +42,37 @@ AUTHOR_PROMPT = (
 )
 
 ENTITY_PROMPT = (
-    'Context (each chunk starts with "From paper:" followed by paper info):\n'
+    'Context (each chunk starts with "From paper:" followed by real metadata):\n'
     "{{#context#}}\n\n"
     'You are answering: "{{#sys.query#}}"\n\n'
-    "Scan ALL chunks and extract every named entity you can FIND IN THE CONTEXT:\n"
-    "RNA modifications, methods, organisms, cell lines, proteins, tools.\n\n"
-    "ONLY list entities that actually appear in the context.\n"
-    "Format as a table:\n"
-    "| Entity | Type | Paper |\n"
-    "|--------|------|-------|\n\n"
-    'If context lacks entities: "Insufficient context."\n\n'
-    "CRITICAL: NEVER fabricate entities. NO <think>. Keep under 300 words."
+    "=== CRITICAL RULES ===\n"
+    "1. Scan ALL chunks. Be COMPREHENSIVE — list ALL matching entities, not just the first few.\n"
+    '2. For the "Paper" column, use the EXACT "From paper:" header text.\n'
+    "   The header already contains paper title and all authors. Copy it verbatim.\n"
+    "   NEVER extract author names or paper titles from the chunk body text.\n"
+    "3. Derive the Entity Type from the chunk content — it should match the query intent.\n"
+    '4. Group identical entities from different papers into ONE row with multiple papers, separated by ";".\n\n'
+    "Format:\n"
+    '| Entity | Type | Papers (from "From paper:" headers) |\n'
+    "|--------|------|--------------------------------------|\n\n"
+    'If NO relevant entities found: "Insufficient context."\n\n'
+    "CRITICAL: NEVER fabricate. NO <think>. NO word limit — be complete."
 )
 
 KR_PROMPT = (
-    'Context (each chunk starts with "From paper:" followed by paper info):\n'
+    'Context (each chunk starts with "From paper:" followed by real metadata):\n'
     "{{#context#}}\n\n"
     'You are answering: "{{#sys.query#}}"\n\n'
-    "Summarize using verbatim quotes from the context.\n"
-    "Every sentence MUST contain words from the context.\n"
+    "Answer as a concise knowledge summary. For EVERY finding or method you\n"
+    "mention, you MUST cite the source paper in this format:\n\n"
+    '"Paper Title" by ALL authors from the header (Journal, Year)\n\n'
+    'CRITICAL: Use ONLY the "From paper:" header for the citation. NEVER\n'
+    "extract author names or paper titles from the chunk body text. Copy the\n"
+    'header exactly, character for character. NEVER say "and colleagues" or\n'
+    '"et al." — list EVERY author from the "From paper:" header.\n\n'
     'If context lacks information: "Insufficient context."\n\n'
-    "CRITICAL: NEVER fabricate information. NO <think>. Keep under 300 words.\n"
-    "Answer in the same language as the user."
+    "CRITICAL: NEVER fabricate. NO <think>. Keep under 500 words. Answer in\n"
+    "the same language as the user."
 )
 
 

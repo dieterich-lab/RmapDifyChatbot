@@ -1530,27 +1530,51 @@ workflow:
           \ > 1.8:\n        return True\n\n    first_line = t.split(NL)[0].strip()\n\
           \    if re.match(r\"^\\d+[\\.,]\\s\", first_line) or re.match(r\"^\\[\\\
           d+\\]\", first_line):\n        if density > 0.8:\n            return True\n\
-          \n    return False\n\n\ndef _get_doc_info(chunk):\n    \"\"\"Extract rich\
-          \ document info from a Dify KR result item using real metadata.\"\"\"\n\
-          \    if not isinstance(chunk, dict):\n        return None\n    meta = chunk.get(\"\
-          metadata\", {})\n    if not isinstance(meta, dict):\n        return None\n\
-          \n    doc_meta = meta.get(\"doc_metadata\", {})\n    if isinstance(doc_meta,\
-          \ dict):\n        title = str(doc_meta.get(\"title\", \"\")).strip()\n \
-          \       authors = str(doc_meta.get(\"authors\", \"\")).strip()\n       \
-          \ journal = str(doc_meta.get(\"journal\", \"\")).strip()\n        year =\
-          \ str(doc_meta.get(\"year\", \"\")).strip()\n\n        if title:\n     \
-          \       header = f'\"{title}\"'\n            if authors:\n             \
-          \   header += f\" by {authors}\"\n            if journal or year:\n    \
-          \            header += \" (\"\n                if journal:\n           \
-          \         header += journal\n                if year:\n                \
-          \    if journal:\n                        header += \", \"\n           \
-          \         header += year\n                header += \")\"\n            return\
-          \ header\n\n    # Fallback: use filename-based title field\n    title =\
-          \ str(chunk.get(\"title\", \"\")).strip()\n    if title:\n        title\
-          \ = re.sub(r\"__[a-z_]+_\\d{10,}(?:\\.pdf)?$\", \"\", title, flags=re.IGNORECASE)\n\
-          \        title = re.sub(r\"\\.pdf$\", \"\", title, flags=re.IGNORECASE)\n\
-          \        title = title.strip()\n        if title:\n            return title\n\
-          \    return None\n\n\ndef main(kr_result=None):\n    if not isinstance(kr_result,\
+          \n    return False\n\n\ndef _metadata_looks_garbled(title, authors, year,\
+          \ journal):\n    \"\"\"Detect clearly broken metadata (book chapters, extraction\
+          \ failures).\"\"\"\n    t = str(title or \"\").strip()\n    a = str(authors\
+          \ or \"\").strip()\n    y = str(year or \"\").strip()\n    j = str(journal\
+          \ or \"\").strip()\n\n    # Title has no spaces → garbled concatenation\
+          \ (e.g. \"ComputationalEpigenomicsandEpitranscriptomics\")\n    if len(t)\
+          \ > 15 and \" \" not in t:\n        return True\n\n    # Authors contain\
+          \ structural text, not person names\n    a_lower = a.lower()\n    garbled_author_markers\
+          \ = [\n        \"editor\", \"series\", \"ethods in\", \"olecular biology\"\
+          ,\n    ]\n    if any(m in a_lower for m in garbled_author_markers):\n  \
+          \      return True\n\n    # Year is not a 4-digit year\n    if y and not\
+          \ re.fullmatch(r\"(19|20)\\d{2}\", y):\n        return True\n\n    # Journal\
+          \ is just numbers / page ranges (e.g. \"241-260\")\n    if j and re.fullmatch(r\"\
+          \\d+[\\-–]\\d+\", j):\n        return True\n\n    return False\n\n\ndef\
+          \ _get_doc_info(chunk):\n    \"\"\"Extract rich document info from a Dify\
+          \ KR result item using real metadata.\"\"\"\n    if not isinstance(chunk,\
+          \ dict):\n        return None\n    meta = chunk.get(\"metadata\", {})\n\
+          \    if not isinstance(meta, dict):\n        return None\n\n    doc_meta\
+          \ = meta.get(\"doc_metadata\", {})\n    if isinstance(doc_meta, dict):\n\
+          \        title = str(doc_meta.get(\"title\", \"\")).strip()\n        authors\
+          \ = str(doc_meta.get(\"authors\", \"\")).strip()\n        journal = str(doc_meta.get(\"\
+          journal\", \"\")).strip()\n        year = str(doc_meta.get(\"year\", \"\"\
+          )).strip()\n\n        # Detect garbled metadata (common with book chapters)\n\
+          \        if title and not _metadata_looks_garbled(title, authors, year,\
+          \ journal):\n            header = f'\"{title}\"'\n            if authors:\n\
+          \                header += f\" by {authors}\"\n            if journal or\
+          \ year:\n                header += \" (\"\n                if journal:\n\
+          \                    header += journal\n                if year:\n     \
+          \               if journal:\n                        header += \", \"\n\
+          \                    header += year\n                header += \")\"\n \
+          \           return header\n\n    # Fallback: use filename-based title field,\
+          \ parse structured info\n    title = str(chunk.get(\"title\", \"\")).strip()\n\
+          \    if title:\n        title = re.sub(r\"__[a-z_]+_\\d{10,}(?:\\.pdf)?$\"\
+          , \"\", title, flags=re.IGNORECASE)\n        title = re.sub(r\"\\.pdf$\"\
+          , \"\", title, flags=re.IGNORECASE)\n        title = title.strip()\n   \
+          \     if title:\n            # Try to parse structured filename: \"Authors,\
+          \ Year, Journal, ...\"\n            parts = [p.strip() for p in title.split(\"\
+          ,\")]\n            if len(parts) >= 3:\n                maybe_authors =\
+          \ parts[0]\n                maybe_year = parts[1].strip()\n            \
+          \    maybe_journal = parts[2].strip()\n                if re.fullmatch(r\"\
+          (19|20)\\d{2}\", maybe_year):\n                    header = f'\"{title}\"\
+          '\n                    if maybe_authors:\n                        header\
+          \ += f\" by {maybe_authors}\"\n                    header += f\" ({maybe_journal},\
+          \ {maybe_year})\"\n                    return header\n            return\
+          \ title\n    return None\n\n\ndef main(kr_result=None):\n    if not isinstance(kr_result,\
           \ list):\n        return {\"filtered_chunks\": [], \"chunk_count\": 0, \"\
           chunks_removed\": 0}\n    kept = []\n    removed = 0\n    seen_docs = set()\n\
           \    for c in kr_result:\n        text = _extract_text(c)\n        if not\
@@ -1745,21 +1769,24 @@ workflow:
             You are answering: "{{#sys.query#}}"
 
 
-            Scan ALL chunks. Extract every named entity: RNA modifications, enzymes,
-            methods, organisms, cell lines, proteins, tools, pathways, diseases.
-
-            For the Paper column, use the paper title from the "From paper:" header
-            followed by ALL authors and year: "Title" by A, B, C (year).
-
-
-            Format as a table:
-
-            | Entity | Type | Paper | |--------|------|-------|
+            === CRITICAL RULES === 1. Scan ALL chunks. Be COMPREHENSIVE — list ALL
+            matching entities, not just the first few. 2. For the "Paper" column,
+            use the EXACT "From paper:" header text. The header already contains paper
+            title and all authors. Copy it verbatim. NEVER extract author names or
+            paper titles from the chunk body text. 3. Derive the Entity Type from
+            the chunk content — it should match the query intent. 4. Group identical
+            entities from different papers into ONE row with multiple papers, separated
+            by ";".
 
 
-            If no entities found: "Insufficient context."
+            Format:
 
-            CRITICAL: NEVER fabricate entities. NO <think>. Keep under 400 words.'
+            | Entity | Type | Papers (from "From paper:" headers) | |--------|------|----------------------------------------------|
+
+
+            If NO relevant entities found: "Insufficient context."
+
+            CRITICAL: NEVER fabricate. NO <think>. NO word limit — be complete.'
         reasoning_format: separated
         selected: false
         title: Entity Extraction LLM
@@ -1817,7 +1844,8 @@ workflow:
             "Paper Title" by ALL authors from the header (Journal, Year)
 
             NEVER say "and colleagues" or "et al." — list EVERY author from the "From
-            paper:" header exactly as written. Copy the title exactly.
+            paper:" header exactly as written. Copy the title exactly. Never extract
+            author names from the chunk body — use only the "From paper:" header.
 
 
             If context lacks information: "Insufficient context."
