@@ -9,6 +9,11 @@
 
 ### Changed
 
+- **3-LLM Prompts optimiert**: Alle drei Extraction-LLMs auf vollständige Autoren-Nennung optimiert.
+  - `Author Extraction LLM`: "Authors: ... / Quote: ..." Format mit Few-Shot-Example. Listet ALLE Autoren (5-10 pro Paper).
+  - `Entity Extraction LLM`: Paper-Spalte enthält jetzt "Title" by ALL authors (year).
+  - `KR Extraction LLM`: Jede Behauptung wird mit Paper-Titel und ALLEN Autoren zitiert. "and colleagues" / "et al." explizit verboten.
+- **Final Answer Sanitizer**: Autor-Anreicherung aus Chunk-Metadaten via neue Edge `KR Chunk Filter → Sanitizer`. `filtered_chunks` als Input (27 Edges).
 - **KR Query Rewriter entfernt**: Query wird unverändert (pass-through) an Knowledge Retrieval weitergereicht. Der HyDE-style Rewriter produzierte keyword-dichte Queries, die überproportional Bibliographie-Sections matchten.
 - **top_k: 50**: `TOP_K_MAX_VALUE=50` im Dify-Container gesetzt, DSL auf `top_k: 50`. Retrieval-Qualität signifikant verbessert (11 unique papers statt 2-3).
 - **Extraction LLM → qwen2.5:14b**: `gpt-oss` halluzinierte Papers außerhalb des Korpus. `qwen2.5:14b` ist strikter grounded bei vergleichbarer Qualität.
@@ -17,6 +22,7 @@
 
 ### Fixed
 
+- **Single-Author Bug**: Alle drei Extraction-LLMs nannten nur den Erstautor ("Yu Sun" statt aller 5). Gefixt durch Prompt-Optimierung (COUNT-Anweisung, Few-Shot-Example, "and colleagues"-Verbot) + Sanitizer-Enrichment aus Chunk-Metadaten.
 - **Author-Halluzination**: Prompt hardened: „ONLY extract authors from \"From paper:\" headers". Keine halluzinierten Papers mehr.
 - **top_k Glass Ceiling**: Dify-GUI limitierte auf 10 – via `TOP_K_MAX_VALUE` Env-Variable aufgehoben.
 - **Doc-Name Suffix**: `__two_pass_1781511154` Upload-Suffixe werden zuverlässig gestrippt.
@@ -25,9 +31,9 @@
 
 | Intent | Query | Result |
 |--------|-------|--------|
-| `author_lookup` | Who has worked on tRNA modifications or queuosine detection? | ✅ 5 papers, 3 authors (Ehrenhofer-Murray, Helm, Tuorto), verbatim evidence quotes, 61s |
-| `entity_lookup` | Which RNA modifications are most studied in epitranscriptomics? | ✅ Entity table: m6A, pseudouridines, tRNA/rRNA, EBER2, writers, 64s |
-| `knowledge_retrieval` | What is m6A and which methods are used to detect it? | ✅ Grounded answer: MeRIP-seq, miCLIP, MazF, Illumina sequencing, 81s |
+| `author_lookup` | Who has worked on tRNA modifications or queuosine detection? | ✅ 5 papers, ALL authors listed (5–10 per paper), Authors:/Quote: format, no "and colleagues", 71s |
+| `entity_lookup` | Which RNA modifications are most studied in epitranscriptomics? | ✅ Entity table with full paper citations (title + all authors + year), 62s |
+| `knowledge_retrieval` | What is m6A and which methods are used to detect it? | ✅ 5 methods, each cited with paper title + ALL authors (2–7 per paper), no "and colleagues", 68s |
 
 ## [0.3.2] - 2026-06-29
 

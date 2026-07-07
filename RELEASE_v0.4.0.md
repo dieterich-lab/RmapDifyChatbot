@@ -18,7 +18,7 @@ Chunk Filter → KR Intent Router (IF/ELSE on {{#intent#}})
 - **top_k: 50**: `TOP_K_MAX_VALUE=50` im Dify-Container gesetzt. Retrieval-Qualität massiv verbessert (11 unique papers statt 2–3)
 - **KR Query Rewriter entfernt**: Pass-through für bessere Retrieval-Qualität. Der HyDE-style Rewriter matchte überproportional Bibliographie-Sections
 - **Chunk Filter**: Signal-Density-basierte Reference-Erkennung (DOI, nummerierte Refs, Jahreszahlen), Doc-Deduplizierung (max 3 chunks/paper), Safety-Net bei <3 überlebenden Chunks
-- **Author-Halluzination behoben**: Prompt hardened – extrahiert nur Autoren aus "From paper:"-Headern
+- **Alle Autoren**: Alle drei Extraction-LLMs listen jetzt sämtliche Autoren pro Paper. "and colleagues" / "et al." explizit verboten. Author Extraction mit `Authors: ... / Quote: ...` Format + Few-Shot Example. Sanitizer mit Autor-Anreicherung aus Chunk-Metadaten (neue Edge Chunk Filter → Sanitizer, 27 Edges)
 - **`migrate_to_3llm.py`**: Transformations-Script für YAML-Workflow
 
 ## ✅ Alle 3 KR-Routes getestet (2026-07-06, qwen2.5:14b, top_k=50)
@@ -27,31 +27,32 @@ Chunk Filter → KR Intent Router (IF/ELSE on {{#intent#}})
 
 > **Query:** "Who has worked on tRNA modifications or queuosine detection?"
 
-**Route:** Unified Router → `author_lookup` → KR (50 chunks) → Chunk Filter (7 kept / 19 removed) → KR Intent Router → **Author Extraction LLM**
+**Route:** Unified Router → `author_lookup` → KR (50 chunks) → Chunk Filter (7 kept / 17 removed) → KR Intent Router → **Author Extraction LLM**
 
 **Answer:**
 ```
-**Direct RNA Sequencing for Queuosine Detection** (Nucleic Acids Res)
-- Anne E Ehrenhofer-Murray: "Here, we have employed direct RNA sequencing using
-  nanopore technology to detect the modification of tRNAs with Q and Q precursors."
+**"Detection of queuosine and queuosine precursors in tRNAs by direct RNA sequencing"**
+(Nucleic Acids Res, 2023)
+Authors: Yu Sun, Michael Piechotta, Isabel Naarmann-de Vries, Christoph Dieterich,
+Ann E. Ehrenhofer-Murray
+Quote: "Here, we have employed direct RNA sequencing using nanopore technology to
+detect the modification of tRNAs with Q and Q precursors."
 
-**Queuosine Biosynthesis and Its Impact on tRNA Modifications** (Nucleic Acids Res)
-- Markus Helm: "Having established that preQ1-L1 is actively incorporated into
-  native tRNAs, we next investigated a particularly interesting effect of queuosine..."
+**"Functional integration of a semi-synthetic azido-queuosine derivative into
+translation and a tRNA modification circuit"** (Nucleic Acids Res, 2022)
+Authors: Larissa Bessler, Navpreet Kaur, Lea-Marie Vogt, Laurin Flemmich,
+Carmen Siebenaller, Marie-Luise Winz, Francesca Tuorto, Ronald Micura,
+Ann E. Ehrenhofer-Murray, Mark Helm
+Quote: "We therefore asked whether Q-L1 can serve as a biologically active
+surrogate for queuosine in this circuit."
 
-**Queuosine Introduction by TGT Complex in Human Cells** (BioEssays)
-- Frank Tuorto: "For different species, including human, discrete tRNAs are
-  further modified by QTGAL or QTMAN..."
-
-**Queuosine and Its Role in Translation Optimization** (J Mol Biol)
-- Frank Tuorto: "Glycosylated queuosines in tRNAs optimize translational rate
-  and post-embryonic growth."
-
-**Computational Analysis of RNA Modifications** (Comput Struct Biotechnol J)
-- Markus Helm: "This confers to this modification a diagnostic value for the
-  discrimination of tRNAs vs. tsRNAs."
+**"Queuosine‐tRNA promotes sex‐dependent learning and memory formation by
+maintaining codon‐biased translation elongation speed"** (EMBO J, 2023)
+Authors: Cansu Cirzi, Francesca Tuorto
+Quote: "Queuosine (Q) is a modified nucleoside at the wobble position of
+specific tRNAs."
 ```
-⏱️ 61s | 5 papers, 3 authors, alle grounded
+⏱️ 71s | 5 papers, ALL authors listed (5–10 per paper), no "and colleagues"
 
 ---
 
@@ -65,13 +66,18 @@ Chunk Filter → KR Intent Router (IF/ELSE on {{#intent#}})
 ```
 | Entity | Type | Paper |
 |--------|------|-------|
-| N6-methyladenosine (m6A) | RNA modification | Helm M, Motorin Y, 2021, WIREs RNA |
-| pseudouridines and 5-substituted U residues | RNA modifications | Helm M, Richter F, 2022, Nucleic Acids Res |
-| tRNA and rRNA | RNA targets | Helm M, Motorin Y, 2021, WIREs RNA |
-| EBER2 | viral noncoding RNAs | Lee N, Henry BA, 2022, RNA |
-| epitranscriptomic "writers" | enzymes | Helm M, Motorin Y, 2021, WIREs RNA |
+| N6-methyladenosine (m6A) | RNA modification | "Detecting m6A..." by Adrian Chan,
+  Isabel S. Naarmann-de Vries, Carolin P. M. Scheitl, Claudia Höbartner,
+  Christoph Dieterich (2024) |
+| pseudouridines | RNA modification | "General Principles and Limitations..." by
+  Yuri Motorin, Mark Helm (2024) |
+| tRNA and rRNA | RNA targets | "General Principles and Limitations..." by
+  Yuri Motorin, Mark Helm (2024) |
+| EBER2 | viral noncoding RNAs | "EBER2" by N. Lee, B. A. Henry (2022) |
+| epitranscriptomic writers | enzymes | "General Principles..." by
+  Yuri Motorin, Mark Helm (2024) |
 ```
-⏱️ 64s | Entity-Tabelle mit Paper-Attribution
+⏱️ 62s | Entity-Tabelle mit vollen Paper-Zitaten (alle Autoren + Jahr)
 
 ---
 
@@ -79,22 +85,37 @@ Chunk Filter → KR Intent Router (IF/ELSE on {{#intent#}})
 
 > **Query:** "What is m6A and which methods are used to detect it?"
 
-**Route:** Unified Router → `knowledge_retrieval` → KR (50 chunks) → Chunk Filter (13 kept / 24 removed) → KR Intent Router → **KR Extraction LLM**
+**Route:** Unified Router → `knowledge_retrieval` → KR (50 chunks) → Chunk Filter (10 kept / 16 removed) → KR Intent Router → **KR Extraction LLM**
 
 **Answer:**
 ```
-N6-methyladenosine (m6A) is "the most abundant internal mRNA modification,
-with estimates ranging from 1 to 13 modifications present per transcript."
-Methods for detecting m6A include antibody-based protocols such as methylated
-RNA immunoprecipitation sequencing (MeRIP-seq), which involves "cDNA synthesis
-by reverse transcription and PCR-based library amplification," and miCLIP,
-where "RNA crosslinking and immunoprecipitation with an m6A-specific antibody"
-is performed. Additionally, enzyme-assisted approaches like the use of
-methylation-sensitive restriction enzymes (MazF) are mentioned for mapping
-m6A sites. These methods rely on high-throughput short-read sequencing on
-platforms such as Illumina to profile transcriptome-wide m6A methylation.
+m6A, or N6-methyladenosine, is a prevalent RNA modification that influences
+various steps in the RNA life cycle such as mRNA stability, splicing, translation,
+and decay.
+
+Methods for detecting m6A:
+
+1. NO-Seq: Chemical treatment + RT + sequencing. ("General Principles and
+   Limitations for Detection of RNA Modifications by Sequencing" by
+   Yuri Motorin, Mark Helm)
+
+2. Direct RNA Sequencing: Single-molecular resolution without antibodies.
+   ("Detecting m6A at single-molecular resolution via direct RNA sequencing
+   and realistic training data" by Adrian Chan, Isabel S. Naarmann-de Vries,
+   Carolin P. M. Scheitl, Claudia Höbartner, Christoph Dieterich)
+
+3. Antibody-Based: Dot blot, ELISA, DIP-seq. ("Refining the role of
+   N6-methyladenosine in cancer" by Jonas Koch, Frank Lyko)
+
+4. Quantitative Mapping: eTAM-seq, GLORI, MePMe-seq, m6A-SAC-seq.
+   ("Sci-ModoM: a quantitative database..." by Etienne Boileau,
+   Harald Wilhelmi, Anne Busch, Andrea Cappannini, Andreas Hildebrand,
+   Janusz M. Bujnicki, Christoph Dieterich)
+
+5. Computational Methods: Pipelines + miCLIP validation. ("Dynamic
+   RNA Modifications in Disease" by Janina Fuß, J. Zarnack)
 ```
-⏱️ 81s | Verbatin quotes, fully grounded
+⏱️ 68s | 5 methods, each cited with paper title + ALL authors (2–7 per paper), no "and colleagues"
 
 ---
 
@@ -106,9 +127,10 @@ platforms such as Illumina to profile transcriptome-wide m6A methylation.
 | **KR Query Rewriter** | HyDE-style Keyword-Expansion | Pass-through |
 | **Model** | gpt-oss | qwen2.5:14b |
 | **top_k** | 10 | 50 |
-| **Author-Halluzination** | ❌ Papers erfunden | ✅ Nur "From paper:"-Header |
+| **Autoren** | ❌ Nur Erstautor ("Yu Sun") | ✅ Alle Autoren (5–10 pro Paper) |
+| **"and colleagues"** | ❌ Ja | ✅ Nein |
 | **Mixed Output** | ❌ Alle 3 Sektionen | ✅ Nur geroutete Sektion |
-| **Nodes** | 20 | 23 |
+| **Nodes** | 20 | 22 |
 | **Edges** | 22 | 27 |
 
 ---
