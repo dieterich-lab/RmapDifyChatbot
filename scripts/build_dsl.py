@@ -28,7 +28,6 @@ NODE_TO_SCRIPT = {
     "Resolve Paper List": "resolve_paper_list.py",
     "Update Paper Memory": "update_paper_memory.py",
     "Fetch Full Paper": "fetch_full_paper.py",
-    "Parse Router Output": "parse_router_output.py",
 }
 
 
