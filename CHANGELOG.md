@@ -1,5 +1,22 @@
 # Changelog
 
+## [0.4.3] - 2026-07-08
+
+### Added
+
+- **PubMed-Metadaten-Extraktion**: `extract_metadata_pubmed()` extrahiert Titel, Autoren (FAU), Jahr (DP), Journal (JT) via DOI→PMID→MEDLINE (NCBI E-utilities). 83% Coverage (70/84 Papers). Kein LLM nötig.
+- **Bulk-Metadata-Update**: `scripts/update_dify_metadata.py` updated Dify doc_metadata in-place via Console-API (`POST /datasets/{ds}/documents/metadata`). Batch-Update mit preserved Metadata-IDs.
+
+### Changed
+
+- **`extract_metadata()`**: PubMed-First-Strategie. Nur bei fehlendem DOI/PubMed-Eintrag Fallback auf LLM-Extraktion.
+
+### Results (2026-07-08)
+
+| Intent | Query | Result |
+|--------|-------|--------|
+| `author_lookup` | Who has worked on tRNA modifications? | **7 Papers** (war 5), Cirzi et al. jetzt mit ALLEN 16 Autoren, keine "Tuorto, F, Cirzi C"-Garbling mehr |
+
 ## [0.4.2] - 2026-07-08
 
 ### Changed

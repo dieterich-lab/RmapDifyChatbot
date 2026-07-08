@@ -5,13 +5,12 @@ academic assistant with explicit metadata routing.
 
 ## Status Snapshot (2026-07-08)
 
-**v0.4.2 — Recall-Optimierung**
+**v0.4.3 — PubMed-Metadaten & Clean Author-Lookup**
 
-1. **3-LLM Intent Routing**: `Author Extraction LLM` (✅ stabil), `Entity Extraction LLM` (✅ 6 Entities), `KR Extraction LLM` (⚠️).
-2. **Chunk-Filter: 1 Chunk/Paper**: Maximale Paper-Diversität, entity_lookup 3→6 Entities.
-3. **Hybrid Weights: 0.7/0.3**: Keyword-bevorzugt für präzisere Matches.
-4. **top_k: 50**: `TOP_K_MAX_VALUE=50` im Dify-Container.
-5. **qwen2.5:14b**: Grounded, keine Paper-Halluzinationen.
+1. **PubMed-Metadaten**: 83% der Papers (70/84) via DOI→PMID→MEDLINE. Autoritative Titel, alle Autoren.
+2. **3-LLM Intent Routing**: `Author Extraction LLM` (✅ 7 Papers, alle Autoren), `Entity Extraction LLM` (✅ 6 Entities), `KR Extraction LLM` (⚠️).
+3. **Chunk-Filter: 1 Chunk/Paper**: Maximale Paper-Diversität.
+4. **top_k: 50**, Hybrid **0.7/0.3**, Model **qwen2.5:14b**.
 
 ## Overview
 
