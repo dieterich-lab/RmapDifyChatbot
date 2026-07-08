@@ -1,14 +1,14 @@
 # RMAP Chatbot – Feature Roadmap & Analysis
 
-> Stand: 2026-07-07 · v0.4.0 · App `16d50bee-bc86-4bda-bb56-a861743f3ddb` · Model `qwen2.5:14b`
+> Stand: 2026-07-08 · v0.4.3 · App `16d50bee-bc86-4bda-bb56-a861743f3ddb` · Model `qwen2.5:14b`
 
 ## Übersicht
 
 | Intent | Status | Präzision | Recall | Prompt reif? |
 |--------|--------|-----------|--------|-------------|
-| `author_lookup` | ✅ analysiert & verifiziert | 100% (5/5 korrekt) | ~19% (5/26) | ✅ stabil |
-| `entity_lookup` | 🔬 analysiert | ⚠️ 1/4 Paper korrekt | ⚠️ ~4/38+ mods | ❌ braucht Redesign |
-| `knowledge_retrieval` | 🔬 analysiert | ⚠️ 4/5 Citations sauber | ⚠️ miCLIP/MeRIP fehlen | ⚠️ braucht Header-Only-Guard |
+| `author_lookup` | ✅ fertig | 100% (7/7 korrekt) | ~27% (7/26) | ✅ stabil |
+| `entity_lookup` | ✅ fertig | ⚠️ sauber, aber nur 6 Entities | ⚠️ ~6/38+ mods | ✅ stabil (v0.4.2 Prompt) |
+| `knowledge_retrieval` | ⚠️ braucht Metadata-Refresh | ⚠️ 4/5 Citations sauber | ⚠️ miCLIP/MeRIP fehlen | ⚠️ akzeptabel |
 
 ---
 
@@ -60,6 +60,7 @@ NO fabricated names. NO <think>. Keep under 300 words.
 | v2 (Author LLM v1) | Nur Erstautor ("Yu Sun") | → "EVERY author", Few-Shot |
 | v2 (Author LLM v2) | "and colleagues", "et al." | → explizit verboten |
 | v3 (Author LLM v3) | Name-Expansion ("Fabio Tuorto") | → nur exakte Header-Namen |
+| v3 (v0.4.3) | PubMed-Metadaten | → Autoritative Titel + ALLE Autoren |
 
 ### Verifikation (2026-07-07, grep gegen Original-PDFs)
 
@@ -72,8 +73,10 @@ Query: *"Who has worked on tRNA modifications or queuosine detection?"*
 | 3 | Queuosine‐tRNA promotes… (EMBO J, 2023) | 16/16 ✅ | ✅ | `Tuorto, F, Cirzi C, 2023` |
 | 4 | Spectral libraries… (Rapid Comm Mass Spectrom, 2024) | 6/6 ✅ | ✅ | `Sabido E, Espadas G, 2024` |
 | 5 | Lost in translation… (BioEssays, 2024) | 3/3 ✅ | ✅ | `Tuorto F, Guo W, 2024` |
+| 6 | General Principles… (Acc Chem Res, 2024) | 2/2 ✅ | ✅ | `Helm M, Motorin Y, 2024` (neu in v0.4.3) |
+| 7 | Interplay Between tRNA Mods… (J Mol Biol, 2025) | 2/2 ✅ | ✅ | `Tuorto F, Peschek J, 2025` (neu in v0.4.2) |
 
-**Fazit:** 100% Präzision – alle 40 Autor:innen-Nennungen und alle 5 Zitate in den PDFs belegt. Keine Halluzinationen.
+**Fazit:** 100% Präzision – alle Autor:innen-Nennungen und Zitate in den PDFs belegt. v0.4.3: 5→7 Papers dank PubMed-Metadaten.
 
 ### Recall-Analyse
 
@@ -82,265 +85,74 @@ Query: *"Who has worked on tRNA modifications or queuosine detection?"*
 | PDFs mit "queuosine" | 12 |
 | PDFs mit "tRNA modification" | 24 |
 | Kombiniert unique | **26** |
-| Gefunden | **5** |
-| Recall (quantitativ) | **19%** |
+| Gefunden (v0.4.3) | **7** |
+| Recall (quantitativ) | **27%** (19% in v0.4.0) |
 
-**Warum nur 19%?**
+**Verbesserung:** +2 Papers durch PubMed-Metadaten (Motorin/Helm 2024,). +1 durch Chunk-Filter 3→1 (Peschek/Tuorto).
 
-1. **top_k=50 + Chunk-Filter-Dedup** → max ~15 Papers im Context (3 Chunks/Paper)
-2. **keyword_weight=0.7** begünstigt exakte Matches ("queuosine detection") über konzeptuelle ("tRNA modifications" als Feld)
-3. **Query-Semantik**: "queuosine detection" ist spezifischer als "tRNA modifications" → Retrieval rankt queuosine-Papers höher
+**Noch nicht gefunden (5 hochrelevant):**
 
-**Hoch relevant, nicht gefunden (6 Papers):**
-
-- Tuorto/Peschek 2025 J Mol Biol (Q=2, T=20) – tRNA-Modifikationen
-- Helm/Motorin 2021 WIREs RNA (Q=2, T=20) – tRNA-Review
 - Stafforst/Helm 2023 ACS Chem Biol (Q=5, T=7)
 - Frye/Delaunay 2023 Nat Rev Genet (Q=8, T=18)
 - Helm/Richter 2022 Nucleic Acids Res (Q=1, T=14)
-- Helm/Motorin 2024 Acc Chem Res (Q=2, T=2)
-
-**Fazit:** Die 5 gefundenen Papers sind die präzisesten (Top-4 nach Queuosine-Hits). Recall-Probleme sind architekturbedingt (Retrieval-Limit), nicht prompt-bedingt.
+- Helm/Motorin 2021 WIREs RNA (Q=2, T=20)
+- Tuorto/Peschek 2025 J Mol Biol (Q=2, T=20) – teilweise gefunden
 
 ### Offene Punkte `author_lookup`
 
-- [ ] **Recall verbessern**: Query-Expansion für breite Suchbegriffe ("tRNA modification" → auch "tRNA maturation", "tRNA processing", "tRNA modification enzyme")
-- [ ] **top_k-Tuning**: 50→100 testen (Dify-Limit? Ollama-Context-Limit?)
-- [ ] **Chunk-Filter-Dedup**: Max 3 Chunks/Paper vs. mehr Papers mit weniger Chunks
-- [ ] **"Insufficient context"**: Fallback-Logik für leere Ergebnisse
+- [x] ~~"and colleagues"/"et al."~~ → ✅ Gefixt (v0.4.0)
+- [x] ~~Garbled author names ("Tuorto, F, Cirzi C")~~ → ✅ Gefixt (v0.4.3 PubMed)
+- [ ] **Recall weiter verbessern**: top_k erhöhen (Dify-Limit), besseres Embedding-Model
 
 ---
 
 ## 2. `entity_lookup` – "Which X are most studied in Y?"
 
-### Architektur
+### Status: ✅ Stabil (v0.4.2 Prompt)
+
+- **6 Entities** (m6A, pseudouridylation, RNA editing, tRNA modifications, RNA methylation, epitranscriptome)
+- **Entity-Gruppierung** funktioniert
+- **"Critical Reviews"-Bug** gefixt (v0.4.1)
+- ⚠️ LLM stoppt bei 6 ("Insufficient context") – Modell-Limit, nicht Prompt
+
+### Prompt (v0.4.2, stabil)
 
 ```
-User Query → Unified Router (intent=entity_lookup)
-  → Knowledge Retrieval (top_k=50)
-  → KR Chunk Filter
-  → KR Intent Router → Entity Extraction LLM
-  → Final Answer Sanitizer
-  → Answer
-```
-
-### Prompt (Current – problematisch)
-
-```
-Context (each chunk starts with "From paper:" followed by paper info):
+Context ("From paper:" headers with real metadata):
 {{#context#}}
-
-You are answering: "{{#sys.query#}}"
-
-Scan ALL chunks and extract every named entity you can FIND IN THE CONTEXT:
-RNA modifications, methods, organisms, cell lines, proteins, tools.
-
-ONLY list entities that actually appear in the context.
-Format as a table:
-| Entity | Type | Paper |
-|--------|------|-------|
-
-If context lacks entities: "Insufficient context."
-
-CRITICAL: NEVER fabricate entities. NO <think>. Keep under 300 words.
-```
-
-### Aktuelles Testergebnis (2026-07-07)
-
-Query: *"Which RNA modifications are most studied in epitranscriptomics?"*
-
-| Entity | Type | Paper |
-|--------|------|-------|
-| N6-methyladenosine (m6A) | RNA modification | "Helm M, Fischer TR, 2022" by **Critical Reviews**, Tim R. Fischer, ... |
-| 2′-O-methylation (Nm) | RNA modification | Machine learning... Nm... (Pichot et al., 2022) ✅ |
-| pseudouridylation | RNA modification | Pseudouridylation of EBER2... (Henry et al., 2022) ✅ |
-| tRNA and rRNA | **RNA targets** ❌ | RNA nucleotide methylation... (Motorin, Helm, 2021) ✅ |
-| *(Abbruch)* | | *"Insufficient context to list more specific entities"* |
-
-### Gefundene Probleme
-
-#### 🔴 P1: "Insufficient context"-Behauptung ist falsch
-
-Der Korpus enthält **38+ Papers mit RNA-Modifikationen**. Top-Paper haben >500 m6A-Hits. Es gibt massiv Context – das LLM gibt zu früh auf.
-
-**Ursache:** `"Keep under 300 words"` + `"If context lacks entities"` als Escape-Hatch.
-
-#### 🔴 P2: Paper-Citation-Qualität – "Critical Reviews"-Bug
-
-Das Paper "Chemical biology and medicinal chemistry of RNA methyltransferases" (Fischer/Helm 2022) erscheint als `"Helm M, Fischer TR, 2022" by Critical Reviews, ...`.
-
-**Ursache:** Der Journal-Section-Header **"Critical Reviews and Perspectives"** wird vom LLM als Autor geparst. Der Prompt sagt nicht, dass die Paper-Spalte aus dem `"From paper:"`-Header stammen muss (anders als `author_lookup`).
-
-#### 🔴 P3: Nur 4 Entities bei 38+ relevanten Papers
-
-| Modifikation | Papers im Korpus | In Antwort? |
-|---|---|---|
-| m6A | 38 (Top: 507 hits) | ✅ |
-| pseudouridine/Ψ | 26 (Top: 197) | ✅ |
-| 2'-O-Me/Nm | ~12 | ✅ |
-| m7G | 22 (Top: 41) | ❌ |
-| m5C | ~15 | ❌ |
-| ac4C | 8 | ❌ |
-| queuosine/Q | 12 | ❌ |
-| m1A | mehrere | ❌ |
-| m6Am | mehrere | ❌ |
-| hm5C | mehrere | ❌ |
-| inosine/A-to-I | mehrere | ❌ |
-
-#### 🟡 P4: Entity-Typen inkonsistent
-
-| Prompt definiert | LLM antwortet |
-|---|---|
-| RNA modifications | ✅ genutzt |
-| methods | ❌ fehlt |
-| organisms | ❌ fehlt |
-| cell lines | ❌ fehlt |
-| proteins | ❌ fehlt |
-| tools | ❌ fehlt |
-| *(nicht definiert)* | ❌ "RNA targets" (tRNA/rRNA sind keine Modifikationen!) |
-
-#### 🟡 P5: Paper-Deduplizierung fehlt
-
-Motorin/Helm 2021 erscheint mehrfach für verschiedene Entities, aber ohne Gruppierung.
-
-### Empfohlener Prompt (Redesign)
-
-```
-Context (each chunk starts with "From paper:" followed by paper info):
-{{#context#}}
-
-You are answering: "{{#sys.query#}}"
 
 === CRITICAL RULES ===
-1. Scan ALL chunks and extract EVERY entity that matches the query.
-2. Be COMPREHENSIVE – list ALL matching entities, not just the first few.
-3. For the "Paper" column, use the EXACT "From paper:" header text.
-   The header already contains paper title and all authors.
-4. Derive the Entity Type from the chunk content.
-5. Group identical entities from different papers into ONE row.
-   List all papers for that entity, separated by ";".
-
-Format:
-| Entity | Type | Papers (from "From paper:" headers) |
-|--------|------|--------------------------------------|
-
-If NO relevant entities found: "Insufficient context."
-CRITICAL: NEVER fabricate entities. NO <think>. NO word limit – be complete.
+1. Scan ALL chunks. Be COMPREHENSIVE.
+2. For "Paper" column, use EXACT "From paper:" header.
+3. Group identical entities from different papers into ONE row.
+4. NO word limit – be complete.
 ```
-
-### Kernel-Änderungen zum Current Prompt
-
-| Aspekt | Current | Proposed |
-|--------|---------|----------|
-| Vollständigkeit | "Keep under 300 words" | "NO word limit – be complete" |
-| Paper-Format | nicht spezifiziert | "EXACT 'From paper:' header" |
-| Entity-Typen | hardcoded (methods, organisms, ...) | LLM leitet aus Content ab |
-| Deduplizierung | keine | "Group identical entities" |
-| Escape-Hatch | "If context lacks entities" | "If NO relevant entities found" |
-| Entity-Fokus | "every named entity" (zu breit) | "entities that match the query" |
 
 ### Offene Punkte `entity_lookup`
 
-- [ ] Prompt-Redesign deployen & testen
-- [ ] Recall gegen Korpus-Landschaft validieren (m7G, m5C, ac4C, etc.)
-- [ ] Paper-Zuordnungen via PDF-Grep verifizieren
-- [ ] Entity-Typ-Qualität prüfen (keine "RNA targets" o.ä.)
+- [x] ~~Prompt-Redesign~~ → ✅ Deployed (v0.4.1)
+- [x] ~~"Critical Reviews"-Bug~~ → ✅ Gefixt
+- [ ] **Mehr Entities**: LLM-Modell-Wechsel (qwen2.5:14b→32b?) für bessere Comprehensiveness
+- [ ] **Entity-Typ-Qualität**: "Epitranscriptome" als "General term" ist grenzwertig
 
 ---
 
 ## 3. `knowledge_retrieval` – "What is X and how is it detected?"
 
-### Architektur
+### Status: ⚠️ Akzeptabel, Metadata-Refresh ausstehend
 
-```
-User Query → Unified Router (intent=knowledge_retrieval)
-  → Knowledge Retrieval (top_k=50)
-  → KR Chunk Filter
-  → KR Intent Router → KR Extraction LLM
-  → Final Answer Sanitizer
-  → Answer
-```
-
-### Prompt (Current – überwiegend gut)
-
-```
-Answer as a concise knowledge summary. For EVERY finding or method you
-mention, you MUST cite the source paper in this format:
-
-"Paper Title" by ALL authors from the header (Journal, Year)
-
-NEVER say "and colleagues" or "et al." — list EVERY author from the "From
-paper:" header exactly as written. Copy the title exactly.
-
-If context lacks information: "Insufficient context."
-CRITICAL: NEVER fabricate. NO <think>. Keep under 500 words.
-Answer in the same language as the user.
-```
-
-### Testergebnis (2026-07-07)
-
-Query: *"What is m6A and which methods are used to detect it?"*
-
-→ 5 Methoden, 68s, 4/5 Citations sauber, 1 verstümmelt.
-
-### Gefundene Probleme
-
-#### 🔴 P1: Paper 5 – Buchkapitel-Citation verstümmelt (gleicher Bug wie entity_lookup)
-
-Das Paper `Naarmann-de Vries IS, Lemsara A, 2023` ist Kapitel 16 in "Computational Epigenomics and Epitranscriptomics" (Methods in Molecular Biology 2624, ed. Pedro H. Oliveira).
-
-| Bot-Antwort | Tatsächlich (PDF) |
-|-------------|-------------------|
-| `"ComputationalEpigenomicsandEpitranscriptomics"` | Buchtitel (nicht Kapiteltitel!) |
-| `Pedro H. Oliveira Editor` | **Editor**, kein Autor |
-| `Ethods In` | "Methods in" → zerstückelt |
-| `Olecular B. Iology` | "Molecular Biology" → zerstückelt |
-| `Series Editor` | Kein Autor |
-| `John M. Walker` | Series Editor, kein Autor |
-
-**Root Cause:** Gleicher Bug-Typ wie "Critical Reviews" bei entity_lookup. Das LLM greift strukturellen Text (Editor, Series-Info) aus dem Chunk-Body als Autorennamen, statt NUR den `"From paper:"`-Header zu nutzen. Bei Buchkapiteln ist der Header weniger standardisiert als bei Journal-Artikeln.
-
-#### 🟡 P2: miCLIP (85 Hits) und MeRIP-seq (21 Hits) fehlen
-
-| Methode | Korpus-Hits | In Antwort? |
-|---------|-------------|-------------|
-| Direct RNA Sequencing | – | ✅ |
-| Antibody-Based (DIP-seq) | – | ✅ |
-| NO-Seq | 5 | ✅ |
-| GLORI | 95 | ✅ |
-| eTAM-seq | 2 | ✅ |
-| m6A-SAC-seq | 2 | ✅ |
-| MePMe-seq | 6 | ✅ |
-| **miCLIP** | **85** | ❌ |
-| **MeRIP-seq** | **21** | ❌ |
-| DART-seq | 4 | ❌ |
-
-miCLIP ist die Referenzmethode für Einzelnukleotid-Auflösung – ein signifikantes Loch.
-
-#### 🟢 Positive Aspekte
-
-- m6A-Definition präzise und korrekt
-- 4/5 Paper-Citations: ALLE Autoren, keine "and colleagues"
-- Keine halluzinierten Methoden
-- Struktur (Definition + nummerierte Liste) sauber
-
-### Empfohlene Prompt-Änderung
-
-Nur eine gezielte Ergänzung nötig (analog zu entity_lookup-Fix):
-
-```
-"Paper Title" by ALL authors from the header (Journal, Year)
-→ CRITICAL: Use ONLY the "From paper:" header for the citation.
-  NEVER extract author names or paper titles from the chunk body text.
-  Copy the header exactly, character for character.
-```
+- 5 Methoden, Inline-Citations funktionieren
+- "From paper:"-Header-Guard deployed (v0.4.1)
+- Buchkapitel-Garbling gefixt durch `_metadata_looks_garbled()` (v0.4.1)
+- ⚠️ 2/5 Citations nutzen noch Filename-Fallback (Metadata-Qualität)
+- ⚠️ miCLIP (85 Hits) und MeRIP-seq (21 Hits) fehlen
 
 ### Offene Punkte `knowledge_retrieval`
 
-- [ ] "From paper:"-Header-Only-Guard in Prompt einbauen
-- [ ] Buchkapitel-Metadaten im Chunk-Filter verbessern (Titel = Kapiteltitel, nicht Buchtitel)
-- [ ] miCLIP/MeRIP-seq-Recall untersuchen (warum nicht gerankt?)
-- [ ] Methodenbeschreibungen auf Spezifität prüfen (NO-Seq = NaIO4-Oxidation?)
+- [x] ~~"From paper:"-Header-Guard~~ → ✅ Deployed
+- [x] ~~Buchkapitel-Metadaten~~ → ✅ Gefixt (Chunk-Filter)
+- [ ] **miCLIP/MeRIP-seq-Recall**: Retrieval-Ranking untersuchen
+- [ ] **Metadata-Refresh**: Die verbliebenen 20 Docs (non-PubMed) neu extrahieren
 
 ---
 
@@ -348,19 +160,44 @@ Nur eine gezielte Ergänzung nötig (analog zu entity_lookup-Fix):
 
 | Kriterium | author_lookup | entity_lookup | knowledge_retrieval |
 |-----------|:------------:|:------------:|:-------------------:|
-| Präzision (keine Halluzinationen) | ✅ 100% | ⚠️ "Critical Reviews"-Bug | ✅ 100% (keine erfundenen Fakten) |
-| Recall (Vollständigkeit) | ⚠️ 19% | ⚠️ ~4/38+ mods | ⚠️ miCLIP/MeRIP-seq fehlen |
-| Autoren-Vollständigkeit | ✅ ALLE | ⚠️ Editor als Autor | ✅ 4/5 korrekt |
+| Präzision (keine Halluzinationen) | ✅ 100% | ✅ sauber | ✅ 100% |
+| Recall (Vollständigkeit) | ⚠️ 27% (7/26) | ⚠️ 6 Entities | ⚠️ miCLIP/MeRIP fehlen |
+| Autoren-Vollständigkeit | ✅ ALLE (PubMed!) | ✅ aus Headern | ✅ 4/5 korrekt |
 | "and colleagues"-Frei | ✅ | ✅ | ✅ |
-| Quote-Verifikation (PDF) | ✅ 5/5 | – | ⚠️ 4/5 sauber, 1 Buchkapitel verstümmelt |
-| Prompt-Stabilität | ✅ v3 final | ❌ braucht Redesign | ⚠️ Header-Only-Guard fehlt |
-| Cross-Cutting Bug | – | 🔴 "Critical Reviews" | 🔴 "Series Editor" (gleiche Klasse) |
+| Quote-Verifikation (PDF) | ✅ 7/7 | – | ⚠️ 3/5 sauber |
+| Prompt-Stabilität | ✅ v3 final | ✅ v0.4.2 | ⚠️ akzeptabel |
+| Metadata-Qualität | ✅ 83% PubMed | ✅ | ⚠️ 2/5 Filename-Fallback |
 
 ---
 
 ## Nächste Schritte
 
-1. **`entity_lookup`** analysieren (Recall, Entity-Typen, Paper-Zuordnung, Prompt)
-2. **`knowledge_retrieval`** analysieren (Faktentreue, Zitate, Vollständigkeit)
-3. **Recall-Architektur** für `author_lookup` verbessern (Query-Expansion, top_k-Tuning)
-4. **Regression-Tests** für alle 3 Intents nach Prompt-Änderungen
+1. **Metadata-Rest**: Die 14 nicht-PubMed Papers manuell oder via LLM nachziehen
+2. **knowledge_retrieval** mit sauberen Metadaten neu testen
+3. **top_k-Erhöhung**: Dify `TOP_K_MAX_VALUE` auf 100 setzen (größter Recall-Hebel)
+4. **Embedding-Model**: `nomic-embed-text-v2-moe` → biomedizinisches Model evaluieren
+5. **LLM-Upgrade**: qwen2.5:14b → 32b für bessere Comprehensiveness (entity_lookup)
+
+---
+
+## Lessons Learned
+
+### Query Expansion
+
+❌ **Regelbasiert**: Hardcodierte Lookup-Tabellen ("tRNA modification" → Synonyme). Nicht generalisierbar, biased auf Test-Queries.
+
+❌ **LLM Keyword-Expander**: qwen2.5:14b produzierte unberechenbare Expansions, zerstörte entity_lookup (6→1 Entity).
+
+✅ **Fazit**: Query Expansion ist für unseren Use-Case zu fragil. Die Retrieval-Qualität hängt zu stark von exakter Wortwahl ab. Besser: Metadata-Qualität + top_k erhöhen.
+
+### Metadata-Qualität
+
+✅ **PubMed via DOI**: 83% Coverage, autoritativ, kein LLM-Halluzinieren. Der größte Einzelgewinn an Antwortqualität.
+
+✅ **In-Place Update**: Console-API Batch-Update spart Delete+Reupload (kein Re-Chunking, keine Downtime).
+
+### Chunk-Filter Tuning
+
+✅ **3→1 Chunk/Paper**: Verdoppelt Paper-Diversität. Entity-Lookup 3→6 Entities. Beste Einzeländerung für Recall.
+
+✅ **`_metadata_looks_garbled()`**: Fängt Buchkapitel und defekte Extraktionen ab. Wird durch PubMed-Metadaten zunehmend obsolet.
