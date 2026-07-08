@@ -361,7 +361,7 @@ workflow:
       selected: false
       sourcePosition: right
       targetPosition: left
-      type: custom
+      type: custo
       width: 242
     - data:
         dataset_ids:
