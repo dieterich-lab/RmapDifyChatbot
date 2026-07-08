@@ -1,5 +1,23 @@
 # Changelog
 
+## [0.4.3] - 2026-07-08
+
+### Added
+
+- **Regelbasierte Query-Expansion für author_lookup**: `_expand_query()` im Parse Router Output erweitert die Query mit Domänen-Synonymen (z.B. "tRNA modification" → +"tRNA maturation tRNA processing anticodon modification"). Kein LLM-Call, keine Latenz. KR-Node nutzt `expanded_query` statt `sys.query`.
+- **Parse Router Output als separates Python-File**: `workflow_scripts/parse_router_output.py` im Build-Pipeline-Mapping.
+
+### Changed
+
+- **KR query_variable_selector**: von `[sys, query]` auf `[1778800001033, expanded_query]` umgestellt.
+
+### Results (2026-07-08)
+
+| Intent | Query | Result |
+|--------|-------|--------|
+| `author_lookup` | Who has worked on tRNA modifications or queuosine detection? | 5 Papers inkl. 2 neue: Motorin/Helm 2021 WIREs RNA ✅, Peschek/Tuorto 2025 J Mol Biol ✅ (beide vorher verpasst). ⚠️ Espadas/Sabidó & Guo/Tuorto entfallen. |
+| `entity_lookup` | Which RNA modifications are most studied? | ✅ 6 Entities (unverändert). Expansion nur für author_lookup. |
+
 ## [0.4.2] - 2026-07-08
 
 ### Changed
