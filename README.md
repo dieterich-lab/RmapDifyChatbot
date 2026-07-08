@@ -3,13 +3,13 @@
 RmapDifyChatbot is a production-oriented Python project for operating a Dify-based
 academic assistant with explicit metadata routing.
 
-## Status Snapshot (2026-07-07)
+## Status Snapshot (2026-07-08)
 
-**v0.4.1 — Prompt-Hardening & Metadata Sanitizer**
+**v0.4.2 — Recall-Optimierung**
 
-1. **3-LLM Intent Routing**: `Author Extraction LLM` (✅ stabil), `Entity Extraction LLM` (⚠️ redesigned), `KR Extraction LLM` (⚠️ header-guard).
-2. **"Critical Reviews"-Bug behoben**: Entity Extraction nutzt nur noch "From paper:"-Header.
-3. **Buchkapitel-Metadaten gefixt**: `_metadata_looks_garbled()` im Chunk-Filter erkennt defekte Dify-Metadaten.
+1. **3-LLM Intent Routing**: `Author Extraction LLM` (✅ stabil), `Entity Extraction LLM` (✅ 6 Entities), `KR Extraction LLM` (⚠️).
+2. **Chunk-Filter: 1 Chunk/Paper**: Maximale Paper-Diversität, entity_lookup 3→6 Entities.
+3. **Hybrid Weights: 0.7/0.3**: Keyword-bevorzugt für präzisere Matches.
 4. **top_k: 50**: `TOP_K_MAX_VALUE=50` im Dify-Container.
 5. **qwen2.5:14b**: Grounded, keine Paper-Halluzinationen.
 

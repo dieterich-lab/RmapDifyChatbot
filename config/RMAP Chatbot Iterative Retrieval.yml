@@ -385,11 +385,11 @@ workflow:
           top_k: 50
           weights:
             keyword_setting:
-              keyword_weight: 0.4
+              keyword_weight: 0.7
             vector_setting:
               embedding_model_name: nomic-embed-text-v2-moe
               embedding_provider_name: langgenius/ollama/ollama
-              vector_weight: 0.6
+              vector_weight: 0.3
             weight_type: customized
         query_attachment_selector: []
         query_variable_selector:
@@ -1538,38 +1538,38 @@ workflow:
           \ (e.g. \"ComputationalEpigenomicsandEpitranscriptomics\")\n    if len(t)\
           \ > 15 and \" \" not in t:\n        return True\n\n    # Authors contain\
           \ structural text, not person names\n    a_lower = a.lower()\n    garbled_author_markers\
-          \ = [\n        \"editor\", \"series\", \"ethods in\", \"olecular biology\"\
-          ,\n    ]\n    if any(m in a_lower for m in garbled_author_markers):\n  \
-          \      return True\n\n    # Year is not a 4-digit year\n    if y and not\
-          \ re.fullmatch(r\"(19|20)\\d{2}\", y):\n        return True\n\n    # Journal\
-          \ is just numbers / page ranges (e.g. \"241-260\")\n    if j and re.fullmatch(r\"\
-          \\d+[\\-–]\\d+\", j):\n        return True\n\n    return False\n\n\ndef\
-          \ _get_doc_info(chunk):\n    \"\"\"Extract rich document info from a Dify\
-          \ KR result item using real metadata.\"\"\"\n    if not isinstance(chunk,\
-          \ dict):\n        return None\n    meta = chunk.get(\"metadata\", {})\n\
-          \    if not isinstance(meta, dict):\n        return None\n\n    doc_meta\
-          \ = meta.get(\"doc_metadata\", {})\n    if isinstance(doc_meta, dict):\n\
-          \        title = str(doc_meta.get(\"title\", \"\")).strip()\n        authors\
-          \ = str(doc_meta.get(\"authors\", \"\")).strip()\n        journal = str(doc_meta.get(\"\
-          journal\", \"\")).strip()\n        year = str(doc_meta.get(\"year\", \"\"\
-          )).strip()\n\n        # Detect garbled metadata (common with book chapters)\n\
-          \        if title and not _metadata_looks_garbled(title, authors, year,\
-          \ journal):\n            header = f'\"{title}\"'\n            if authors:\n\
-          \                header += f\" by {authors}\"\n            if journal or\
-          \ year:\n                header += \" (\"\n                if journal:\n\
-          \                    header += journal\n                if year:\n     \
-          \               if journal:\n                        header += \", \"\n\
-          \                    header += year\n                header += \")\"\n \
-          \           return header\n\n    # Fallback: use filename-based title field,\
-          \ parse structured info\n    title = str(chunk.get(\"title\", \"\")).strip()\n\
-          \    if title:\n        title = re.sub(r\"__[a-z_]+_\\d{10,}(?:\\.pdf)?$\"\
-          , \"\", title, flags=re.IGNORECASE)\n        title = re.sub(r\"\\.pdf$\"\
-          , \"\", title, flags=re.IGNORECASE)\n        title = title.strip()\n   \
-          \     if title:\n            # Try to parse structured filename: \"Authors,\
-          \ Year, Journal, ...\"\n            parts = [p.strip() for p in title.split(\"\
-          ,\")]\n            if len(parts) >= 3:\n                maybe_authors =\
-          \ parts[0]\n                maybe_year = parts[1].strip()\n            \
-          \    maybe_journal = parts[2].strip()\n                if re.fullmatch(r\"\
+          \ = [\n        \"editor\",\n        \"series\",\n        \"ethods in\",\n\
+          \        \"olecular biology\",\n    ]\n    if any(m in a_lower for m in\
+          \ garbled_author_markers):\n        return True\n\n    # Year is not a 4-digit\
+          \ year\n    if y and not re.fullmatch(r\"(19|20)\\d{2}\", y):\n        return\
+          \ True\n\n    # Journal is just numbers / page ranges (e.g. \"241-260\"\
+          )\n    if j and re.fullmatch(r\"\\d+[\\-–]\\d+\", j):\n        return True\n\
+          \n    return False\n\n\ndef _get_doc_info(chunk):\n    \"\"\"Extract rich\
+          \ document info from a Dify KR result item using real metadata.\"\"\"\n\
+          \    if not isinstance(chunk, dict):\n        return None\n    meta = chunk.get(\"\
+          metadata\", {})\n    if not isinstance(meta, dict):\n        return None\n\
+          \n    doc_meta = meta.get(\"doc_metadata\", {})\n    if isinstance(doc_meta,\
+          \ dict):\n        title = str(doc_meta.get(\"title\", \"\")).strip()\n \
+          \       authors = str(doc_meta.get(\"authors\", \"\")).strip()\n       \
+          \ journal = str(doc_meta.get(\"journal\", \"\")).strip()\n        year =\
+          \ str(doc_meta.get(\"year\", \"\")).strip()\n\n        # Detect garbled\
+          \ metadata (common with book chapters)\n        if title and not _metadata_looks_garbled(title,\
+          \ authors, year, journal):\n            header = f'\"{title}\"'\n      \
+          \      if authors:\n                header += f\" by {authors}\"\n     \
+          \       if journal or year:\n                header += \" (\"\n        \
+          \        if journal:\n                    header += journal\n          \
+          \      if year:\n                    if journal:\n                     \
+          \   header += \", \"\n                    header += year\n             \
+          \   header += \")\"\n            return header\n\n    # Fallback: use filename-based\
+          \ title field, parse structured info\n    title = str(chunk.get(\"title\"\
+          , \"\")).strip()\n    if title:\n        title = re.sub(r\"__[a-z_]+_\\\
+          d{10,}(?:\\.pdf)?$\", \"\", title, flags=re.IGNORECASE)\n        title =\
+          \ re.sub(r\"\\.pdf$\", \"\", title, flags=re.IGNORECASE)\n        title\
+          \ = title.strip()\n        if title:\n            # Try to parse structured\
+          \ filename: \"Authors, Year, Journal, ...\"\n            parts = [p.strip()\
+          \ for p in title.split(\",\")]\n            if len(parts) >= 3:\n      \
+          \          maybe_authors = parts[0]\n                maybe_year = parts[1].strip()\n\
+          \                maybe_journal = parts[2].strip()\n                if re.fullmatch(r\"\
           (19|20)\\d{2}\", maybe_year):\n                    header = f'\"{title}\"\
           '\n                    if maybe_authors:\n                        header\
           \ += f\" by {maybe_authors}\"\n                    header += f\" ({maybe_journal},\
@@ -1595,15 +1595,15 @@ workflow:
           ) else \"_unknown\"\n        content = parts[1] if len(parts) > 1 else chunk\n\
           \        if doc_key not in by_doc:\n            by_doc[doc_key] = []\n \
           \       by_doc[doc_key].append(content)\n    deduped = []\n    for doc_key,\
-          \ contents in by_doc.items():\n        merged = NL.join(contents[:3])  #\
-          \ max 3 chunks per paper\n        deduped.append(doc_key + NL + merged)\n\
-          \n    if not deduped:\n        deduped.append(\n            \"ALL \"\n \
-          \           + str(len(kr_result))\n            + \" RETRIEVED CHUNKS WERE\
-          \ REFERENCE LISTS AND FILTERED OUT. The query may match bibliography sections\
-          \ rather than paper body text. Try a more specific query or different search\
-          \ terms.\"\n        )\n    return {\n        \"filtered_chunks\": deduped,\n\
-          \        \"chunk_count\": len(deduped),\n        \"chunks_removed\": removed,\n\
-          \        \"doc_names\": sorted(seen_docs),\n    }\n"
+          \ contents in by_doc.items():\n        merged = NL.join(contents[:1])  #\
+          \ max 1 chunk per paper (recall-optimized)\n        deduped.append(doc_key\
+          \ + NL + merged)\n\n    if not deduped:\n        deduped.append(\n     \
+          \       \"ALL \"\n            + str(len(kr_result))\n            + \" RETRIEVED\
+          \ CHUNKS WERE REFERENCE LISTS AND FILTERED OUT. The query may match bibliography\
+          \ sections rather than paper body text. Try a more specific query or different\
+          \ search terms.\"\n        )\n    return {\n        \"filtered_chunks\"\
+          : deduped,\n        \"chunk_count\": len(deduped),\n        \"chunks_removed\"\
+          : removed,\n        \"doc_names\": sorted(seen_docs),\n    }\n"
         code_language: python3
         isInIteration: false
         isInLoop: false

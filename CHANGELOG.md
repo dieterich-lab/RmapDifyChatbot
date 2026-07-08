@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.4.2] - 2026-07-08
+
+### Changed
+
+- **Chunk-Filter Dedup**: max chunks/paper von 3→1 reduziert. Verdoppelt die maximale Paper-Diversität im Context (bis zu 50 unique Papers bei top_k=50). Entity-Lookup: 3→6 Entities, kein "Insufficient context" mehr.
+- **Hybrid Weights**: keyword_weight 0.4→0.7, vector_weight 0.6→0.3. Bevorzugt exakte Term-Matches für präzisere Retrieval-Ergebnisse.
+
+### Results (2026-07-08, qwen2.5:14b, top_k=50)
+
+| Intent | Query | Result |
+|--------|-------|--------|
+| `entity_lookup` | Which RNA modifications are most studied? | ✅ 6 Entities (war 3), Entity-Gruppierung, kein "Insufficient context". Neue: RNA editing, tRNA modifications, RNA methylation. |
+| `author_lookup` | Who has worked on tRNA modifications? | 5 Papers, alle Autoren + Quotes. ⚠️ Recall unverändert 19% – Retrieval-Ranking-Bottleneck. |
+| `knowledge_retrieval` | What is m6A and detection methods? | 5 Methoden, Inline-Citations. ⚠️ 2/5 Paper-Metadaten suboptimal (Filename-Fallback). |
+
 ## [0.4.1] - 2026-07-07
 
 ### Fixed

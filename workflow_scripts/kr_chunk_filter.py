@@ -203,7 +203,7 @@ def main(kr_result=None):
         by_doc[doc_key].append(content)
     deduped = []
     for doc_key, contents in by_doc.items():
-        merged = NL.join(contents[:3])  # max 3 chunks per paper
+        merged = NL.join(contents[:1])  # max 1 chunk per paper (recall-optimized)
         deduped.append(doc_key + NL + merged)
 
     if not deduped:
