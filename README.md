@@ -20,7 +20,7 @@ RmapDifyChatbot is a Dify-based academic literature assistant for the RMaP proje
 
 | Variante | URL | Modus |
 |---|---|---|
-| **Published App** (stabil) | `http://rmap-chatbot-demo-dify/internal` → App "RMAP Chatbot Iterative Retrieval" | Live-API, kein Debug |
+| **Published App** (stabil) | `http://rmap-chatbot-demo-dify.internal/chat/qSKbMGikJuIdhlfr` | Live-API, kein Debug |
 | **Draft-Modus** (Preview) | Dify Console → App → "Preview" Tab | Debug-Output: Node-Status, Laufzeit |
 
 Du bekommst eine Einladung zur Dify-Account-Erstellung. Nach dem Login findest du die App unter **Apps → RMAP Chatbot Iterative Retrieval**.
