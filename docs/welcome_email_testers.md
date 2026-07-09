@@ -1,46 +1,57 @@
-# RMAP Chatbot – Tester-Zugang & Quick Start
+# RMAP Chatbot – Tester Access & Quick Start
 
-Hallo zusammen,
+Hi everyone,
 
-der RMAP Chatbot (v0.4.3) ist jetzt für euch zum Testen bereit. Der Bot beantwortet Fragen zu 84 Papers aus der ersten RMaP-Förderperiode – von RNA-Modifikationen über Nanopore-Sequencing bis zu tRNA-Biologie.
+the RMAP Chatbot (v0.4.3) is ready for testing. It answers questions about 84 papers from the first RMaP funding period – spanning RNA modifications, nanopore sequencing, and tRNA biology.
 
-## Zugang
+## Access
 
-### Published App (stabil, produktiv)
+### Published App (stable, production)
 - URL: http://rmap-chatbot-demo-dify.internal/chat/qSKbMGikJuIdhlfr
-- Direkt im Browser nutzbar
+- Ready to use – just open in your browser
 
-### Draft-Modus (zum Debuggen)
-Ihr bekommt in Kürze eine Einladung zur Dify-Account-Erstellung von Philipp.
-Nach dem Login:
-1. Öffnet die App "RMAP Chatbot Iterative Retrieval"
-2. Wechselt in den Tab **"Preview"** (nicht "Published"!)
-3. Gebt eure Query ein – im rechten Panel seht ihr den Workflow-Status jedes Nodes (Laufzeit, Input/Output, Fehler)
+### Draft Mode (for debugging)
+You'll receive a Dify account invitation from Philipp shortly.
+After logging in:
+1. Open the app **"RMAP Chatbot Iterative Retrieval"**
+2. Switch to the **"Preview"** tab (NOT "Published"!)
+3. Enter your query – the right-hand panel shows each node's status (runtime, input/output, errors)
 
-## 5 Frage-Typen, die der Bot versteht
+## 5 Query Types the Bot Understands
 
-| Intent | Beispiel | Erwartete Antwort |
+| Intent | Example Query | Expected Answer |
 |---|---|---|
-| metadata_list | "Papers by Christoph Dieterich" | 6 Papers aufgelistet |
-| content_summary | "Summarize them" (nach einer Liste) | Global Synthesis + 3 Bullets/Paper |
-| knowledge_retrieval | "What is m6A and how is it detected?" | Methoden mit Paper-Citations |
-| author_lookup | "Who has worked on tRNA modifications?" | ~7 Papers mit allen Autoren |
-| entity_lookup | "Which RNA modifications are most studied?" | Tabelle: Entity-Typ → Paper |
+| `metadata_list` | "Papers by Christoph Dieterich" | 6 papers listed with title, year, journal |
+| `content_summary` | "Summarize them" (after a list query) | Global synthesis + 3 bullet points per paper |
+| `knowledge_retrieval` | "What is m6A and how is it detected?" | Methods with full paper citations (all authors) |
+| `author_lookup` | "Who has worked on tRNA modifications?" | ~7 papers with all authors + verbatim quotes |
+| `entity_lookup` | "Which RNA modifications are most studied?" | Table: entity → type → source paper |
 
-## Tipps zum Testen
+## Testing Tips
 
-- **Immer im "Preview"-Tab testen** – dort seht ihr, welcher Node wie lange läuft und wo ggf. Fehler auftreten
-- **Follow-up-Queries**: "Summarize them" funktioniert nur nach einer metadata_list-Query (der Bot merkt sich die Paper-Liste)
-- **Fehleranalyse**: Wenn ein Node rot/blau markiert ist, draufklicken → Input/Output/Fehlermeldung einsehen
-- **README**: https://github.com/dieterich-lab/RmapDifyChatbot – Architektur-Diagramm und Node-Referenz
+- **Always test in the "Preview" tab** – you'll see exactly which node takes how long and where errors occur
+- **Follow-up queries**: "Summarize them" only works right after a `metadata_list` query (the bot remembers the paper list)
+- **Debugging**: Click on any red/blue node → view its input, output, and error message
+- **Known UI glitch**: The workflow editor shows 20 "not connected" warnings – this is a Dify UI bug, the actual graph is correct and fully functional
+- **English queries** produce the best results
 
-## Bekannte Limits (v0.4.3)
+## Known Limits (v0.4.3)
 
-- author_lookup/entity_lookup: Retrieval-Qualität hängt von PubMed-Metadaten-Coverage ab (83%)
-- knowledge_retrieval: ~5 Methoden/Paper, gelegentlich Retrieval-Ranking-Issues
-- Kein Multilingual-Support – englische Queries liefern die besten Ergebnisse
+- **author_lookup / entity_lookup**: Retrieval quality depends on PubMed metadata coverage (currently 83%)
+- **knowledge_retrieval**: ~5 methods per paper; occasional retrieval ranking issues
+- **No multilingual support** – English queries yield the best results
 
-Bei Fragen oder wenn eine Query unerwartete Ergebnisse liefert, schreibt mir einfach – am besten mit Conversation-ID und Screenshot aus dem Preview-Tab.
+## Reporting Issues
 
-Viel Spaß beim Testen!
+If a query returns unexpected results, please send me:
+- The **Conversation ID** (shown at the top of the Preview panel)
+- A **screenshot** from the Preview tab showing the node status
+- The **exact query** you used
+
+## Resources
+
+- **README**: https://github.com/dieterich-lab/RmapDifyChatbot – architecture diagram & node reference
+- **CHANGELOG**: https://github.com/dieterich-lab/RmapDifyChatbot/blob/master/CHANGELOG.md
+
+Happy testing!
 Philipp
