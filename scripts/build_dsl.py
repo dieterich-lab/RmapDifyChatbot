@@ -82,6 +82,17 @@ def build_dsl(input_path: Path, output_path: Path) -> None:
         node["data"]["code"] = code
         print(f"  ✅ {title:<30} - injected {len(code)} chars from {script_file.name}")
 
+    # Cleanup: remove zIndex from all edges (Dify UI validator chokes on it)
+    edges = data["workflow"]["graph"]["edges"]
+    for e in edges:
+        e.pop("zIndex", None)
+    for n in nodes:
+        n.pop("zIndex", None)
+
+    # Add rag_pipeline_variables (required by Dify for knowledge-retrieval nodes)
+    if "rag_pipeline_variables" not in data["workflow"]:
+        data["workflow"]["rag_pipeline_variables"] = []
+
     print(f"\nWriting final DSL to: {output_path}")
     with open(output_path, "w") as f:
         yaml.dump(

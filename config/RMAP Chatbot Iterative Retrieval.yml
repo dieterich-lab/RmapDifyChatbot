@@ -72,6 +72,7 @@ workflow:
       enabled: false
       language: ''
       voice: ''
+  rag_pipeline_variables: []
   graph:
     edges:
     - data:

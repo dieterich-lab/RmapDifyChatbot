@@ -114,6 +114,16 @@ for node in dsl["workflow"]["graph"]["nodes"]:
             print(f"KR dataset patched in export: {new_id}")
         break
 
+# Cleanup: remove zIndex (causes Dify UI validator to reject edges)
+for e in dsl["workflow"]["graph"].get("edges", []):
+    e.pop("zIndex", None)
+for n in dsl["workflow"]["graph"].get("nodes", []):
+    n.pop("zIndex", None)
+
+# Ensure rag_pipeline_variables exists
+if "rag_pipeline_variables" not in dsl["workflow"]:
+    dsl["workflow"]["rag_pipeline_variables"] = []
+
 if kr_fixed:
     with open(out_path, "w") as f:
         yaml.dump(dsl, f, sort_keys=False, allow_unicode=True, width=1000)
