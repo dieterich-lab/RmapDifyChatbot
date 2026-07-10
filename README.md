@@ -2,14 +2,14 @@
 
 RmapDifyChatbot is a Dify-based academic literature assistant for the RMaP project. It answers questions about 84 RNA-modification papers using hybrid retrieval (keyword + vector) and intent-based routing.
 
-## Status Snapshot (2026-07-09)
+## Status Snapshot (2026-07-10)
 
-**v0.4.3 — PubMed-Metadaten & 3-LLM Intent Routing**
+**v0.4.4 — Metadata Query Fix & Segments Fallback**
 
 1. **5 Query-Intents**: `metadata_list`, `content_summary`, `knowledge_retrieval`, `author_lookup`, `entity_lookup`
 2. **PubMed-Metadaten**: 83% der Papers (70/84) via DOI→PMID→MEDLINE – autoritative Titel, alle Autoren
 3. **3-LLM Intent Routing**: `Author Extraction LLM`, `Entity Extraction LLM`, `KR Extraction LLM`
-4. **top_k: 50**, Hybrid **0.7/0.3**, Model **qwen2.5:14b** (Ollama)
+4. **top_k: 50**, Hybrid **0.7/0.3**, Model **qwen2.5:14b** (Ollama), Embedding **nomic-embed-text-v2-moe**
 5. **22 Nodes, 27 Edges**
 
 ---
@@ -35,7 +35,7 @@ Du bekommst eine Einladung zur Dify-Account-Erstellung. Nach dem Login findest d
 
 | Intent | Beispiel-Query | Erwartet |
 |---|---|---|
-| `metadata_list` | "Papers by Christoph Dieterich" | 6 Papers aufgelistet |
+| `metadata_list` | "Papers by Christoph Dieterich" | 8 Papers aufgelistet |
 | `content_summary` | "Summarize them" (nach metadata_list) | Global Synthesis + 3 Bullet Points/Paper |
 | `knowledge_retrieval` | "What is m6A and detection methods?" | Methoden-Tabelle mit Inline-Citations |
 | `author_lookup` | "Who has worked on tRNA modifications?" | ~7 Papers mit allen Autoren + Quotes |

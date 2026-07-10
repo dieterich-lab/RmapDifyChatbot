@@ -1,5 +1,26 @@
 # Changelog
 
+## [0.4.4] - 2026-07-10
+
+### Fixed
+
+- **Metadata Query Regression**: `main()` extrahiert jetzt Filter (`year/authors/journal/title`) aus `paper_list[0]`, wenn Einzelfelder `None` sind. Behebt "The length of output variable `result` must be less than 30 elements"-Fehler bei `metadata_list`-Queries (alle 82 Docs wurden ungefiltert returned). `"Papers by Christoph Dieterich"` liefert jetzt 8 Papers (vorher: Workflow-Error).
+- **Fetch Full Paper – Segments-Fallback**: Wenn `_fetch_all_segments` mit gegebenem `doc_id` leere Segments liefert (z.B. während Re-Indexierung), fällt jetzt auf Title-Lookup zurück. Verhindert "Insufficient textual context — only metadata available" in `content_summary`.
+
+### Changed
+
+- **Embedding-Model**: Zurück auf `nomic-embed-text-v2-moe`. BGE-M3-Test verschoben bis App 100% stabil läuft.
+
+### Results (2026-07-10, qwen2.5:14b, top_k=50, nomic)
+
+| Intent | Query | Result |
+|--------|-------|--------|
+| `metadata_list` | Papers by Christoph Dieterich | **8 Papers** (war: Fehler) |
+| `content_summary` | Summarize them (Turn 2) | **8/8 Papers mit Method/Key Finding/Implication**, 0× "Insufficient textual context" |
+| `knowledge_retrieval` | What is m6A and detection methods? | ✅ Methoden mit Inline-Citations |
+| `author_lookup` | Who has worked on tRNA modifications? | ✅ 9 Papers mit allen Autoren + Quotes |
+| `entity_lookup` | Which RNA modifications are most studied? | ✅ 5 Entity-Typen mit Paper-Zuordnung |
+
 ## [0.4.3] - 2026-07-08
 
 ### Added
