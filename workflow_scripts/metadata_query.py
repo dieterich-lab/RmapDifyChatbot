@@ -262,7 +262,7 @@ def _render_result(matches: list[dict], total_docs: int) -> str:
     return header + "\n" + "\n".join(lines)
 
 
-def main(year=None, authors=None, journal=None, title=None):
+def main(year=None, authors=None, journal=None, title=None, paper_list=None):
     api_base = (os.getenv("DIFY_API_URL") or "http://rmap-chatbot-demo-dify/v1").rstrip(
         "/"
     )
@@ -276,6 +276,19 @@ def main(year=None, authors=None, journal=None, title=None):
                 "Erwarte DIFY_API_URL, DIFY_DATASET_ID und DIFY_API_KEY."
             )
         }
+
+    # Extract filter values from paper_list if passed (Parse Router Output)
+    if isinstance(paper_list, list) and len(paper_list) > 0:
+        first = paper_list[0]
+        if isinstance(first, dict):
+            if not _is_set(authors):
+                authors = first.get("authors", "")
+            if not _is_set(year):
+                year = first.get("year", "")
+            if not _is_set(journal):
+                journal = first.get("journal", "")
+            if not _is_set(title):
+                title = first.get("title", "")
 
     headers = _build_headers(str(api_key).strip())
     docs, errors = _collect_documents(str(api_base), str(dataset_id).strip(), headers)
@@ -304,4 +317,7 @@ def main(year=None, authors=None, journal=None, title=None):
     result_text = _render_result(final_docs, total_docs=len(docs))
     if errors:
         result_text += "\nFehlerdetails:\n" + "\n".join(f"- {e}" for e in errors[:8])
-    return {"result": (result_text.split("\n") if result_text else []), "result_text": result_text}
+    return {
+        "result": (result_text.split("\n") if result_text else []),
+        "result_text": result_text,
+    }
