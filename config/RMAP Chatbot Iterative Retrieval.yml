@@ -360,7 +360,7 @@ workflow:
             keyword_setting:
               keyword_weight: 0.7
             vector_setting:
-              embedding_model_name: bge-m3
+              embedding_model_name: nomic-embed-text-v2-moe
               embedding_provider_name: langgenius/ollama/ollama
               vector_weight: 0.3
             weight_type: customized
