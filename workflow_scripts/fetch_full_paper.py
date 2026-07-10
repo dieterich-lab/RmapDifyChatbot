@@ -117,6 +117,7 @@ def main(doc_id=None, item_title=None, item_authors=None, item_year=None, item_j
     headers = {'Authorization': f'Bearer {api_key}', 'Content-Type': 'application/json'}
 
     resolved = _norm(doc_id)
+    used_title_fallback = False
     if not resolved:
         title = _norm(item_title)
         if not title:
@@ -124,8 +125,20 @@ def main(doc_id=None, item_title=None, item_authors=None, item_year=None, item_j
         resolved, err = _find_doc_id_by_title(api_base, dataset_id, title, headers)
         if not resolved:
             return {'paper_context': '', 'paper_fetch_error': err or 'title lookup failed'}
+        used_title_fallback = True
 
     text, err = _fetch_all_segments(api_base, dataset_id, resolved, headers)
+    
+    # Fallback: if doc_id fetch returned no segments, try title lookup
+    if (not text or err) and not used_title_fallback:
+        title = _norm(item_title)
+        if title:
+            fallback_id, fb_err = _find_doc_id_by_title(api_base, dataset_id, title, headers)
+            if fallback_id and fallback_id != resolved:
+                text2, err2 = _fetch_all_segments(api_base, dataset_id, fallback_id, headers)
+                if text2:
+                    text, err = text2, None
+    
     if err:
         return {'paper_context': '', 'paper_fetch_error': err}
 
