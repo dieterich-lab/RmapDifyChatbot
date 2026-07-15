@@ -333,9 +333,12 @@ def main(
                     if a and len(a) > 2:
                         author_set.add(a)
             author_list = sorted(author_set)
-            text = f"Distinct authors in dataset: {len(author_list)}\n\n" + "\n".join(
-                f"- {a}" for a in author_list
-            )
+            total = len(author_list)
+            display = author_list[:100]
+            lines = [f"{i}. {a}" for i, a in enumerate(display, 1)]
+            text = f"Distinct authors in dataset: {total}\n\n" + "\n".join(lines)
+            if total > 100:
+                text += f"\n\n(Showing first 100 of {total} authors. Use 'Papers by <name>' to find specific authors.)"
             return {
                 "result": text.split("\n")[:30],
                 "result_text": text,

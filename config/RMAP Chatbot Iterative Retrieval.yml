@@ -781,15 +781,18 @@ workflow:
           \ = set()\n            for d in docs:\n                for a in d.get(\"\
           authors\", \"\").split(\",\"):\n                    a = a.strip()\n    \
           \                if a and len(a) > 2:\n                        author_set.add(a)\n\
-          \            author_list = sorted(author_set)\n            text = f\"Distinct\
-          \ authors in dataset: {len(author_list)}\\n\\n\" + \"\\n\".join(\n     \
-          \           f\"- {a}\" for a in author_list\n            )\n           \
-          \ return {\n                \"result\": text.split(\"\\n\")[:30],\n    \
-          \            \"result_text\": text,\n            }\n        else:\n    \
-          \        uniq = {}\n            for d in docs:\n                k = (\n\
-          \                    d.get(\"title\", \"\").strip().lower(),\n         \
-          \           d.get(\"authors\", \"\").strip().lower(),\n                \
-          \    d.get(\"year\", \"\").strip(),\n                    d.get(\"journal\"\
+          \            author_list = sorted(author_set)\n            total = len(author_list)\n\
+          \            display = author_list[:100]\n            lines = [f\"{i}. {a}\"\
+          \ for i, a in enumerate(display, 1)]\n            text = f\"Distinct authors\
+          \ in dataset: {total}\\n\\n\" + \"\\n\".join(lines)\n            if total\
+          \ > 100:\n                text += f\"\\n\\n(Showing first 100 of {total}\
+          \ authors. Use 'Papers by <name>' to find specific authors.)\"\n       \
+          \     return {\n                \"result\": text.split(\"\\n\")[:30],\n\
+          \                \"result_text\": text,\n            }\n        else:\n\
+          \            uniq = {}\n            for d in docs:\n                k =\
+          \ (\n                    d.get(\"title\", \"\").strip().lower(),\n     \
+          \               d.get(\"authors\", \"\").strip().lower(),\n            \
+          \        d.get(\"year\", \"\").strip(),\n                    d.get(\"journal\"\
           , \"\").strip().lower(),\n                )\n                if k not in\
           \ uniq:\n                    uniq[k] = d\n            all_docs = list(uniq.values())\n\
           \            text = _render_result(all_docs, total_docs=len(docs))\n   \
