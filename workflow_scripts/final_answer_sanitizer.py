@@ -96,7 +96,6 @@ def main(**kwargs):
         "summary_text",
         "knowledge_text",
         "metadata_text",
-        "result_text",  # Direct passthrough from Metadata Query (no-filter / author list)
     ):
         text = kwargs.get(key)
         if text:
@@ -108,6 +107,13 @@ def main(**kwargs):
                     author_lookup = _build_author_lookup(filtered_chunks)
                     cleaned = _enrich_extraction_text(cleaned, author_lookup)
 
+                parts.append(cleaned)
+    # Fallback: use result_text from Metadata Query only if metadata_text is empty
+    if not parts:
+        rt = kwargs.get("result_text")
+        if rt:
+            cleaned = _strip_think(rt)
+            if cleaned:
                 parts.append(cleaned)
     merged = "\n\n".join(parts).strip()
     if not merged:
