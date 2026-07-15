@@ -355,11 +355,11 @@ def main(
                 if k not in uniq:
                     uniq[k] = d
             all_docs = list(uniq.values())
-            text = _render_result(all_docs, total_docs=len(docs))
-            if errors:
-                text += "\nFehlerdetails:\n" + "\n".join(f"- {e}" for e in errors[:8])
+            total = len(all_docs)
+            lines = [f"{i}. {d['title']}, {d['year']}, {d['journal']}" for i, d in enumerate(all_docs, 1)]
+            text = f"Total papers in dataset: {total}\n\n" + "\n".join(lines)
             return {
-                "result": (text.split("\n") if text else [])[:30],
+                "result": text.split("\n")[:30],
                 "result_text": text,
             }
 

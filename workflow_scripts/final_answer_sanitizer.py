@@ -96,6 +96,7 @@ def main(**kwargs):
         "summary_text",
         "knowledge_text",
         "metadata_text",
+        "result_text",  # Direct passthrough from Metadata Query (no-filter / author list)
     ):
         text = kwargs.get(key)
         if text:
