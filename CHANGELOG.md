@@ -1,5 +1,37 @@
 # Changelog
 
+## [0.4.5] - 2026-07-15
+
+### Fixed
+
+- **Array-Overflow in Metadata Query**: `result`-Array auf 30 Elemente gecapped (Dify-Limit). Behebt "The length of output variable must be less than 30 elements"-Fehler bei schmalen Queries mit vielen Matches.
+- **Array-Overflow in KR Chunk Filter**: `doc_names`-Array auf 30 Elemente gecapped. Behebt gleichen Fehler bei breiten `knowledge_retrieval`-Queries.
+- **Broad-Query-Guard**: Wenn keine Filter (Author/Year/Journal) gesetzt sind, gibt Metadata Query eine Hilfestellung statt alle 82 Docs zu matchen.
+- **Zero-Result-Help**: "Keine Dokumente gefunden" enthält jetzt konkrete Suchtipps (Namen ausschreiben, Jahr angeben).
+- **Empty-Answer-Fallback**: Final Answer Sanitizer gibt jetzt "I could not generate a meaningful answer" mit Beispiel-Queries zurück, wenn alle LLM-Outputs leer sind.
+
+### Known Issues
+
+- **Breite KR-Queries** ("Find all research papers", "List all researchers"): Unified Router routet diese als `knowledge_retrieval` statt `metadata_list`. Der KR Extraction LLM produziert bei breitem Context leeren Output. Workaround: spezifischere Queries verwenden (z.B. "Papers by <author>").
+- **Metadata-LLM-Formatierung**: "Total count: 81." (fehlendes Newline) bei `gpt-oss`-Modell. Kosmetisch, Prompt-Tuning in Dify-UI nötig.
+
+### Results (2026-07-15, qwen2.5:14b, top_k=50, nomic)
+
+| # | Intent | Query | Result |
+|---|--------|-------|--------|
+| 1 | `metadata_list` | Papers by Christoph Dieterich | **8 Papers** ✅ |
+| 2 | `content_summary` | Summarize them (Turn 2) | **8/8 Papers, 0× Insufficient** ✅ |
+| 3 | `knowledge_retrieval` | What is m6A and detection methods? | Methoden mit Inline-Citations ✅ |
+| 4 | `author_lookup` | Who has worked on tRNA modifications? | 9 Papers mit allen Autoren + Quotes ✅ |
+| 5 | `entity_lookup` | Which RNA modifications are most studied? | Entity-Tabelle mit Paper-Zuordnung ✅ |
+| 6 | `metadata_list` | Find papers by Francesca Tuorto | **6 Papers** ✅ |
+| 7 | `metadata_list` | Find papers by René Ketting | 1 Paper (Sonderzeichen OK) ✅ |
+| 8 | `metadata_list` | Find papers by Claudia Höbartner | 1 Paper ✅ |
+| 9 | `metadata_list` | Find papers by Lauren Saunders | "Kein Ergebnis" + Suchtipps ✅ |
+| 10 | `knowledge_retrieval` | Find all research papers | ⚠️ Leer (known issue) |
+| 11 | `knowledge_retrieval` | List all researchers | ⚠️ Leer (known issue) |
+| 12 | `author_lookup` | Who is using HEK cells? | 6 Papers mit Autoren ✅ |
+
 ## [0.4.4] - 2026-07-10
 
 ### Fixed

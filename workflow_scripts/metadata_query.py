@@ -312,12 +312,14 @@ def main(year=None, authors=None, journal=None, title=None, paper_list=None):
     title_filter = _sanitize_free_text_filter(title, max_len=160)
 
     # Guard: if no filters are set at all, refuse broad query
-    has_any_filter = any([
-        _is_set(year_filter),
-        _is_set(journal_filter),
-        _is_set(title_filter),
-        _is_set(authors),
-    ])
+    has_any_filter = any(
+        [
+            _is_set(year_filter),
+            _is_set(journal_filter),
+            _is_set(title_filter),
+            _is_set(authors),
+        ]
+    )
     if not has_any_filter:
         return {
             "result": [
