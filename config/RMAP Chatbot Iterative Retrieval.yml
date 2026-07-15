@@ -269,16 +269,6 @@ workflow:
       type: custom
     - data:
         isInLoop: false
-        sourceType: code
-        targetType: code
-      id: 1778800001036-source-1778800001013-target
-      source: '1778800001036'
-      sourceHandle: source
-      target: '1778800001013'
-      targetHandle: target
-      type: custom
-    - data:
-        isInLoop: false
         sourceType: llm
         targetType: code
       id: 1778800001034-source-1778800001013-target
@@ -519,67 +509,28 @@ workflow:
       type: custom
       width: 242
     - data:
-        code: "import json\nimport re\n\n\ndef _strip_think(text):\n    cleaned =\
-          \ str(text or \"\")\n    # Remove well-formed think blocks first.\n    cleaned\
-          \ = re.sub(r\"<think>.*?</think>\", \"\", cleaned, flags=re.S | re.I)\n\
-          \    # Also handle truncated outputs where </think> is missing.\n    cleaned\
-          \ = re.sub(r\"<think>.*$\", \"\", cleaned, flags=re.S | re.I)\n    return\
-          \ cleaned.strip()\n\n\ndef _build_author_lookup(filtered_chunks):\n    \"\
-          \"\"Build a dict mapping paper titles to full author lists from chunk metadata.\"\
-          \"\"\n    lookup = {}\n    if not isinstance(filtered_chunks, list):\n \
-          \       return lookup\n\n    for chunk in filtered_chunks:\n        if not\
-          \ isinstance(chunk, dict):\n            continue\n        meta = chunk.get(\"\
-          metadata\", {})\n        if not isinstance(meta, dict):\n            continue\n\
-          \        doc_meta = meta.get(\"doc_metadata\", {})\n        if not isinstance(doc_meta,\
-          \ dict):\n            continue\n\n        title = str(doc_meta.get(\"title\"\
-          , \"\")).strip()\n        authors = str(doc_meta.get(\"authors\", \"\")).strip()\n\
-          \n        if title and authors:\n            # Normalize title for fuzzy\
-          \ matching\n            key = _normalize_title(title)\n            if key\
-          \ not in lookup:\n                lookup[key] = authors\n\n    return lookup\n\
-          \n\ndef _normalize_title(title):\n    \"\"\"Normalize a title for comparison.\"\
-          \"\"\n    t = title.lower().strip()\n    t = re.sub(r\"[^a-z0-9\\s]\", \"\
-          \", t)\n    t = re.sub(r\"\\s+\", \" \", t)\n    return t.strip()\n\n\n\
-          def _enrich_extraction_text(extraction_text, author_lookup):\n    \"\"\"\
-          Replace single-author lines with full author lists.\"\"\"\n    if not extraction_text\
-          \ or not author_lookup:\n        return extraction_text\n\n    lines = extraction_text.split(\"\
-          \\n\")\n    result = []\n    current_title = None\n\n    for line in lines:\n\
-          \        # Detect paper title lines: **\"Title\"** (Journal, Year)\n   \
-          \     title_match = re.match(r'\\*\\*\"([^\"]+)\"\\*\\*', line)\n      \
-          \  if title_match:\n            current_title = title_match.group(1)\n \
-          \           result.append(line)\n            continue\n\n        # Detect\
-          \ author lines: - AuthorName: \"quote\"\n        author_match = re.match(r\"\
-          ^(\\s*-\\s+)([^:]+)(:\\s*\\\"[^\\\"]+\\\".*)$\", line)\n        if author_match\
-          \ and current_title:\n            prefix = author_match.group(1)\n     \
-          \       quote_part = author_match.group(3)\n\n            # Look up full\
-          \ author list\n            key = _normalize_title(current_title)\n     \
-          \       full_authors = author_lookup.get(key, \"\")\n\n            if full_authors\
-          \ and \",\" in full_authors:\n                # Replace single author with\
-          \ full list\n                result.append(f\"{prefix}{full_authors}{quote_part}\"\
-          )\n            else:\n                result.append(line)\n        else:\n\
-          \            result.append(line)\n\n    return \"\\n\".join(result)\n\n\n\
-          def main(**kwargs):\n    parts = []\n    for key in (\n        \"extraction_text\"\
-          ,\n        \"entity_text\",\n        \"summary_text\",\n        \"knowledge_text\"\
-          ,\n        \"metadata_text\",\n    ):\n        text = kwargs.get(key)\n\
-          \        if text:\n            cleaned = _strip_think(text)\n          \
-          \  if cleaned:\n                # Enrich extraction_text with full author\
-          \ lists\n                if key == \"extraction_text\":\n              \
-          \      filtered_chunks = kwargs.get(\"filtered_chunks\", [])\n         \
-          \           author_lookup = _build_author_lookup(filtered_chunks)\n    \
-          \                cleaned = _enrich_extraction_text(cleaned, author_lookup)\n\
-          \n                parts.append(cleaned)\n    # Fallback: use result_text\
-          \ from Metadata Query only if metadata_text is empty\n    if not parts:\n\
-          \        rt = kwargs.get(\"result_text\")\n        if rt:\n            cleaned\
-          \ = _strip_think(rt)\n            if cleaned:\n                parts.append(cleaned)\n\
-          \    merged = \"\\n\\n\".join(parts).strip()\n    if not merged:\n     \
-          \   merged = (\n            \"I could not generate a meaningful answer for\
-          \ your query. \"\n            \"This may be because the search was too broad\
-          \ or did not match any documents.\\n\\n\"\n            \"Suggestions:\\\
-          n\"\n            \"- For paper listings: try 'Papers by <author name>' or\
-          \ 'Papers from <year>'\\n\"\n            \"- For topic searches: try 'What\
-          \ is m6A?' or 'Which methods detect RNA modifications?'\\n\"\n         \
-          \   \"- For author lookups: try 'Who has worked on tRNA modifications?'\\\
-          n\"\n            \"- For entity lookups: try 'Which RNA modifications are\
-          \ most studied?'\"\n        )\n    return {\"cleaned_text\": merged}\n"
+        code: "import re\n\n\ndef _strip_think(text):\n    cleaned = str(text or \"\
+          \")\n    cleaned = re.sub(r\"<think>.*?</think>\", \"\", cleaned, flags=re.S\
+          \ | re.I)\n    cleaned = re.sub(r\"<think>.*$\", \"\", cleaned, flags=re.S\
+          \ | re.I)\n    return cleaned.strip()\n\n\ndef main(**kwargs):\n    parts\
+          \ = []\n    for key in (\n        \"extraction_text\",\n        \"entity_text\"\
+          ,\n        \"summary_text\",\n        \"knowledge_text\",\n        \"metadata_text\"\
+          ,\n    ):\n        text = kwargs.get(key)\n        if text:\n          \
+          \  cleaned = _strip_think(text)\n            if cleaned:\n             \
+          \   parts.append(cleaned)\n    # Fallback: use result_text from Metadata\
+          \ Query only if metadata_text is empty\n    if not parts:\n        rt =\
+          \ kwargs.get(\"result_text\")\n        if rt:\n            cleaned = _strip_think(rt)\n\
+          \            if cleaned:\n                parts.append(cleaned)\n    merged\
+          \ = \"\\n\\n\".join(parts).strip()\n    if not merged:\n        merged =\
+          \ (\n            \"I could not generate a meaningful answer for your query.\
+          \ \"\n            \"This may be because the search was too broad or did\
+          \ not match any documents.\\n\\n\"\n            \"Suggestions:\\n\"\n  \
+          \          \"- For paper listings: try 'Papers by <author name>' or 'Papers\
+          \ from <year>'\\n\"\n            \"- For topic searches: try 'What is m6A?'\
+          \ or 'Which methods detect RNA modifications?'\\n\"\n            \"- For\
+          \ author lookups: try 'Who has worked on tRNA modifications?'\\n\"\n   \
+          \         \"- For entity lookups: try 'Which RNA modifications are most\
+          \ studied?'\"\n        )\n    return {\"cleaned_text\": merged}\n"
         code_language: python3
         isInIteration: false
         isInLoop: false
@@ -616,11 +567,6 @@ workflow:
           - text
           value_type: string
           variable: knowledge_text
-        - value_selector:
-          - '1778800001036'
-          - filtered_chunks
-          value_type: array[object]
-          variable: filtered_chunks
         - value_selector:
           - '17786780698570'
           - result_text
