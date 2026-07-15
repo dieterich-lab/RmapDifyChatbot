@@ -109,4 +109,14 @@ def main(**kwargs):
 
                 parts.append(cleaned)
     merged = "\n\n".join(parts).strip()
+    if not merged:
+        merged = (
+            "I could not generate a meaningful answer for your query. "
+            "This may be because the search was too broad or did not match any documents.\n\n"
+            "Suggestions:\n"
+            "- For paper listings: try 'Papers by <author name>' or 'Papers from <year>'\n"
+            "- For topic searches: try 'What is m6A?' or 'Which methods detect RNA modifications?'\n"
+            "- For author lookups: try 'Who has worked on tRNA modifications?'\n"
+            "- For entity lookups: try 'Which RNA modifications are most studied?'"
+        )
     return {"cleaned_text": merged}

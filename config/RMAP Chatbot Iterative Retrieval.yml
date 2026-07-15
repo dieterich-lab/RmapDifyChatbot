@@ -206,116 +206,116 @@ workflow:
       target: '1778800001036'
       targetHandle: target
       type: custom
-    - id: 1778800001036-source-1778800001039-target
+    - data:
+        isInLoop: false
+        sourceType: code
+        targetType: if-else
+      id: 1778800001036-source-1778800001039-target
       source: '1778800001036'
       sourceHandle: source
       target: '1778800001039'
       targetHandle: target
       type: custom
-      data:
+    - data:
         isInLoop: false
-        sourceType: code
-        targetType: if-else
-    - id: 1778800001039-author_lookup-1778800001034-target
+        sourceType: if-else
+        targetType: llm
+      id: 1778800001039-author_lookup-1778800001034-target
       source: '1778800001039'
       sourceHandle: author_lookup
       target: '1778800001034'
       targetHandle: target
       type: custom
-      data:
+    - data:
         isInLoop: false
         sourceType: if-else
         targetType: llm
-    - id: 1778800001039-entity_lookup-1778800001037-target
+      id: 1778800001039-entity_lookup-1778800001037-target
       source: '1778800001039'
       sourceHandle: entity_lookup
       target: '1778800001037'
       targetHandle: target
       type: custom
-      data:
+    - data:
         isInLoop: false
         sourceType: if-else
         targetType: llm
-    - id: 1778800001039-else-1778800001038-target
+      id: 1778800001039-else-1778800001038-target
       source: '1778800001039'
       sourceHandle: 'false'
       target: '1778800001038'
       targetHandle: target
       type: custom
-      data:
+    - data:
         isInLoop: false
-        sourceType: if-else
-        targetType: llm
-    - id: 1778800001036-source-1778800001013-target
+        sourceType: code
+        targetType: code
+      id: 1778800001036-source-1778800001013-target
       source: '1778800001036'
       sourceHandle: source
       target: '1778800001013'
       targetHandle: target
       type: custom
-      data:
+    - data:
         isInLoop: false
-        sourceType: code
+        sourceType: llm
         targetType: code
-    - id: 1778800001034-source-1778800001013-target
+      id: 1778800001034-source-1778800001013-target
       source: '1778800001034'
       sourceHandle: source
       target: '1778800001013'
       targetHandle: target
       type: custom
-      data:
+    - data:
         isInLoop: false
         sourceType: llm
         targetType: code
-    - id: 1778800001037-source-1778800001013-target
+      id: 1778800001037-source-1778800001013-target
       source: '1778800001037'
       sourceHandle: source
       target: '1778800001013'
       targetHandle: target
       type: custom
-      data:
+    - data:
         isInLoop: false
         sourceType: llm
         targetType: code
-    - id: 1778800001038-source-1778800001013-target
+      id: 1778800001038-source-1778800001013-target
       source: '1778800001038'
       sourceHandle: source
       target: '1778800001013'
       targetHandle: target
       type: custom
-      data:
+    - data:
         isInLoop: false
-        sourceType: llm
-        targetType: code
-    - id: 1778800001032-else-17785930638200-target
+        sourceType: if-else
+        targetType: knowledge-retrieval
+      id: 1778800001032-else-17785930638200-target
       source: '1778800001032'
       sourceHandle: 'false'
       target: '17785930638200'
       targetHandle: target
       type: custom
-      data:
+    - data:
         isInLoop: false
         sourceType: if-else
         targetType: knowledge-retrieval
-    - id: 1778800001032-author_lookup-17785930638200-target
+      id: 1778800001032-author_lookup-17785930638200-target
       source: '1778800001032'
       sourceHandle: author_lookup
       target: '17785930638200'
       targetHandle: target
       type: custom
-      data:
+    - data:
         isInLoop: false
         sourceType: if-else
         targetType: knowledge-retrieval
-    - id: 1778800001032-entity_lookup-17785930638200-target
+      id: 1778800001032-entity_lookup-17785930638200-target
       source: '1778800001032'
       sourceHandle: entity_lookup
       target: '17785930638200'
       targetHandle: target
       type: custom
-      data:
-        isInLoop: false
-        sourceType: if-else
-        targetType: knowledge-retrieval
     nodes:
     - data:
         desc: The user's question comes in here.
@@ -516,7 +516,15 @@ workflow:
           \           author_lookup = _build_author_lookup(filtered_chunks)\n    \
           \                cleaned = _enrich_extraction_text(cleaned, author_lookup)\n\
           \n                parts.append(cleaned)\n    merged = \"\\n\\n\".join(parts).strip()\n\
-          \    return {\"cleaned_text\": merged}\n"
+          \    if not merged:\n        merged = (\n            \"I could not generate\
+          \ a meaningful answer for your query. \"\n            \"This may be because\
+          \ the search was too broad or did not match any documents.\\n\\n\"\n   \
+          \         \"Suggestions:\\n\"\n            \"- For paper listings: try 'Papers\
+          \ by <author name>' or 'Papers from <year>'\\n\"\n            \"- For topic\
+          \ searches: try 'What is m6A?' or 'Which methods detect RNA modifications?'\\\
+          n\"\n            \"- For author lookups: try 'Who has worked on tRNA modifications?'\\\
+          n\"\n            \"- For entity lookups: try 'Which RNA modifications are\
+          \ most studied?'\"\n        )\n    return {\"cleaned_text\": merged}\n"
         code_language: python3
         isInIteration: false
         isInLoop: false
@@ -627,7 +635,7 @@ workflow:
     - data:
         code: "import json\nimport os\nimport re\nfrom urllib.error import HTTPError,\
           \ URLError\nfrom urllib.parse import urlencode\nfrom urllib.request import\
-          \ Request, urlopen\n\nCODE_VERSION = \"metadata_query_v2026-05-11_dify-metadata_1\"\
+          \ Request, urlopen\n\nCODE_VERSION = \"metadata_query_v2026-07-15_broad-query-fix\"\
           \n\n_EMPTY_TOKENS = {\n    \"\",\n    \"null\",\n    \"none\",\n    \"unknown\"\
           ,\n    \"n/a\",\n    \"na\",\n    \"[]\",\n    \"{}\",\n    \"-\",\n}\n\n\
           \ndef _is_set(value) -> bool:\n    if value is None:\n        return False\n\
@@ -726,36 +734,56 @@ workflow:
           \ \"\"),\n                \"year\": meta.get(\"year\", \"\"),\n        \
           \        \"journal\": meta.get(\"journal\", \"\"),\n            }\n    \
           \    )\n\n    return docs, errors\n\n\ndef _render_result(matches: list[dict],\
-          \ total_docs: int) -> str:\n    if not matches:\n        return (\n    \
-          \        \"Keine Dokumente gefunden.\\n\"\n            f\"Code-Version:\
-          \ {CODE_VERSION}; Dokumente geprueft: {total_docs}; Treffer: 0\"\n     \
-          \   )\n\n    lines = []\n    for idx, doc in enumerate(matches, start=1):\n\
-          \        lines.append(\n            f\"{idx}. {doc['title']} | {doc['authors']}\
-          \ | {doc['year']} | {doc['journal']} | {doc.get('id', '')}\"\n        )\n\
-          \    header = (\n        f\"Code-Version: {CODE_VERSION}; Dokumente geprueft:\
-          \ {total_docs}; \"\n        f\"Treffer: {len(matches)}\"\n    )\n    return\
-          \ header + \"\\n\" + \"\\n\".join(lines)\n\n\ndef main(year=None, authors=None,\
-          \ journal=None, title=None, paper_list=None):\n    api_base = (os.getenv(\"\
-          DIFY_API_URL\") or \"http://rmap-chatbot-demo-dify/v1\").rstrip(\n     \
-          \   \"/\"\n    )\n    dataset_id = os.getenv(\"DIFY_DATASET_ID\") or \"\
-          <your-dataset-id>\"\n    api_key = os.getenv(\"DIFY_API_KEY\"\
-          ) or \"REDACTED\"\n\n    if not _is_set(api_base)\
-          \ or not _is_set(dataset_id) or not _is_set(api_key):\n        return {\n\
-          \            \"result\": (\n                \"Dify API Konfiguration unvollstaendig.\
-          \ \"\n                \"Erwarte DIFY_API_URL, DIFY_DATASET_ID und DIFY_API_KEY.\"\
-          \n            )\n        }\n\n    # Extract filter values from paper_list\
-          \ if passed (Parse Router Output)\n    if isinstance(paper_list, list) and\
-          \ len(paper_list) > 0:\n        first = paper_list[0]\n        if isinstance(first,\
-          \ dict):\n            if not _is_set(authors):\n                authors\
-          \ = first.get(\"authors\", \"\")\n            if not _is_set(year):\n  \
-          \              year = first.get(\"year\", \"\")\n            if not _is_set(journal):\n\
-          \                journal = first.get(\"journal\", \"\")\n            if\
-          \ not _is_set(title):\n                title = first.get(\"title\", \"\"\
-          )\n\n    headers = _build_headers(str(api_key).strip())\n    docs, errors\
-          \ = _collect_documents(str(api_base), str(dataset_id).strip(), headers)\n\
-          \n    year_filter = _sanitize_year_filter(year)\n    journal_filter = _sanitize_free_text_filter(journal,\
-          \ max_len=80)\n    title_filter = _sanitize_free_text_filter(title, max_len=160)\n\
-          \n    matches = []\n    for doc in docs:\n        if _matches_filters(doc,\
+          \ total_docs: int) -> str:\n    MAX_RESULTS = 30  # Dify array output limit\n\
+          \    if not matches:\n        return (\n            \"Keine Dokumente gefunden.\\\
+          n\"\n            \"Tipps:\\n\"\n            \"- Autor:innen-Namen ausschreiben\
+          \ (z.B. 'Christoph Dieterich')\\n\"\n            \"- Nachname allein reicht\
+          \ oft (z.B. 'Dieterich')\\n\"\n            \"- Jahr als vierstellige Zahl\
+          \ angeben (z.B. '2024')\\n\"\n            f\"Code-Version: {CODE_VERSION};\
+          \ Dokumente geprueft: {total_docs}; Treffer: 0\"\n        )\n\n    truncated\
+          \ = len(matches) > MAX_RESULTS\n    display_docs = matches[:MAX_RESULTS]\
+          \ if truncated else matches\n\n    lines = []\n    for idx, doc in enumerate(display_docs,\
+          \ start=1):\n        lines.append(\n            f\"{idx}. {doc['title']}\
+          \ | {doc['authors']} | {doc['year']} | {doc['journal']} | {doc.get('id',\
+          \ '')}\"\n        )\n    header = (\n        f\"Code-Version: {CODE_VERSION};\
+          \ Dokumente geprueft: {total_docs}; \"\n        f\"Treffer: {len(matches)}\"\
+          \n    )\n    result = header + \"\\n\" + \"\\n\".join(lines)\n    if truncated:\n\
+          \        result += (\n            f\"\\n\\n(Es werden nur die ersten {MAX_RESULTS}\
+          \ von {len(matches)} Ergebnissen angezeigt. \"\n            \"Bitte die\
+          \ Suche mit einem Autor:innen-Namen, Jahr oder Journal einschränken.)\"\n\
+          \        )\n    return result\n\n\ndef main(year=None, authors=None, journal=None,\
+          \ title=None, paper_list=None):\n    api_base = (os.getenv(\"DIFY_API_URL\"\
+          ) or \"http://rmap-chatbot-demo-dify/v1\").rstrip(\n        \"/\"\n    )\n\
+          \    dataset_id = os.getenv(\"DIFY_DATASET_ID\") or \"<your-dataset-id>\"\
+          \n    api_key = os.getenv(\"DIFY_API_KEY\") or \"REDACTED\"\
+          \n\n    if not _is_set(api_base) or not _is_set(dataset_id) or not _is_set(api_key):\n\
+          \        return {\n            \"result\": (\n                \"Dify API\
+          \ Konfiguration unvollstaendig. \"\n                \"Erwarte DIFY_API_URL,\
+          \ DIFY_DATASET_ID und DIFY_API_KEY.\"\n            )\n        }\n\n    #\
+          \ Extract filter values from paper_list if passed (Parse Router Output)\n\
+          \    if isinstance(paper_list, list) and len(paper_list) > 0:\n        first\
+          \ = paper_list[0]\n        if isinstance(first, dict):\n            if not\
+          \ _is_set(authors):\n                authors = first.get(\"authors\", \"\
+          \")\n            if not _is_set(year):\n                year = first.get(\"\
+          year\", \"\")\n            if not _is_set(journal):\n                journal\
+          \ = first.get(\"journal\", \"\")\n            if not _is_set(title):\n \
+          \               title = first.get(\"title\", \"\")\n\n    headers = _build_headers(str(api_key).strip())\n\
+          \    docs, errors = _collect_documents(str(api_base), str(dataset_id).strip(),\
+          \ headers)\n\n    year_filter = _sanitize_year_filter(year)\n    journal_filter\
+          \ = _sanitize_free_text_filter(journal, max_len=80)\n    title_filter =\
+          \ _sanitize_free_text_filter(title, max_len=160)\n\n    # Guard: if no filters\
+          \ are set at all, refuse broad query\n    has_any_filter = any([\n     \
+          \   _is_set(year_filter),\n        _is_set(journal_filter),\n        _is_set(title_filter),\n\
+          \        _is_set(authors),\n    ])\n    if not has_any_filter:\n       \
+          \ return {\n            \"result\": [\n                \"Bitte schraenke\
+          \ deine Suche ein. Nenne mindestens einen Autor:in-Namen, ein Jahr oder\
+          \ ein Journal.\",\n                'Beispiele: \"Papers by Christoph Dieterich\"\
+          , \"Papers from 2024\", \"Papers in Nucleic Acids Res\".',\n           \
+          \ ],\n            \"result_text\": (\n                \"Bitte schraenke\
+          \ deine Suche ein. Nenne mindestens einen Autor:in-Namen, ein Jahr oder\
+          \ ein Journal.\\n\"\n                'Beispiele: \"Papers by Christoph Dieterich\"\
+          , \"Papers from 2024\", \"Papers in Nucleic Acids Res\".'\n            ),\n\
+          \        }\n\n    matches = []\n    for doc in docs:\n        if _matches_filters(doc,\
           \ year_filter, authors, journal_filter, title_filter):\n            matches.append(doc)\n\
           \n    unique = {}\n    for doc in matches:\n        key = (\n          \
           \  (doc.get(\"title\") or \"\").strip().lower(),\n            (doc.get(\"\
@@ -764,9 +792,12 @@ workflow:
           \        )\n        if key not in unique:\n            unique[key] = doc\n\
           \    final_docs = list(unique.values())\n\n    result_text = _render_result(final_docs,\
           \ total_docs=len(docs))\n    if errors:\n        result_text += \"\\nFehlerdetails:\\\
-          n\" + \"\\n\".join(f\"- {e}\" for e in errors[:8])\n    return {\n     \
-          \   \"result\": (result_text.split(\"\\n\") if result_text else []),\n \
-          \       \"result_text\": result_text,\n    }\n"
+          n\" + \"\\n\".join(f\"- {e}\" for e in errors[:8])\n    # Cap result array\
+          \ at 30 elements (Dify limit); split only display lines\n    result_lines\
+          \ = result_text.split(\"\\n\") if result_text else []\n    if len(result_lines)\
+          \ > 30:\n        result_lines = result_lines[:30]\n    return {\n      \
+          \  \"result\": result_lines,\n        \"result_text\": result_text,\n  \
+          \  }\n"
         code_language: python3
         isInIteration: false
         isInLoop: false
@@ -996,84 +1027,89 @@ workflow:
     - data:
         code: "import json\nimport os\nfrom urllib.error import HTTPError, URLError\n\
           from urllib.parse import urlencode\nfrom urllib.request import Request,\
-          \ urlopen\n\n\ndef _norm(text):\n    return str(text or '').strip()\n\n\n\
-          def _run_json_get(url, headers, timeout=30):\n    req = Request(url=url,\
-          \ headers=headers, method='GET')\n    try:\n        with urlopen(req, timeout=timeout)\
-          \ as resp:\n            body = resp.read().decode('utf-8', errors='replace')\n\
-          \            status = resp.getcode()\n    except HTTPError as exc:\n   \
-          \     body = exc.read().decode('utf-8', errors='replace')\n        return\
-          \ {}, f'HTTPError {exc.code}: {body}'\n    except URLError as exc:\n   \
-          \     return {}, f'URLError: {exc}'\n    except Exception as exc:\n    \
-          \    return {}, f'Error: {exc}'\n    if status != 200:\n        return {},\
-          \ f'HTTP {status}: {body}'\n    try:\n        return json.loads(body), None\n\
-          \    except Exception:\n        return {}, f'Invalid JSON: {body[:400]}'\n\
-          \n\ndef _fetch_all_segments(api_base, dataset_id, doc_id, headers):\n  \
-          \  all_segs = []\n    seen = set()\n    for page in range(1, 31):\n    \
-          \    q = urlencode({'page': page, 'limit': 100})\n        url = f'{api_base}/datasets/{dataset_id}/documents/{doc_id}/segments?{q}'\n\
-          \        payload, err = _run_json_get(url, headers=headers, timeout=30)\n\
-          \        if err:\n            if page == 1:\n                return '',\
-          \ f'segments error: {err}'\n            break\n        items = payload.get('data')\
-          \ or payload.get('segments') or []\n        if not items:\n            break\n\
-          \        for seg in items:\n            for key in ('content', 'text'):\n\
-          \                val = seg.get(key)\n                if isinstance(val,\
-          \ str) and val.strip():\n                    sid = _norm(seg.get('id'))\
-          \ or val[:100]\n                    if sid not in seen:\n              \
-          \          seen.add(sid)\n                        pos = seg.get('position',\
-          \ 10 ** 9)\n                        all_segs.append((pos, val.strip()))\n\
+          \ urlopen\n\n\ndef _norm(text):\n    return str(text or \"\").strip()\n\n\
+          \ndef _run_json_get(url, headers, timeout=30):\n    req = Request(url=url,\
+          \ headers=headers, method=\"GET\")\n    try:\n        with urlopen(req,\
+          \ timeout=timeout) as resp:\n            body = resp.read().decode(\"utf-8\"\
+          , errors=\"replace\")\n            status = resp.getcode()\n    except HTTPError\
+          \ as exc:\n        body = exc.read().decode(\"utf-8\", errors=\"replace\"\
+          )\n        return {}, f\"HTTPError {exc.code}: {body}\"\n    except URLError\
+          \ as exc:\n        return {}, f\"URLError: {exc}\"\n    except Exception\
+          \ as exc:\n        return {}, f\"Error: {exc}\"\n    if status != 200:\n\
+          \        return {}, f\"HTTP {status}: {body}\"\n    try:\n        return\
+          \ json.loads(body), None\n    except Exception:\n        return {}, f\"\
+          Invalid JSON: {body[:400]}\"\n\n\ndef _fetch_all_segments(api_base, dataset_id,\
+          \ doc_id, headers):\n    all_segs = []\n    seen = set()\n    for page in\
+          \ range(1, 31):\n        q = urlencode({\"page\": page, \"limit\": 100})\n\
+          \        url = f\"{api_base}/datasets/{dataset_id}/documents/{doc_id}/segments?{q}\"\
+          \n        payload, err = _run_json_get(url, headers=headers, timeout=30)\n\
+          \        if err:\n            if page == 1:\n                return \"\"\
+          , f\"segments error: {err}\"\n            break\n        items = payload.get(\"\
+          data\") or payload.get(\"segments\") or []\n        if not items:\n    \
+          \        break\n        for seg in items:\n            for key in (\"content\"\
+          , \"text\"):\n                val = seg.get(key)\n                if isinstance(val,\
+          \ str) and val.strip():\n                    sid = _norm(seg.get(\"id\"\
+          )) or val[:100]\n                    if sid not in seen:\n             \
+          \           seen.add(sid)\n                        pos = seg.get(\"position\"\
+          , 10**9)\n                        all_segs.append((pos, val.strip()))\n\
           \                    break\n        if len(items) < 100:\n            break\n\
-          \    if not all_segs:\n        return '', 'no segments found'\n    all_segs.sort(key=lambda\
-          \ x: x[0])\n    return '\\n\\n'.join(t for _, t in all_segs), None\n\n\n\
-          def _find_doc_id_by_title(api_base, dataset_id, title, headers):\n    #\
-          \ Find document ID by matching title against doc_metadata from the list\
+          \    if not all_segs:\n        return \"\", \"no segments found\"\n    all_segs.sort(key=lambda\
+          \ x: x[0])\n    return \"\\n\\n\".join(t for _, t in all_segs), None\n\n\
+          \ndef _find_doc_id_by_title(api_base, dataset_id, title, headers):\n   \
+          \ # Find document ID by matching title against doc_metadata from the list\
           \ response.\n    # Uses the list endpoint doc_metadata field directly -\
           \ no per-document detail calls.\n    expected = title.lower().strip()\n\
           \    exp_words = set(expected.split())\n    for page in range(1, 21):\n\
-          \        q = urlencode({'page': page, 'limit': 100})\n        url = f'{api_base}/datasets/{dataset_id}/documents?{q}'\n\
-          \        payload, err = _run_json_get(url, headers=headers, timeout=30)\n\
-          \        if err:\n            break\n        items = payload.get('data')\
-          \ or []\n        if not items:\n            break\n        for item in items:\n\
-          \            doc_id = _norm(item.get('id'))\n            if not doc_id:\n\
-          \                continue\n            # Read title from doc_metadata (already\
-          \ in list response, no extra call)\n            doc_title = ''\n       \
-          \     for m in (item.get('doc_metadata') or []):\n                if _norm((m\
-          \ or {}).get('name')).lower() == 'title':\n                    doc_title\
-          \ = _norm((m or {}).get('value'))\n                    break\n         \
-          \   if not doc_title:\n                doc_title = _norm(item.get('name',\
-          \ ''))\n            if not doc_title:\n                continue\n      \
-          \      if doc_title.lower() == expected:\n                return doc_id,\
+          \        q = urlencode({\"page\": page, \"limit\": 100})\n        url =\
+          \ f\"{api_base}/datasets/{dataset_id}/documents?{q}\"\n        payload,\
+          \ err = _run_json_get(url, headers=headers, timeout=30)\n        if err:\n\
+          \            break\n        items = payload.get(\"data\") or []\n      \
+          \  if not items:\n            break\n        for item in items:\n      \
+          \      doc_id = _norm(item.get(\"id\"))\n            if not doc_id:\n  \
+          \              continue\n            # Read title from doc_metadata (already\
+          \ in list response, no extra call)\n            doc_title = \"\"\n     \
+          \       for m in item.get(\"doc_metadata\") or []:\n                if _norm((m\
+          \ or {}).get(\"name\")).lower() == \"title\":\n                    doc_title\
+          \ = _norm((m or {}).get(\"value\"))\n                    break\n       \
+          \     if not doc_title:\n                doc_title = _norm(item.get(\"name\"\
+          , \"\"))\n            if not doc_title:\n                continue\n    \
+          \        if doc_title.lower() == expected:\n                return doc_id,\
           \ None\n            if exp_words:\n                doc_words = set(doc_title.lower().split())\n\
           \                if len(exp_words & doc_words) / len(exp_words) >= 0.8:\n\
           \                    return doc_id, None\n        if len(items) < 100:\n\
-          \            break\n    return '', f'no document found for title: {title!r}'\n\
-          \n\ndef main(doc_id=None, item_title=None, item_authors=None, item_year=None,\
-          \ item_journal=None, paper_count=None):\n    api_base = (\n        _norm(os.getenv('DIFY_API_URL'))\
-          \ or 'http://rmap-chatbot-demo-dify/v1'\n    ).rstrip('/')\n    dataset_id\
-          \ = (\n        _norm(os.getenv('DIFY_DATASET_ID')) or '<your-dataset-id>'\n\
-          \    )\n    api_key = (\n        _norm(os.getenv('DIFY_API_KEY')) or 'REDACTED'\n\
-          \    )\n    headers = {'Authorization': f'Bearer {api_key}', 'Content-Type':\
-          \ 'application/json'}\n\n    resolved = _norm(doc_id)\n    used_title_fallback\
-          \ = False\n    if not resolved:\n        title = _norm(item_title)\n   \
-          \     if not title:\n            return {'paper_context': '', 'paper_fetch_error':\
-          \ 'no doc_id and no title'}\n        resolved, err = _find_doc_id_by_title(api_base,\
+          \            break\n    return \"\", f\"no document found for title: {title!r}\"\
+          \n\n\ndef main(\n    doc_id=None,\n    item_title=None,\n    item_authors=None,\n\
+          \    item_year=None,\n    item_journal=None,\n    paper_count=None,\n):\n\
+          \    api_base = (\n        _norm(os.getenv(\"DIFY_API_URL\")) or \"http://rmap-chatbot-demo-dify/v1\"\
+          \n    ).rstrip(\"/\")\n    dataset_id = (\n        _norm(os.getenv(\"DIFY_DATASET_ID\"\
+          )) or \"<your-dataset-id>\"\n    )\n    api_key = _norm(os.getenv(\"\
+          DIFY_API_KEY\")) or \"REDACTED\"\n    headers =\
+          \ {\"Authorization\": f\"Bearer {api_key}\", \"Content-Type\": \"application/json\"\
+          }\n\n    resolved = _norm(doc_id)\n    used_title_fallback = False\n   \
+          \ if not resolved:\n        title = _norm(item_title)\n        if not title:\n\
+          \            return {\"paper_context\": \"\", \"paper_fetch_error\": \"\
+          no doc_id and no title\"}\n        resolved, err = _find_doc_id_by_title(api_base,\
           \ dataset_id, title, headers)\n        if not resolved:\n            return\
-          \ {'paper_context': '', 'paper_fetch_error': err or 'title lookup failed'}\n\
-          \        used_title_fallback = True\n\n    text, err = _fetch_all_segments(api_base,\
-          \ dataset_id, resolved, headers)\n    \n    # Fallback: if doc_id fetch\
-          \ returned no segments, try title lookup\n    if (not text or err) and not\
-          \ used_title_fallback:\n        title = _norm(item_title)\n        if title:\n\
-          \            fallback_id, fb_err = _find_doc_id_by_title(api_base, dataset_id,\
-          \ title, headers)\n            if fallback_id and fallback_id != resolved:\n\
-          \                text2, err2 = _fetch_all_segments(api_base, dataset_id,\
-          \ fallback_id, headers)\n                if text2:\n                   \
-          \ text, err = text2, None\n    \n    if err:\n        return {'paper_context':\
-          \ '', 'paper_fetch_error': err}\n\n    title  = _norm(item_title)\n    year\
-          \   = _norm(item_year)\n    journal = _norm(item_journal)\n    authors =\
-          \ _norm(item_authors)\n    meta_line = f'{title} ({year}, {journal}) — {authors}'\
-          \ if (year or journal or authors) else title\n    header = f'=== {meta_line}\
-          \ ==='\n    n = int(paper_count) if paper_count and int(paper_count) > 0\
-          \ else 1\n    chars_per_paper = max(4000, 48000 // n)\n    context = f'{header}\\\
-          n\\n{text[:chars_per_paper]}'\n    return {'paper_context': context, 'paper_fetch_error':\
-          \ ''}\n"
+          \ {\n                \"paper_context\": \"\",\n                \"paper_fetch_error\"\
+          : err or \"title lookup failed\",\n            }\n        used_title_fallback\
+          \ = True\n\n    text, err = _fetch_all_segments(api_base, dataset_id, resolved,\
+          \ headers)\n\n    # Fallback: if doc_id fetch returned no segments, try\
+          \ title lookup\n    if (not text or err) and not used_title_fallback:\n\
+          \        title = _norm(item_title)\n        if title:\n            fallback_id,\
+          \ fb_err = _find_doc_id_by_title(\n                api_base, dataset_id,\
+          \ title, headers\n            )\n            if fallback_id and fallback_id\
+          \ != resolved:\n                text2, err2 = _fetch_all_segments(\n   \
+          \                 api_base, dataset_id, fallback_id, headers\n         \
+          \       )\n                if text2:\n                    text, err = text2,\
+          \ None\n\n    if err:\n        return {\"paper_context\": \"\", \"paper_fetch_error\"\
+          : err}\n\n    title = _norm(item_title)\n    year = _norm(item_year)\n \
+          \   journal = _norm(item_journal)\n    authors = _norm(item_authors)\n \
+          \   meta_line = (\n        f\"{title} ({year}, {journal}) — {authors}\"\n\
+          \        if (year or journal or authors)\n        else title\n    )\n  \
+          \  header = f\"=== {meta_line} ===\"\n    n = int(paper_count) if paper_count\
+          \ and int(paper_count) > 0 else 1\n    chars_per_paper = max(4000, 48000\
+          \ // n)\n    context = f\"{header}\\n\\n{text[:chars_per_paper]}\"\n   \
+          \ return {\"paper_context\": context, \"paper_fetch_error\": \"\"}\n"
         code_language: python3
         isInIteration: true
         isInLoop: false
@@ -1589,7 +1625,7 @@ workflow:
           \ sections rather than paper body text. Try a more specific query or different\
           \ search terms.\"\n        )\n    return {\n        \"filtered_chunks\"\
           : deduped,\n        \"chunk_count\": len(deduped),\n        \"chunks_removed\"\
-          : removed,\n        \"doc_names\": sorted(seen_docs),\n    }\n"
+          : removed,\n        \"doc_names\": sorted(seen_docs)[:30],\n    }\n"
         code_language: python3
         isInIteration: false
         isInLoop: false
@@ -1857,46 +1893,46 @@ workflow:
       targetPosition: left
       type: custom
       width: 242
-    - id: '1778800001039'
-      type: custom
+    - data:
+        cases:
+        - case_id: author_lookup
+          conditions:
+          - comparison_operator: is
+            id: intent-is-author
+            value: author_lookup
+            varType: string
+            variable_selector:
+            - '1778800001033'
+            - intent
+          id: author_lookup
+          logical_operator: and
+        - case_id: entity_lookup
+          conditions:
+          - comparison_operator: is
+            id: intent-is-entity
+            value: entity_lookup
+            varType: string
+            variable_selector:
+            - '1778800001033'
+            - intent
+          id: entity_lookup
+          logical_operator: and
+        selected: false
+        title: KR Intent Router
+        type: if-else
+      height: 220
+      id: '1778800001039'
       position:
         x: -129.0488118411729
         y: 3681.1329167788017
       positionAbsolute:
         x: -129.0488118411729
         y: 3681.1329167788017
+      selected: false
       sourcePosition: right
       targetPosition: left
+      type: custom
       width: 242
-      height: 220
-      selected: false
-      data:
-        type: if-else
-        title: KR Intent Router
-        selected: false
-        cases:
-        - case_id: author_lookup
-          conditions:
-          - id: intent-is-author
-            varType: string
-            variable_selector:
-            - '1778800001033'
-            - intent
-            comparison_operator: is
-            value: author_lookup
-          id: author_lookup
-          logical_operator: and
-        - case_id: entity_lookup
-          conditions:
-          - id: intent-is-entity
-            varType: string
-            variable_selector:
-            - '1778800001033'
-            - intent
-            comparison_operator: is
-            value: entity_lookup
-          id: entity_lookup
-          logical_operator: and
     viewport:
       x: 1360.8357395869443
       y: -2269.9675687547206

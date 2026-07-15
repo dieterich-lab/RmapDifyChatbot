@@ -216,5 +216,5 @@ def main(kr_result=None):
         "filtered_chunks": deduped,
         "chunk_count": len(deduped),
         "chunks_removed": removed,
-        "doc_names": sorted(seen_docs),
+        "doc_names": sorted(seen_docs)[:30],
     }

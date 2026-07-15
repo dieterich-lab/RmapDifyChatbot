@@ -8,7 +8,7 @@ from urllib.error import HTTPError, URLError
 from urllib.parse import urlencode
 from urllib.request import Request, urlopen
 
-CODE_VERSION = "metadata_query_v2026-05-11_dify-metadata_1"
+CODE_VERSION = "metadata_query_v2026-07-15_broad-query-fix"
 
 _EMPTY_TOKENS = {
     "",
@@ -244,14 +244,22 @@ def _collect_documents(
 
 
 def _render_result(matches: list[dict], total_docs: int) -> str:
+    MAX_RESULTS = 30  # Dify array output limit
     if not matches:
         return (
             "Keine Dokumente gefunden.\n"
+            "Tipps:\n"
+            "- Autor:innen-Namen ausschreiben (z.B. 'Christoph Dieterich')\n"
+            "- Nachname allein reicht oft (z.B. 'Dieterich')\n"
+            "- Jahr als vierstellige Zahl angeben (z.B. '2024')\n"
             f"Code-Version: {CODE_VERSION}; Dokumente geprueft: {total_docs}; Treffer: 0"
         )
 
+    truncated = len(matches) > MAX_RESULTS
+    display_docs = matches[:MAX_RESULTS] if truncated else matches
+
     lines = []
-    for idx, doc in enumerate(matches, start=1):
+    for idx, doc in enumerate(display_docs, start=1):
         lines.append(
             f"{idx}. {doc['title']} | {doc['authors']} | {doc['year']} | {doc['journal']} | {doc.get('id', '')}"
         )
@@ -259,7 +267,13 @@ def _render_result(matches: list[dict], total_docs: int) -> str:
         f"Code-Version: {CODE_VERSION}; Dokumente geprueft: {total_docs}; "
         f"Treffer: {len(matches)}"
     )
-    return header + "\n" + "\n".join(lines)
+    result = header + "\n" + "\n".join(lines)
+    if truncated:
+        result += (
+            f"\n\n(Es werden nur die ersten {MAX_RESULTS} von {len(matches)} Ergebnissen angezeigt. "
+            "Bitte die Suche mit einem Autor:innen-Namen, Jahr oder Journal einschränken.)"
+        )
+    return result
 
 
 def main(year=None, authors=None, journal=None, title=None, paper_list=None):
@@ -297,6 +311,25 @@ def main(year=None, authors=None, journal=None, title=None, paper_list=None):
     journal_filter = _sanitize_free_text_filter(journal, max_len=80)
     title_filter = _sanitize_free_text_filter(title, max_len=160)
 
+    # Guard: if no filters are set at all, refuse broad query
+    has_any_filter = any([
+        _is_set(year_filter),
+        _is_set(journal_filter),
+        _is_set(title_filter),
+        _is_set(authors),
+    ])
+    if not has_any_filter:
+        return {
+            "result": [
+                "Bitte schraenke deine Suche ein. Nenne mindestens einen Autor:in-Namen, ein Jahr oder ein Journal.",
+                'Beispiele: "Papers by Christoph Dieterich", "Papers from 2024", "Papers in Nucleic Acids Res".',
+            ],
+            "result_text": (
+                "Bitte schraenke deine Suche ein. Nenne mindestens einen Autor:in-Namen, ein Jahr oder ein Journal.\n"
+                'Beispiele: "Papers by Christoph Dieterich", "Papers from 2024", "Papers in Nucleic Acids Res".'
+            ),
+        }
+
     matches = []
     for doc in docs:
         if _matches_filters(doc, year_filter, authors, journal_filter, title_filter):
@@ -317,7 +350,11 @@ def main(year=None, authors=None, journal=None, title=None, paper_list=None):
     result_text = _render_result(final_docs, total_docs=len(docs))
     if errors:
         result_text += "\nFehlerdetails:\n" + "\n".join(f"- {e}" for e in errors[:8])
+    # Cap result array at 30 elements (Dify limit); split only display lines
+    result_lines = result_text.split("\n") if result_text else []
+    if len(result_lines) > 30:
+        result_lines = result_lines[:30]
     return {
-        "result": (result_text.split("\n") if result_text else []),
+        "result": result_lines,
         "result_text": result_text,
     }
