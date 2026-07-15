@@ -22,12 +22,29 @@ _BROAD_LISTING_PATTERNS = [
     r"\bwelche\s+(Paper|Artikel|Publikation|Dokument)e\s+(gibt|existieren|haben\s+wir)\b",
 ]
 
+# Author-specific patterns → list_mode = "authors"
+_AUTHOR_LISTING_PATTERNS = [
+    r"\b(all|every)\s+(author|researcher|scientist)s?\b",
+    r"\blist\s+all\s+(author|researcher|scientist)s?\b",
+    r"\bwho\s+are\s+(all\s+)?(the\s+)?(author|researcher|scientist)s?\b",
+    r"\balle\s+(Autor|Forscher|Wissenschaftler|Author)innen?\b",
+    r"\bwelche\s+(Autor|Forscher|Wissenschaftler|Author)innen?\s+(gibt|existieren|haben\s+wir)\b",
+]
+
 
 def _is_broad_listing_query(query: str) -> bool:
     q = str(query or "").lower().strip()
     if len(q) < 5:
         return False
     for pat in _BROAD_LISTING_PATTERNS:
+        if re.search(pat, q, re.IGNORECASE):
+            return True
+    return False
+
+
+def _is_author_listing_query(query: str) -> bool:
+    q = str(query or "").lower().strip()
+    for pat in _AUTHOR_LISTING_PATTERNS:
         if re.search(pat, q, re.IGNORECASE):
             return True
     return False
@@ -84,9 +101,12 @@ def main(router_text=None, conversation_memory=None, sys_query=None):
 
     # ── Override: broad listing queries → metadata_list ──
     query = str(sys_query or "").strip()
+    list_mode = "papers"  # default
     if intent == "knowledge_retrieval" and _is_broad_listing_query(query):
         intent = "metadata_list"
         obj["paper_list"] = []  # empty → Metadata Query lists ALL
+    if _is_author_listing_query(query):
+        list_mode = "authors"
 
     paper_list = obj.get("paper_list")
     mem = conversation_memory if isinstance(conversation_memory, list) else []
@@ -124,4 +144,5 @@ def main(router_text=None, conversation_memory=None, sys_query=None):
         "paper_list": paper_list,
         "paper_count": len(paper_list),
         "rewritten_query": rw,
+        "list_mode": list_mode,
     }

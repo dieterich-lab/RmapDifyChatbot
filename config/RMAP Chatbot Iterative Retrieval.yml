@@ -751,55 +751,67 @@ workflow:
           \        result += (\n            f\"\\n\\n(Es werden nur die ersten {MAX_RESULTS}\
           \ von {len(matches)} Ergebnissen angezeigt. \"\n            \"Bitte die\
           \ Suche mit einem Autor:innen-Namen, Jahr oder Journal einschränken.)\"\n\
-          \        )\n    return result\n\n\ndef main(year=None, authors=None, journal=None,\
-          \ title=None, paper_list=None):\n    api_base = (os.getenv(\"DIFY_API_URL\"\
-          ) or \"http://rmap-chatbot-demo-dify/v1\").rstrip(\n        \"/\"\n    )\n\
-          \    dataset_id = os.getenv(\"DIFY_DATASET_ID\") or \"<your-dataset-id>\"\
-          \n    api_key = os.getenv(\"DIFY_API_KEY\") or \"REDACTED\"\
-          \n\n    if not _is_set(api_base) or not _is_set(dataset_id) or not _is_set(api_key):\n\
-          \        return {\n            \"result\": (\n                \"Dify API\
-          \ Konfiguration unvollstaendig. \"\n                \"Erwarte DIFY_API_URL,\
-          \ DIFY_DATASET_ID und DIFY_API_KEY.\"\n            )\n        }\n\n    #\
-          \ Extract filter values from paper_list if passed (Parse Router Output)\n\
-          \    if isinstance(paper_list, list) and len(paper_list) > 0:\n        first\
-          \ = paper_list[0]\n        if isinstance(first, dict):\n            if not\
-          \ _is_set(authors):\n                authors = first.get(\"authors\", \"\
-          \")\n            if not _is_set(year):\n                year = first.get(\"\
-          year\", \"\")\n            if not _is_set(journal):\n                journal\
-          \ = first.get(\"journal\", \"\")\n            if not _is_set(title):\n \
-          \               title = first.get(\"title\", \"\")\n\n    headers = _build_headers(str(api_key).strip())\n\
-          \    docs, errors = _collect_documents(str(api_base), str(dataset_id).strip(),\
-          \ headers)\n\n    year_filter = _sanitize_year_filter(year)\n    journal_filter\
-          \ = _sanitize_free_text_filter(journal, max_len=80)\n    title_filter =\
-          \ _sanitize_free_text_filter(title, max_len=160)\n\n    has_any_filter =\
-          \ any(\n        [\n            _is_set(year_filter),\n            _is_set(journal_filter),\n\
-          \            _is_set(title_filter),\n            _is_set(authors),\n   \
-          \     ]\n    )\n\n    # No-filter query → return all documents (full list\
-          \ in result_text, capped at 30 in result array)\n    if not has_any_filter:\n\
-          \        uniq = {}\n        for d in docs:\n            k = (\n        \
-          \        d.get(\"title\", \"\").strip().lower(),\n                d.get(\"\
-          authors\", \"\").strip().lower(),\n                d.get(\"year\", \"\"\
-          ).strip(),\n                d.get(\"journal\", \"\").strip().lower(),\n\
-          \            )\n            if k not in uniq:\n                uniq[k] =\
-          \ d\n        all_docs = list(uniq.values())\n        text = _render_result(all_docs,\
-          \ total_docs=len(docs))\n        if errors:\n            text += \"\\nFehlerdetails:\\\
-          n\" + \"\\n\".join(f\"- {e}\" for e in errors[:8])\n        return {\n \
-          \           \"result\": (text.split(\"\\n\") if text else [])[:30],\n  \
-          \          \"result_text\": text,\n        }\n\n    matches = []\n    for\
-          \ doc in docs:\n        if _matches_filters(doc, year_filter, authors, journal_filter,\
-          \ title_filter):\n            matches.append(doc)\n\n    unique = {}\n \
-          \   for doc in matches:\n        key = (\n            (doc.get(\"title\"\
-          ) or \"\").strip().lower(),\n            (doc.get(\"authors\") or \"\").strip().lower(),\n\
-          \            (doc.get(\"year\") or \"\").strip(),\n            (doc.get(\"\
-          journal\") or \"\").strip().lower(),\n        )\n        if key not in unique:\n\
-          \            unique[key] = doc\n    final_docs = list(unique.values())\n\
-          \n    result_text = _render_result(final_docs, total_docs=len(docs))\n \
-          \   if errors:\n        result_text += \"\\nFehlerdetails:\\n\" + \"\\n\"\
-          .join(f\"- {e}\" for e in errors[:8])\n    # Cap result array at 30 elements\
-          \ (Dify limit); split only display lines\n    result_lines = result_text.split(\"\
-          \\n\") if result_text else []\n    if len(result_lines) > 30:\n        result_lines\
-          \ = result_lines[:30]\n    return {\n        \"result\": result_lines,\n\
-          \        \"result_text\": result_text,\n    }\n"
+          \        )\n    return result\n\n\ndef main(\n    year=None, authors=None,\
+          \ journal=None, title=None, paper_list=None, list_mode=None\n):\n    api_base\
+          \ = (os.getenv(\"DIFY_API_URL\") or \"http://rmap-chatbot-demo-dify/v1\"\
+          ).rstrip(\n        \"/\"\n    )\n    dataset_id = os.getenv(\"DIFY_DATASET_ID\"\
+          ) or \"<your-dataset-id>\"\n    api_key = os.getenv(\"\
+          DIFY_API_KEY\") or \"REDACTED\"\n\n    if not _is_set(api_base)\
+          \ or not _is_set(dataset_id) or not _is_set(api_key):\n        return {\n\
+          \            \"result\": (\n                \"Dify API Konfiguration unvollstaendig.\
+          \ \"\n                \"Erwarte DIFY_API_URL, DIFY_DATASET_ID und DIFY_API_KEY.\"\
+          \n            )\n        }\n\n    # Extract filter values from paper_list\
+          \ if passed (Parse Router Output)\n    if isinstance(paper_list, list) and\
+          \ len(paper_list) > 0:\n        first = paper_list[0]\n        if isinstance(first,\
+          \ dict):\n            if not _is_set(authors):\n                authors\
+          \ = first.get(\"authors\", \"\")\n            if not _is_set(year):\n  \
+          \              year = first.get(\"year\", \"\")\n            if not _is_set(journal):\n\
+          \                journal = first.get(\"journal\", \"\")\n            if\
+          \ not _is_set(title):\n                title = first.get(\"title\", \"\"\
+          )\n\n    headers = _build_headers(str(api_key).strip())\n    docs, errors\
+          \ = _collect_documents(str(api_base), str(dataset_id).strip(), headers)\n\
+          \n    year_filter = _sanitize_year_filter(year)\n    journal_filter = _sanitize_free_text_filter(journal,\
+          \ max_len=80)\n    title_filter = _sanitize_free_text_filter(title, max_len=160)\n\
+          \n    has_any_filter = any(\n        [\n            _is_set(year_filter),\n\
+          \            _is_set(journal_filter),\n            _is_set(title_filter),\n\
+          \            _is_set(authors),\n        ]\n    )\n\n    # No-filter query\
+          \ → return all documents or distinct authors\n    if not has_any_filter:\n\
+          \        if str(list_mode or \"\").strip().lower() == \"authors\":\n   \
+          \         # Extract distinct authors from all docs\n            author_set\
+          \ = set()\n            for d in docs:\n                for a in d.get(\"\
+          authors\", \"\").split(\",\"):\n                    a = a.strip()\n    \
+          \                if a and len(a) > 2:\n                        author_set.add(a)\n\
+          \            author_list = sorted(author_set)\n            text = f\"Distinct\
+          \ authors in dataset: {len(author_list)}\\n\\n\" + \"\\n\".join(\n     \
+          \           f\"- {a}\" for a in author_list\n            )\n           \
+          \ return {\n                \"result\": text.split(\"\\n\")[:30],\n    \
+          \            \"result_text\": text,\n            }\n        else:\n    \
+          \        uniq = {}\n            for d in docs:\n                k = (\n\
+          \                    d.get(\"title\", \"\").strip().lower(),\n         \
+          \           d.get(\"authors\", \"\").strip().lower(),\n                \
+          \    d.get(\"year\", \"\").strip(),\n                    d.get(\"journal\"\
+          , \"\").strip().lower(),\n                )\n                if k not in\
+          \ uniq:\n                    uniq[k] = d\n            all_docs = list(uniq.values())\n\
+          \            text = _render_result(all_docs, total_docs=len(docs))\n   \
+          \         if errors:\n                text += \"\\nFehlerdetails:\\n\" +\
+          \ \"\\n\".join(f\"- {e}\" for e in errors[:8])\n            return {\n \
+          \               \"result\": (text.split(\"\\n\") if text else [])[:30],\n\
+          \                \"result_text\": text,\n            }\n\n    matches =\
+          \ []\n    for doc in docs:\n        if _matches_filters(doc, year_filter,\
+          \ authors, journal_filter, title_filter):\n            matches.append(doc)\n\
+          \n    unique = {}\n    for doc in matches:\n        key = (\n          \
+          \  (doc.get(\"title\") or \"\").strip().lower(),\n            (doc.get(\"\
+          authors\") or \"\").strip().lower(),\n            (doc.get(\"year\") or\
+          \ \"\").strip(),\n            (doc.get(\"journal\") or \"\").strip().lower(),\n\
+          \        )\n        if key not in unique:\n            unique[key] = doc\n\
+          \    final_docs = list(unique.values())\n\n    result_text = _render_result(final_docs,\
+          \ total_docs=len(docs))\n    if errors:\n        result_text += \"\\nFehlerdetails:\\\
+          n\" + \"\\n\".join(f\"- {e}\" for e in errors[:8])\n    # Cap result array\
+          \ at 30 elements (Dify limit); split only display lines\n    result_lines\
+          \ = result_text.split(\"\\n\") if result_text else []\n    if len(result_lines)\
+          \ > 30:\n        result_lines = result_lines[:30]\n    return {\n      \
+          \  \"result\": result_lines,\n        \"result_text\": result_text,\n  \
+          \  }\n"
         code_language: python3
         isInIteration: false
         isInLoop: false
@@ -819,6 +831,11 @@ workflow:
           - paper_list
           value_type: array[object]
           variable: paper_list
+        - value_selector:
+          - '1778800001033'
+          - list_mode
+          value_type: string
+          variable: list_mode
       height: 52
       id: '17786780698570'
       position:
@@ -1293,25 +1310,25 @@ workflow:
             \ — User asks WHICH/WHAT specific entities: \"Which tRNAs were...?\",\
             \ \"What methods...?\",\n  \"Which organisms...?\". The answer is a list\
             \ of named entities extracted from papers.\n  paper_list MUST be []. KR\
-            \ finds papers, extraction identifies entities.\n\n=== WHICH INTENT WHEN?\
-            \ ===\n\n- \"Who has experience with X?\" / \"Wer hat Erfahrung mit X?\"\
-            \ → \"author_lookup\"\n- \"Who has worked on X?\" / \"Wer hat an X gearbeitet?\"\
-            \ → \"author_lookup\"\n- \"Who synthesized Y?\" / \"Wer hat Y synthetisiert?\"\
-            \ → \"author_lookup\"\n- \"Which tRNAs / proteins / methods ...?\" → \"\
-            entity_lookup\"\n- Just an author name, no instruction → \"metadata_list\"\
-            \ (list their papers)\n- Just a topic, no paper reference → \"knowledge_retrieval\"\
-            \n- Author + \"summarize their findings\" → \"content_summary\"\n- \"\
-            Compare the papers by X and Y\" → \"content_summary\"\n\n=== paper_list\
-            \ RULES ===\n\nFor \"knowledge_retrieval\", \"author_lookup\", \"entity_lookup\"\
-            : paper_list MUST be [].\nFor \"metadata_list\" and \"content_summary\"\
-            : follow the same rules as before.\n\nFOR NEW QUERIES (conversation.memory\
-            \ is empty or irrelevant):\n  → paper_list = SEARCH CONSTRAINTS for the\
-            \ database lookup.\n  Examples:\n  - \"papers by Christoph Dieterich\"\
-            \ → [{\"authors\": \"Christoph Dieterich\"}]\n  - \"papers about RNA from\
-            \ 2024\" → [{\"title\": \"RNA\", \"year\": \"2024\"}]\n\nFOR FOLLOW-UP\
-            \ QUERIES (conversation.memory has papers AND query references them):\n\
-            \  → paper_list = the STRING \"use_memory\". The downstream parser will\
-            \ fill in the actual papers.\n  The query contains pronouns or references\
+            \ finds papers, extraction identifies entities.\n\n\n\n=== WHICH INTENT\
+            \ WHEN? ===\n\n- \"Who has experience with X?\" / \"Wer hat Erfahrung\
+            \ mit X?\" → \"author_lookup\"\n- \"Who has worked on X?\" / \"Wer hat\
+            \ an X gearbeitet?\" → \"author_lookup\"\n- \"Who synthesized Y?\" / \"\
+            Wer hat Y synthetisiert?\" → \"author_lookup\"\n- \"Which tRNAs / proteins\
+            \ / methods ...?\" → \"entity_lookup\"\n- Just an author name, no instruction\
+            \ → \"metadata_list\" (list their papers)\n- Just a topic, no paper reference\
+            \ → \"knowledge_retrieval\"\n- Author + \"summarize their findings\" →\
+            \ \"content_summary\"\n- \"Compare the papers by X and Y\" → \"content_summary\"\
+            \n\n=== paper_list RULES ===\n\nFor \"knowledge_retrieval\", \"author_lookup\"\
+            , \"entity_lookup\": paper_list MUST be [].\nFor \"metadata_list\" and\
+            \ \"content_summary\": follow the same rules as before.\n\nFOR NEW QUERIES\
+            \ (conversation.memory is empty or irrelevant):\n  → paper_list = SEARCH\
+            \ CONSTRAINTS for the database lookup.\n  Examples:\n  - \"papers by Christoph\
+            \ Dieterich\" → [{\"authors\": \"Christoph Dieterich\"}]\n  - \"papers\
+            \ about RNA from 2024\" → [{\"title\": \"RNA\", \"year\": \"2024\"}]\n\
+            \nFOR FOLLOW-UP QUERIES (conversation.memory has papers AND query references\
+            \ them):\n  → paper_list = the STRING \"use_memory\". The downstream parser\
+            \ will fill in the actual papers.\n  The query contains pronouns or references\
             \ to prior turns.\n\nNEVER return an empty paper_list for \"metadata_list\"\
             \ or \"content_summary\" intents.\nIf you cannot determine the search\
             \ constraints, use \"knowledge_retrieval\" instead.\n\n=== REWRITTEN QUERY\
@@ -1455,9 +1472,18 @@ workflow:
           b\",\n    r\"\\balle\\s+(Autor|Forscher|Wissenschaftler|Author)innen?\\\
           b\",\n    r\"\\bwelche\\s+(Autor|Forscher|Wissenschaftler|Author)innen?\\\
           s+(gibt|existieren|haben\\s+wir)\\b\",\n    r\"\\bwelche\\s+(Paper|Artikel|Publikation|Dokument)e\\\
+          s+(gibt|existieren|haben\\s+wir)\\b\",\n]\n\n# Author-specific patterns\
+          \ → list_mode = \"authors\"\n_AUTHOR_LISTING_PATTERNS = [\n    r\"\\b(all|every)\\\
+          s+(author|researcher|scientist)s?\\b\",\n    r\"\\blist\\s+all\\s+(author|researcher|scientist)s?\\\
+          b\",\n    r\"\\bwho\\s+are\\s+(all\\s+)?(the\\s+)?(author|researcher|scientist)s?\\\
+          b\",\n    r\"\\balle\\s+(Autor|Forscher|Wissenschaftler|Author)innen?\\\
+          b\",\n    r\"\\bwelche\\s+(Autor|Forscher|Wissenschaftler|Author)innen?\\\
           s+(gibt|existieren|haben\\s+wir)\\b\",\n]\n\n\ndef _is_broad_listing_query(query:\
           \ str) -> bool:\n    q = str(query or \"\").lower().strip()\n    if len(q)\
           \ < 5:\n        return False\n    for pat in _BROAD_LISTING_PATTERNS:\n\
+          \        if re.search(pat, q, re.IGNORECASE):\n            return True\n\
+          \    return False\n\n\ndef _is_author_listing_query(query: str) -> bool:\n\
+          \    q = str(query or \"\").lower().strip()\n    for pat in _AUTHOR_LISTING_PATTERNS:\n\
           \        if re.search(pat, q, re.IGNORECASE):\n            return True\n\
           \    return False\n\n\ndef _clean_paper(item):\n    if not isinstance(item,\
           \ dict):\n        return None\n    obj = {\n        \"title\": str(item.get(\"\
@@ -1482,33 +1508,38 @@ workflow:
           ,\n        \"knowledge_retrieval\",\n        \"author_lookup\",\n      \
           \  \"entity_lookup\",\n    ):\n        intent = \"knowledge_retrieval\"\n\
           \n    # ── Override: broad listing queries → metadata_list ──\n    query\
-          \ = str(sys_query or \"\").strip()\n    if intent == \"knowledge_retrieval\"\
-          \ and _is_broad_listing_query(query):\n        intent = \"metadata_list\"\
-          \n        obj[\"paper_list\"] = []  # empty → Metadata Query lists ALL\n\
-          \n    paper_list = obj.get(\"paper_list\")\n    mem = conversation_memory\
-          \ if isinstance(conversation_memory, list) else []\n\n    # If paper_list\
-          \ is the string \"use_memory\", populate from conversation.memory\n    if\
-          \ paper_list == \"use_memory\":\n        paper_list = []\n        for item\
+          \ = str(sys_query or \"\").strip()\n    list_mode = \"papers\"  # default\n\
+          \    if intent == \"knowledge_retrieval\" and _is_broad_listing_query(query):\n\
+          \        intent = \"metadata_list\"\n        obj[\"paper_list\"] = []  #\
+          \ empty → Metadata Query lists ALL\n    if _is_author_listing_query(query):\n\
+          \        list_mode = \"authors\"\n\n    paper_list = obj.get(\"paper_list\"\
+          )\n    mem = conversation_memory if isinstance(conversation_memory, list)\
+          \ else []\n\n    # If paper_list is the string \"use_memory\", populate\
+          \ from conversation.memory\n    if paper_list == \"use_memory\":\n     \
+          \   paper_list = []\n        for item in mem:\n            cleaned = _clean_paper(item)\n\
+          \            if cleaned:\n                paper_list.append(cleaned)\n \
+          \   elif not isinstance(paper_list, list):\n        paper_list = []\n  \
+          \  else:\n        # Clean paper_list items from LLM output\n        cleaned_list\
+          \ = []\n        for item in paper_list:\n            if isinstance(item,\
+          \ dict):\n                c = _clean_paper(item)\n                if c:\n\
+          \                    cleaned_list.append(c)\n        paper_list = cleaned_list\n\
+          \n    # Auto-fallback: if paper_list is empty but intent requires papers,\
+          \ use conversation.memory\n    if not paper_list and intent in (\"metadata_list\"\
+          , \"content_summary\") and mem:\n        paper_list = []\n        for item\
           \ in mem:\n            cleaned = _clean_paper(item)\n            if cleaned:\n\
-          \                paper_list.append(cleaned)\n    elif not isinstance(paper_list,\
-          \ list):\n        paper_list = []\n    else:\n        # Clean paper_list\
-          \ items from LLM output\n        cleaned_list = []\n        for item in\
-          \ paper_list:\n            if isinstance(item, dict):\n                c\
-          \ = _clean_paper(item)\n                if c:\n                    cleaned_list.append(c)\n\
-          \        paper_list = cleaned_list\n\n    # Auto-fallback: if paper_list\
-          \ is empty but intent requires papers, use conversation.memory\n    if not\
-          \ paper_list and intent in (\"metadata_list\", \"content_summary\") and\
-          \ mem:\n        paper_list = []\n        for item in mem:\n            cleaned\
-          \ = _clean_paper(item)\n            if cleaned:\n                paper_list.append(cleaned)\n\
-          \n    rw = str(obj.get(\"rewritten_query\") or \"\").strip()\n    return\
-          \ {\n        \"intent\": intent,\n        \"paper_list\": paper_list,\n\
-          \        \"paper_count\": len(paper_list),\n        \"rewritten_query\"\
-          : rw,\n    }\n"
+          \                paper_list.append(cleaned)\n\n    rw = str(obj.get(\"rewritten_query\"\
+          ) or \"\").strip()\n    return {\n        \"intent\": intent,\n        \"\
+          paper_list\": paper_list,\n        \"paper_count\": len(paper_list),\n \
+          \       \"rewritten_query\": rw,\n        \"list_mode\": list_mode,\n  \
+          \  }\n"
         code_language: python3
         isInIteration: false
         isInLoop: false
         outputs:
           intent:
+            children: null
+            type: string
+          list_mode:
             children: null
             type: string
           paper_count:
@@ -1534,11 +1565,11 @@ workflow:
           - memory
           value_type: array[object]
           variable: conversation_memory
-        - variable: sys_query
-          value_selector:
+        - value_selector:
           - sys
           - query
           value_type: string
+          variable: sys_query
       height: 52
       id: '1778800001033'
       position:

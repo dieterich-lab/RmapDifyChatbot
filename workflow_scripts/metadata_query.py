@@ -276,7 +276,9 @@ def _render_result(matches: list[dict], total_docs: int) -> str:
     return result
 
 
-def main(year=None, authors=None, journal=None, title=None, paper_list=None):
+def main(
+    year=None, authors=None, journal=None, title=None, paper_list=None, list_mode=None
+):
     api_base = (os.getenv("DIFY_API_URL") or "http://rmap-chatbot-demo-dify/v1").rstrip(
         "/"
     )
@@ -320,26 +322,43 @@ def main(year=None, authors=None, journal=None, title=None, paper_list=None):
         ]
     )
 
-    # No-filter query → return all documents (full list in result_text, capped at 30 in result array)
+    # No-filter query → return all documents or distinct authors
     if not has_any_filter:
-        uniq = {}
-        for d in docs:
-            k = (
-                d.get("title", "").strip().lower(),
-                d.get("authors", "").strip().lower(),
-                d.get("year", "").strip(),
-                d.get("journal", "").strip().lower(),
+        if str(list_mode or "").strip().lower() == "authors":
+            # Extract distinct authors from all docs
+            author_set = set()
+            for d in docs:
+                for a in d.get("authors", "").split(","):
+                    a = a.strip()
+                    if a and len(a) > 2:
+                        author_set.add(a)
+            author_list = sorted(author_set)
+            text = f"Distinct authors in dataset: {len(author_list)}\n\n" + "\n".join(
+                f"- {a}" for a in author_list
             )
-            if k not in uniq:
-                uniq[k] = d
-        all_docs = list(uniq.values())
-        text = _render_result(all_docs, total_docs=len(docs))
-        if errors:
-            text += "\nFehlerdetails:\n" + "\n".join(f"- {e}" for e in errors[:8])
-        return {
-            "result": (text.split("\n") if text else [])[:30],
-            "result_text": text,
-        }
+            return {
+                "result": text.split("\n")[:30],
+                "result_text": text,
+            }
+        else:
+            uniq = {}
+            for d in docs:
+                k = (
+                    d.get("title", "").strip().lower(),
+                    d.get("authors", "").strip().lower(),
+                    d.get("year", "").strip(),
+                    d.get("journal", "").strip().lower(),
+                )
+                if k not in uniq:
+                    uniq[k] = d
+            all_docs = list(uniq.values())
+            text = _render_result(all_docs, total_docs=len(docs))
+            if errors:
+                text += "\nFehlerdetails:\n" + "\n".join(f"- {e}" for e in errors[:8])
+            return {
+                "result": (text.split("\n") if text else [])[:30],
+                "result_text": text,
+            }
 
     matches = []
     for doc in docs:
