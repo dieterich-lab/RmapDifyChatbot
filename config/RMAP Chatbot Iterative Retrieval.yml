@@ -26,7 +26,38 @@ workflow:
     value_type: array[object]
   environment_variables: []
   features:
-    file_upload: {}
+    file_upload:
+      allowed_file_extensions:
+      - .JPG
+      - .JPEG
+      - .PNG
+      - .GIF
+      - .WEBP
+      - .SVG
+      allowed_file_types:
+      - image
+      allowed_file_upload_methods:
+      - local_file
+      - remote_url
+      enabled: false
+      fileUploadConfig:
+        attachment_image_file_size_limit: 2
+        audio_file_size_limit: 50
+        batch_count_limit: 5
+        file_size_limit: 15
+        file_upload_limit: 20
+        image_file_batch_limit: 10
+        image_file_size_limit: 10
+        single_chunk_attachment_limit: 10
+        video_file_size_limit: 100
+        workflow_file_upload_limit: 10
+      image:
+        enabled: false
+        number_limits: 3
+        transfer_methods:
+        - local_file
+        - remote_url
+      number_limits: 3
     opening_statement: ''
     retriever_resource:
       enabled: false
@@ -306,36 +337,36 @@ workflow:
       target: '17785930638200'
       targetHandle: target
       type: custom
-    - id: 1778800001003-source-1778800001040-target
+    - data:
+        isInLoop: false
+        sourceType: assigner
+        targetType: if-else
+      id: 1778800001003-source-1778800001040-target
       source: '1778800001003'
       sourceHandle: source
       target: '1778800001040'
       targetHandle: target
       type: custom
-      data:
-        isInLoop: false
-        sourceType: assigner
-        targetType: if-else
-    - id: 1778800001040-set-1778800001013-result_text
-      source: '1778800001040'
-      sourceHandle: set
-      target: '1778800001013'
-      targetHandle: result_text
-      type: custom
-      data:
-        isInLoop: false
-        sourceType: if-else
-        targetType: code
-    - id: 1778800001040-false-1778800001027-target
-      source: '1778800001040'
-      sourceHandle: 'false'
-      target: '1778800001027'
-      targetHandle: target
-      type: custom
-      data:
+    - data:
         isInLoop: false
         sourceType: if-else
         targetType: llm
+      id: 1778800001040-set-1778800001027-target
+      source: '1778800001040'
+      sourceHandle: set
+      target: '1778800001027'
+      targetHandle: target
+      type: custom
+    - data:
+        isInLoop: false
+        sourceType: if-else
+        targetType: code
+      id: 1778800001040-false-1778800001013-target
+      source: '1778800001040'
+      sourceHandle: 'false'
+      target: '1778800001013'
+      targetHandle: target
+      type: custom
     nodes:
     - data:
         desc: The user's question comes in here.
@@ -343,7 +374,7 @@ workflow:
         title: Start
         type: start
         variables: []
-      height: 101
+      height: 22
       id: '1711528914102'
       position:
         x: -1479.2766666643752
@@ -355,7 +386,7 @@ workflow:
       sourcePosition: right
       targetPosition: left
       type: custo
-      width: 242
+      width: 150
     - data:
         dataset_ids:
         - <your-dataset-id>
@@ -400,7 +431,7 @@ workflow:
       positionAbsolute:
         x: -1072.0495596626015
         y: 3681.1329167788017
-      selected: true
+      selected: false
       sourcePosition: right
       targetPosition: left
       type: custom
@@ -455,12 +486,12 @@ workflow:
       height: 88
       id: '17785945324000'
       position:
-        x: 245.7349446203532
-        y: 3563.6569287390735
+        x: 209.4752276329641
+        y: 3588.177616057657
       positionAbsolute:
-        x: 245.7349446203532
-        y: 3563.6569287390735
-      selected: false
+        x: 209.4752276329641
+        y: 3588.177616057657
+      selected: true
       sourcePosition: right
       targetPosition: left
       type: custom
@@ -477,10 +508,10 @@ workflow:
       height: 146
       id: '17785946070360'
       position:
-        x: 920.6959181223426
+        x: 1053.623854638876
         y: 3674.1063364780684
       positionAbsolute:
-        x: 920.6959181223426
+        x: 1053.623854638876
         y: 3674.1063364780684
       selected: false
       sourcePosition: right
@@ -587,18 +618,18 @@ workflow:
           - filtered_chunks
           value_type: array[object]
           variable: filtered_chunks
-        - variable: result_text
-          value_selector:
+        - value_selector:
           - '17786780698570'
           - result_text
           value_type: string
+          variable: result_text
       height: 52
       id: '1778800001013'
       position:
-        x: 623.0529485946272
+        x: 774.0487599774854
         y: 3674.1063364780684
       positionAbsolute:
-        x: 623.0529485946272
+        x: 774.0487599774854
         y: 3674.1063364780684
       selected: false
       sourcePosition: right
@@ -821,13 +852,14 @@ workflow:
           \        d.get(\"year\", \"\").strip(),\n                    d.get(\"journal\"\
           , \"\").strip().lower(),\n                )\n                if k not in\
           \ uniq:\n                    uniq[k] = d\n            all_docs = list(uniq.values())\n\
-          \            total = len(all_docs)\n            lines = [f\"{i}. {d['title']},\
-          \ {d['year']}, {d['journal']}\" for i, d in enumerate(all_docs, 1)]\n  \
-          \          text = f\"Total papers in dataset: {total}\\n\\n\" + \"\\n\"\
-          .join(lines)\n            return {\n                \"result\": text.split(\"\
-          \\n\")[:30],\n                \"result_text\": text,\n            }\n\n\
-          \    matches = []\n    for doc in docs:\n        if _matches_filters(doc,\
-          \ year_filter, authors, journal_filter, title_filter):\n            matches.append(doc)\n\
+          \            total = len(all_docs)\n            lines = [\n            \
+          \    f\"{i}. {d['title']}, {d['year']}, {d['journal']}\"\n             \
+          \   for i, d in enumerate(all_docs, 1)\n            ]\n            text\
+          \ = f\"Total papers in dataset: {total}\\n\\n\" + \"\\n\".join(lines)\n\
+          \            return {\n                \"result\": text.split(\"\\n\")[:30],\n\
+          \                \"result_text\": text,\n            }\n\n    matches =\
+          \ []\n    for doc in docs:\n        if _matches_filters(doc, year_filter,\
+          \ authors, journal_filter, title_filter):\n            matches.append(doc)\n\
           \n    unique = {}\n    for doc in matches:\n        key = (\n          \
           \  (doc.get(\"title\") or \"\").strip().lower(),\n            (doc.get(\"\
           authors\") or \"\").strip().lower(),\n            (doc.get(\"year\") or\
@@ -1284,11 +1316,11 @@ workflow:
       height: 88
       id: '1778800001027'
       position:
-        x: 201.24254268196614
-        y: 3399.9558281169493
+        x: 345.7855416125657
+        y: 3287.6768914476447
       positionAbsolute:
-        x: 201.24254268196614
-        y: 3399.9558281169493
+        x: 345.7855416125657
+        y: 3287.6768914476447
       selected: false
       sourcePosition: right
       targetPosition: left
@@ -2025,35 +2057,35 @@ workflow:
       targetPosition: left
       type: custom
       width: 242
-    - id: '1778800001040'
-      type: custom
-      position:
-        x: -59.810310881249166
-        y: 3399.9558281169493
-      positionAbsolute:
-        x: -59.810310881249166
-        y: 3399.9558281169493
-      sourcePosition: right
-      targetPosition: left
-      width: 242
-      height: 124
-      selected: false
-      data:
-        type: if-else
-        title: Metadata LLM Bypass
-        selected: false
+    - data:
         cases:
         - case_id: set
           conditions:
-          - id: list-mode-is-set
-            varType: string
+          - comparison_operator: ≠
+            id: paper-count-zero
+            value: '0'
+            varType: number
             variable_selector:
             - '1778800001033'
-            - list_mode
-            comparison_operator: is not
-            value: ''
+            - paper_count
           id: set
           logical_operator: and
+        selected: true
+        title: Metadata LLM Bypass
+        type: if-else
+      height: 124
+      id: '1778800001040'
+      position:
+        x: -32.70849858176177
+        y: 3254.1566834973282
+      positionAbsolute:
+        x: -32.70849858176177
+        y: 3254.1566834973282
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 242
     viewport:
       x: 1360.8357395869443
       y: -2269.9675687547206

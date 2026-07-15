@@ -356,7 +356,10 @@ def main(
                     uniq[k] = d
             all_docs = list(uniq.values())
             total = len(all_docs)
-            lines = [f"{i}. {d['title']}, {d['year']}, {d['journal']}" for i, d in enumerate(all_docs, 1)]
+            lines = [
+                f"{i}. {d['title']}, {d['year']}, {d['journal']}"
+                for i, d in enumerate(all_docs, 1)
+            ]
             text = f"Total papers in dataset: {total}\n\n" + "\n".join(lines)
             return {
                 "result": text.split("\n")[:30],

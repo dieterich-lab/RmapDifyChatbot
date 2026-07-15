@@ -49,14 +49,16 @@ def migrate():
 
     # ── Build IF/ELSE node ──────────────────────────────────────
     if_else_id = "1778800001040"
-    
+
     # Check if already exists, clean up
     for n in nodes:
         if n["id"] == if_else_id:
             print("Removing existing IF/ELSE node...")
             edges[:] = [
-                e for e in edges
-                if e["id"] not in (
+                e
+                for e in edges
+                if e["id"]
+                not in (
                     f"{persist_mem['id']}-source-{if_else_id}-target",
                     f"{if_else_id}-set-{sanitizer['id']}-result_text",
                     f"{if_else_id}-false-{metadata_llm['id']}-target",
@@ -107,46 +109,58 @@ def migrate():
 
     # ── Add new edges ───────────────────────────────────────────
     # Persist Paper Memory → IF/ELSE
-    edges.append({
-        "id": f"{persist_mem['id']}-source-{if_else_id}-target",
-        "source": persist_mem["id"],
-        "sourceHandle": "source",
-        "target": if_else_id,
-        "targetHandle": "target",
-        "type": "custom",
-        "data": {"isInLoop": False, "sourceType": "assigner", "targetType": "if-else"},
-    })
+    edges.append(
+        {
+            "id": f"{persist_mem['id']}-source-{if_else_id}-target",
+            "source": persist_mem["id"],
+            "sourceHandle": "source",
+            "target": if_else_id,
+            "targetHandle": "target",
+            "type": "custom",
+            "data": {
+                "isInLoop": False,
+                "sourceType": "assigner",
+                "targetType": "if-else",
+            },
+        }
+    )
 
     # IF/ELSE (list_mode set) → Sanitizer (direct result_text passthrough)
-    edges.append({
-        "id": f"{if_else_id}-set-{sanitizer['id']}-result_text",
-        "source": if_else_id,
-        "sourceHandle": "set",
-        "target": sanitizer["id"],
-        "targetHandle": "result_text",
-        "type": "custom",
-        "data": {"isInLoop": False, "sourceType": "if-else", "targetType": "code"},
-    })
+    edges.append(
+        {
+            "id": f"{if_else_id}-set-{sanitizer['id']}-result_text",
+            "source": if_else_id,
+            "sourceHandle": "set",
+            "target": sanitizer["id"],
+            "targetHandle": "result_text",
+            "type": "custom",
+            "data": {"isInLoop": False, "sourceType": "if-else", "targetType": "code"},
+        }
+    )
 
     # IF/ELSE (false) → Metadata LLM (existing LLM path)
-    edges.append({
-        "id": f"{if_else_id}-false-{metadata_llm['id']}-target",
-        "source": if_else_id,
-        "sourceHandle": "false",
-        "target": metadata_llm["id"],
-        "targetHandle": "target",
-        "type": "custom",
-        "data": {"isInLoop": False, "sourceType": "if-else", "targetType": "llm"},
-    })
+    edges.append(
+        {
+            "id": f"{if_else_id}-false-{metadata_llm['id']}-target",
+            "source": if_else_id,
+            "sourceHandle": "false",
+            "target": metadata_llm["id"],
+            "targetHandle": "target",
+            "type": "custom",
+            "data": {"isInLoop": False, "sourceType": "if-else", "targetType": "llm"},
+        }
+    )
 
     # ── Add result_text variable to Sanitizer ───────────────────
     svars = sanitizer["data"].get("variables", [])
     svars = [v for v in svars if v.get("variable") != "result_text"]
-    svars.append({
-        "variable": "result_text",
-        "value_selector": ["17786780698570", "result_text"],
-        "value_type": "string",
-    })
+    svars.append(
+        {
+            "variable": "result_text",
+            "value_selector": ["17786780698570", "result_text"],
+            "value_type": "string",
+        }
+    )
     sanitizer["data"]["variables"] = svars
 
     print(f"Added result_text variable to Sanitizer")
@@ -155,7 +169,9 @@ def migrate():
 
     # ── Write output ────────────────────────────────────────────
     with open(output_path, "w") as f:
-        yaml.dump(data, f, default_flow_style=False, allow_unicode=True, sort_keys=False)
+        yaml.dump(
+            data, f, default_flow_style=False, allow_unicode=True, sort_keys=False
+        )
 
     print(f"✅ Migration complete!")
     return 0
