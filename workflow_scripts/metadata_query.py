@@ -311,7 +311,6 @@ def main(year=None, authors=None, journal=None, title=None, paper_list=None):
     journal_filter = _sanitize_free_text_filter(journal, max_len=80)
     title_filter = _sanitize_free_text_filter(title, max_len=160)
 
-    # Guard: if no filters are set at all, refuse broad query
     has_any_filter = any(
         [
             _is_set(year_filter),
@@ -320,16 +319,26 @@ def main(year=None, authors=None, journal=None, title=None, paper_list=None):
             _is_set(authors),
         ]
     )
+
+    # No-filter query → return all documents (full list in result_text, capped at 30 in result array)
     if not has_any_filter:
+        uniq = {}
+        for d in docs:
+            k = (
+                d.get("title", "").strip().lower(),
+                d.get("authors", "").strip().lower(),
+                d.get("year", "").strip(),
+                d.get("journal", "").strip().lower(),
+            )
+            if k not in uniq:
+                uniq[k] = d
+        all_docs = list(uniq.values())
+        text = _render_result(all_docs, total_docs=len(docs))
+        if errors:
+            text += "\nFehlerdetails:\n" + "\n".join(f"- {e}" for e in errors[:8])
         return {
-            "result": [
-                "Bitte schraenke deine Suche ein. Nenne mindestens einen Autor:in-Namen, ein Jahr oder ein Journal.",
-                'Beispiele: "Papers by Christoph Dieterich", "Papers from 2024", "Papers in Nucleic Acids Res".',
-            ],
-            "result_text": (
-                "Bitte schraenke deine Suche ein. Nenne mindestens einen Autor:in-Namen, ein Jahr oder ein Journal.\n"
-                'Beispiele: "Papers by Christoph Dieterich", "Papers from 2024", "Papers in Nucleic Acids Res".'
-            ),
+            "result": (text.split("\n") if text else [])[:30],
+            "result_text": text,
         }
 
     matches = []

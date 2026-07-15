@@ -23,6 +23,7 @@ NODE_TO_SCRIPT = {
     "Final Answer Sanitizer": "final_answer_sanitizer.py",
     "KR Chunk Filter": "kr_chunk_filter.py",
     "Metadata Query": "metadata_query.py",
+    "Parse Router Output": "parse_router_output.py",
     "Parse Extractor Paper List": "parse_extractor_paper_list.py",
     "Follow-up Memory Subset": "follow_up_memory_subset.py",
     "Resolve Paper List": "resolve_paper_list.py",
