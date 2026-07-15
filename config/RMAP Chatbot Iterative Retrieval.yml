@@ -26,10 +26,41 @@ workflow:
     value_type: array[object]
   environment_variables: []
   features:
-    file_upload: {}
+    file_upload:
+      allowed_file_extensions:
+      - .JPG
+      - .JPEG
+      - .PNG
+      - .GIF
+      - .WEBP
+      - .SVG
+      allowed_file_types:
+      - image
+      allowed_file_upload_methods:
+      - local_file
+      - remote_url
+      enabled: false
+      fileUploadConfig:
+        attachment_image_file_size_limit: 2
+        audio_file_size_limit: 50
+        batch_count_limit: 5
+        file_size_limit: 15
+        file_upload_limit: 20
+        image_file_batch_limit: 10
+        image_file_size_limit: 10
+        single_chunk_attachment_limit: 10
+        video_file_size_limit: 100
+        workflow_file_upload_limit: 10
+      image:
+        enabled: false
+        number_limits: 3
+        transfer_methods:
+        - local_file
+        - remote_url
+      number_limits: 3
     opening_statement: ''
     retriever_resource:
-      enabled: false
+      enabled: true
     sensitive_word_avoidance:
       enabled: false
     speech_to_text:
@@ -460,7 +491,7 @@ workflow:
       positionAbsolute:
         x: 209.4752276329641
         y: 3588.177616057657
-      selected: true
+      selected: false
       sourcePosition: right
       targetPosition: left
       type: custom
@@ -1739,7 +1770,7 @@ workflow:
           filtered_chunks:
             children: null
             type: array[string]
-        selected: false
+        selected: true
         title: KR Chunk Filter
         type: code
         variables:
@@ -1756,7 +1787,7 @@ workflow:
       positionAbsolute:
         x: -595.5388103134578
         y: 3681.1329167788017
-      selected: false
+      selected: true
       sourcePosition: right
       targetPosition: left
       type: custom
@@ -2043,7 +2074,7 @@ workflow:
             - paper_count
           id: set
           logical_operator: and
-        selected: true
+        selected: false
         title: Metadata LLM Bypass
         type: if-else
       height: 124
@@ -2060,7 +2091,7 @@ workflow:
       type: custom
       width: 242
     viewport:
-      x: 1360.8357395869443
-      y: -2269.9675687547206
+      x: 1267.4661598337943
+      y: -2134.54933999964
       zoom: 0.7748559309591706
   rag_pipeline_variables: []
