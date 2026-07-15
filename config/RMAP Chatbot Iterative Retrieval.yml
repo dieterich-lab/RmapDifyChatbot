@@ -26,38 +26,7 @@ workflow:
     value_type: array[object]
   environment_variables: []
   features:
-    file_upload:
-      allowed_file_extensions:
-      - .JPG
-      - .JPEG
-      - .PNG
-      - .GIF
-      - .WEBP
-      - .SVG
-      allowed_file_types:
-      - image
-      allowed_file_upload_methods:
-      - local_file
-      - remote_url
-      enabled: false
-      fileUploadConfig:
-        attachment_image_file_size_limit: 2
-        audio_file_size_limit: 50
-        batch_count_limit: 5
-        file_size_limit: 15
-        file_upload_limit: 20
-        image_file_batch_limit: 10
-        image_file_size_limit: 10
-        single_chunk_attachment_limit: 10
-        video_file_size_limit: 100
-        workflow_file_upload_limit: 10
-      image:
-        enabled: false
-        number_limits: 3
-        transfer_methods:
-        - local_file
-        - remote_url
-      number_limits: 3
+    file_upload: {}
     opening_statement: ''
     retriever_resource:
       enabled: false
@@ -1302,7 +1271,8 @@ workflow:
 
             Response policy:
 
-            - State the total count, then a clean numbered list: title, year, journal.
+            - State the EXACT total count (count ALL entries in the context, do not
+            skip or truncate), then a clean numbered list: title, year, journal.
 
             - Answer in the same language as the user.
 
