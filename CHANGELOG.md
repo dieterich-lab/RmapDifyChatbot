@@ -1,5 +1,48 @@
 # Changelog
 
+## [0.4.6] - 2026-07-16
+
+### Fixed
+
+- **Mark Helm "Summarize them" → "\*\*"**: Zwei Root Causes behoben:
+  1. `paper_count` fehlte in `_fallback_result()` – verursachte "Output paper_count is missing"-Fehler.
+  2. Summary LLM Context Overflow: 28 Papers × ~11K chars = 308K chars > 65K Context Window. Fix: `MAX_PAPERS_FOR_SUMMARY = 15` Cap in `parse_router_output.py`.
+- **Memory-Leakage bei Broad Queries**: "Find all research papers" nach einer Author-Query zeigte nur die Papers des Autors. Auto-Fallback `conversation.memory → paper_list` jetzt nur noch für `content_summary` (nicht `metadata_list`).
+- **Paper Parser 3-Part Format**: `update_paper_memory.py` akzeptiert jetzt 3–5 Pipe-getrennte Felder (statt nur 4–5). Behebt verlorene Memory-Einträge bei Autoren mit vielen Papers.
+- **Final Answer Sanitizer Fallback**: Verbesserte Weak-Output-Erkennung (leere/schwache LLM-Antworten werden durch `result_text` ersetzt).
+
+### Changed
+
+- **Regex-freies Broad-Query-Routing**: 24 Zeilen Regex-Patterns (`_BROAD_LISTING_PATTERNS`, `_AUTHOR_LISTING_PATTERNS`) aus `parse_router_output.py` entfernt (-38% Code). Der Unified Router LLM steuert jetzt nativ:
+  - `list_mode`-Feld im JSON-Schema (enum: `papers` | `authors`)
+  - Prompt: `paper_list = []` jetzt explizit erlaubt für "all papers / all researchers"
+  - Prompt: Beispiele "Find all research papers" → `metadata_list, paper_list: []`, "List all researchers" → `list_mode: "authors"`
+- **Structured Output Schema**: `list_mode` zum Unified Router JSON-Schema hinzugefügt.
+
+### Known Issues
+
+- **author_lookup Quote Halluzination**: 2 von 8 Papers haben fabricatete Quotes (Pichot et al., Richter et al.). Der Author Extraction LLM (qwen2.5:14b) generiert plausible Zitate, wenn der Chunk keine klar zitierbare Passage enthält. Siehe `docs/test-cases.md` #4.
+- **entity_lookup Recall**: Nur 5 Entities (pseudouridine, queuosine, Nm, m1, 2-O-Me). m6A fehlt. LLM-Modell-Limit (qwen2.5:14b stoppt intrinsisch bei ~6 Entities). Siehe `docs/test-cases.md` #5.
+- **knowledge_retrieval Citation Attribution**: 1 von 5 Citations falsch zugeordnet (Antikörper-Cross-Reactivity-Claim zitiert Chan et al. statt Helm et al.). Siehe `docs/test-cases.md` #3.
+
+### Test Results (2026-07-16, qwen2.5:14b, top_k=50)
+
+| # | Intent | Query | Result |
+|---|--------|-------|--------|
+| 1 | `metadata_list` | Papers by Christoph Dieterich | 8 Papers ✅ |
+| 2 | `content_summary` | Summarize them | Grounded, 0 Halluzination ✅ |
+| 3 | `knowledge_retrieval` | What is m6A? | 5 Citations, 1 falsch zugeordnet ⚠️ |
+| 4 | `author_lookup` | Who worked on tRNA modifications? | 8 Papers, 2 Quotes hallucinated ❌ |
+| 5 | `entity_lookup` | Which RNA modifications most studied? | 5 Entities, m6A fehlt ⚠️ |
+| 6 | `metadata_list` | Find papers by Francesca Tuorto | 6 Papers ✅ |
+| 7 | `metadata_list` | Find papers by René Ketting | 1 Paper ✅ |
+| 8 | `metadata_list` | Find papers by Claudia Höbartner | 1 Paper ✅ |
+| 9 | `metadata_list` | Find papers by Lauren Saunders | 0 + Tips ✅ |
+| 10 | `metadata_list` | Find all research papers | 81 Papers (LLM-native, kein Regex!) ✅ |
+| 11 | `metadata_list` | List all researchers | 776 Authors (LLM-native) ✅ |
+| 12 | `author_lookup` | Who is using HEK cells? | 7 Papers ⚠️ |
+| 13 | `content_summary` | Mark Helm → Summarize | Nach Fix: Grounded ✅ |
+
 ## [0.4.5] - 2026-07-15
 
 ### Fixed

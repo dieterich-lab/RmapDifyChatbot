@@ -2,16 +2,15 @@
 
 RmapDifyChatbot is a Dify-based academic literature assistant for the RMaP project. It answers questions about 84 RNA-modification papers using hybrid retrieval (keyword + vector) and intent-based routing.
 
-## Status Snapshot (2026-07-15)
+## Status Snapshot (2026-07-16)
 
-**v0.4.5 — Regression Defenses & Array-Overflow Fixes**
+**v0.4.6 — Regex-Free Broad-Query Routing & Hallucination Audit**
 
 1. **5 Query-Intents**: `metadata_list`, `content_summary`, `knowledge_retrieval`, `author_lookup`, `entity_lookup`
-2. **PubMed-Metadaten**: 83% der Papers (70/84) via DOI→PMID→MEDLINE – autoritative Titel, alle Autoren
-3. **3-LLM Intent Routing**: `Author Extraction LLM`, `Entity Extraction LLM`, `KR Extraction LLM`
+2. **LLM-native Broad-Query Routing**: Kein Regex mehr – Unified Router steuert "Find all papers" und "List all researchers" nativ via `list_mode`
+3. **Hallucination Audit**: Alle 13 Test Cases in `docs/test-cases.md` dokumentiert mit Volltext-Verifikation
 4. **top_k: 50**, Hybrid **0.7/0.3**, Model **qwen2.5:14b** (Ollama), Embedding **nomic-embed-text-v2-moe**
-5. **22 Nodes, 27 Edges**
-6. **Array-Overflow-Guards**: Metadata Query & KR Chunk Filter auf 30 Elemente gecapped
+5. **22 Nodes, 28 Edges**
 
 ---
 
