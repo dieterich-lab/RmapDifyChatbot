@@ -33,13 +33,17 @@ Du bekommst eine Einladung zur Dify-Account-Erstellung. Nach dem Login findest d
 
 ### Erwartete Ergebnisse
 
-| Intent | Beispiel-Query | Erwartet |
-|---|---|---|
-| `metadata_list` | "Papers by Christoph Dieterich" | 8 Papers aufgelistet |
-| `content_summary` | "Summarize them" (nach metadata_list) | Global Synthesis + 3 Bullet Points/Paper |
-| `knowledge_retrieval` | "What is m6A and detection methods?" | Methoden-Tabelle mit Inline-Citations |
-| `author_lookup` | "Who has worked on tRNA modifications?" | ~7 Papers mit allen Autoren + Quotes |
-| `entity_lookup` | "Which RNA modifications are most studied?" | ~6 Entity-Typen mit Paper-Zuordnung |
+| Intent | Beispiel-Query | Erwartet | Bekannte Einschränkung |
+|---|---|---|---|
+| `metadata_list` | "Papers by Christoph Dieterich" | 8 Papers aufgelistet | – |
+| `metadata_list` | "Find all research papers" | 81 Papers (LLM-native, kein Regex) | – |
+| `metadata_list` | "List all researchers" | 776 Authors (LLM-native) | – |
+| `content_summary` | "Summarize them" (nach metadata_list) | Global Synthesis + 3 Bullet Points/Paper | Max 15 Papers (Context-Limit) |
+| `knowledge_retrieval` | "What is m6A?" | Methoden mit Inline-Citations | ⚠️ 1/5 Citations falsch zugeordnet |
+| `author_lookup` | "Who has worked on tRNA modifications?" | ~8 Papers mit Autoren + Quotes | ❌ 2/8 Quotes hallucinated |
+| `entity_lookup` | "Which RNA modifications are most studied?" | ~5 Entity-Typen mit Paper-Zuordnung | ⚠️ m6A fehlt (LLM-Limit) |
+
+→ Detaillierte Test-Ergebnisse: [`docs/test-cases.md`](docs/test-cases.md)
 
 ---
 
@@ -94,15 +98,15 @@ flowchart TD
 | # | Node | Typ | Zweck |
 |---|---|---|---|
 | 1 | **Unified Router** | llm | Klassifiziert Intent, extrahiert Paper-Constraints, schreibt Query standalone |
-| 2 | **Parse Router Output** | code | Parst JSON-Output des Routers, füllt `paper_list` aus `conversation.memory` bei Follow-up |
+| 2 | **Parse Router Output** | code | Parst JSON-Output des Routers, liest `list_mode` (papers/authors) aus LLM-JSON, Auto-Fallback `conversation.memory` nur für `content_summary` |
 | 3 | **Intent Dispatcher** | if-else | 5-Branch Routing basierend auf `intent`-Feld |
 | 4 | **Knowledge Retrieval** | knowledge-retrieval | Hybrid keyword (0.7) + vector (0.3), top_k=50, nomic-embed-text-v2-moe |
-| 5 | **KR Chunk Filter** | code | Reference-List-Filter, 1 Chunk/Paper Dedup, Metadata-Garbling-Detection |
+| 5 | **KR Chunk Filter** | code | Reference-List-Filter, 1 Chunk/Paper Dedup, Metadata-Garbling-Detection, 30-Element Cap |
 | 6 | **KR Intent Router** | if-else | Routet Chunks zu Author/Entity/KR Extraction LLM |
 | 7 | **Author Extraction LLM** | llm | Extrahiert ALLE Autoren mit verbatim Quotes pro Paper |
 | 8 | **Entity Extraction LLM** | llm | Extrahiert Entitäten (Modifikationen, Methoden, Organismen) als Tabelle |
 | 9 | **KR Extraction LLM** | llm | Allgemeine Wissensfragen: Verbatim Quotes + Inline-Citations |
-| 10 | **Metadata Query** | code | Durchsucht Dataset-API nach Author/Year/Title/Journal |
+| 10 | **Metadata Query** | code | Durchsucht Dataset-API nach Author/Year/Title/Journal; `list_mode` steuert Papers vs. Authors-Extraktion |
 | 11 | **Paper Iterator** | iteration | Iteriert über `paper_list`, ruft Full-Text-Chunks ab |
 | 12 | **Fetch Full Paper** | code | Holt Segments via Dify-API (0.4-0.9s/Paper), dynamisches Text-Budget |
 | 13 | **Metadata LLM** | llm | `metadata_list`: "Total count + nummerierte Liste" |
@@ -113,8 +117,10 @@ flowchart TD
 
 ### Key Design Decisions
 
+- **Regex-freies Broad-Query-Routing** (v0.4.6): Unified Router LLM steuert "Find all papers" und "List all researchers" nativ via `list_mode`-Feld. 24 Zeilen Regex-Patterns aus `parse_router_output.py` entfernt.
+- **MAX_PAPERS_FOR_SUMMARY = 15** (v0.4.6): Verhindert Context Overflow im Summary LLM bei Autoren mit vielen Papers (z.B. Mark Helm, 28 Papers).
 - **KR Query Rewriter entfernt** (v0.4.0): HyDE-style Keyword-Expansion matchte überproportional Bibliography-Sections. Query geht jetzt unverändert an KR.
-- **qwen2.5:14b statt gpt-oss** (v0.4.0): Weniger Halluzination, strikteres Grounding.
+- **qwen2.5:14b für alle LLMs** (v0.4.6): `gpt-oss` komplett ersetzt – weniger Halluzination, strikteres Grounding.
 - **1 Chunk/Paper** (v0.4.2): Maximiert Paper-Diversität im Context (bis 50 unique Papers).
 - **top_k=50** (v0.4.0): `TOP_K_MAX_VALUE=50` im Dify-Container gesetzt – GUI-Limit umgangen.
 - **PubMed-Metadaten** (v0.4.3): 83% Coverage via DOI→PMID→MEDLINE, keine LLM-Halluzination.
@@ -125,16 +131,30 @@ flowchart TD
 |---|---|---|---|---|
 | Unified Router | qwen2.5:14b | 4096 | – | 0 |
 | Author/Entity/KR Extraction | qwen2.5:14b | 4096 | 65536 | 0 |
-| Metadata LLM | gpt-oss | 4000 | 24576 | 0 |
-| Summary LLM | gpt-oss | 4000 | 65536 | 0 |
+| Metadata LLM | qwen2.5:14b | 4000 | 32768 | 0 |
+| Summary LLM | qwen2.5:14b | 4000 | 65536 | 0 |
+
+> Alle LLM-Nodes nutzen jetzt `qwen2.5:14b` (Ollama). `gpt-oss` wurde in v0.4.6 vollständig ersetzt.
 
 ### Dataset
 
 - **Name**: RMAP Papers
 - **UUID**: `<your-dataset-id>`
-- **Dokumente**: 84 Papers (RMaP First Funding Period)
+- **Dokumente**: 82 Papers (RMaP First Funding Period)
 - **Embedding**: nomic-embed-text-v2-moe (Ollama)
 - **Chunking**: Dify Standard (automatic mode)
+
+## Known Issues
+
+| # | Intent | Problem | Schweregrad | Details |
+|---|--------|---------|-------------|---------|
+| 1 | `author_lookup` | Quote Halluzination | ❌ Hoch | 2/8 Papers fabricatete Quotes (Pichot et al., Richter et al.). LLM generiert plausible Zitate wenn Chunk keine zitierbare Passage enthält. |
+| 2 | `entity_lookup` | Recall-Limit | ⚠️ Mittel | Nur 5 Entities (pseudouridine, queuosine, Nm, m1, 2-O-Me). m6A – die meistuntersuchte RNA-Modifikation – fehlt. qwen2.5:14b stoppt intrinsisch bei ~6 Entities. |
+| 3 | `knowledge_retrieval` | Citation-Attribution | ⚠️ Niedrig | 1 von 5 Citations falsch zugeordnet (Antikörper-Claim zitiert Chan et al. statt Helm et al.). |
+| 4 | `author_lookup` | "Science Journals — AAAS" | ⚠️ Kosmetisch | Paper #6 hat Garbled Metadata (bekannt seit v0.4.1). |
+| 5 | `content_summary` | 15-Paper Cap | ⚠️ Niedrig | Autoren mit >15 Papers (z.B. Mark Helm mit 28) werden auf 15 gekappt um Context Overflow zu vermeiden. |
+
+→ Detaillierte Analyse: [`docs/test-cases.md`](docs/test-cases.md)
 
 ## Repository Structure
 
