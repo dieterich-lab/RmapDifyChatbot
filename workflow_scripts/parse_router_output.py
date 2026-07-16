@@ -4,51 +4,6 @@
 import json
 import re
 
-# ── Broad-listing query patterns → route to metadata_list ──
-_BROAD_LISTING_PATTERNS = [
-    # English
-    r"\bfind\s+all\b",
-    r"\blist\s+all\b",
-    r"\b(all|every)\s+(research\s+)?(paper|article|publication|document)s?\b",
-    r"\b(all|every)\s+(author|researcher|scientist)s?\b",
-    r"\bwho\s+are\s+(all\s+)?(the\s+)?(author|researcher|scientist)s?\b",
-    r"\bwhat\s+(paper|article|publication|document)s?\s+(are|exist|do\s+we\s+have)\b",
-    # German
-    r"\bfinde\s+alle\b",
-    r"\bliste\s+alle\b",
-    r"\balle\s+(Forschungs)?(Paper|Artikel|Publikation|Dokument)e\b",
-    r"\balle\s+(Autor|Forscher|Wissenschaftler|Author)innen?\b",
-    r"\bwelche\s+(Autor|Forscher|Wissenschaftler|Author)innen?\s+(gibt|existieren|haben\s+wir)\b",
-    r"\bwelche\s+(Paper|Artikel|Publikation|Dokument)e\s+(gibt|existieren|haben\s+wir)\b",
-]
-
-# Author-specific patterns → list_mode = "authors"
-_AUTHOR_LISTING_PATTERNS = [
-    r"\b(all|every)\s+(author|researcher|scientist)s?\b",
-    r"\blist\s+all\s+(author|researcher|scientist)s?\b",
-    r"\bwho\s+are\s+(all\s+)?(the\s+)?(author|researcher|scientist)s?\b",
-    r"\balle\s+(Autor|Forscher|Wissenschaftler|Author)innen?\b",
-    r"\bwelche\s+(Autor|Forscher|Wissenschaftler|Author)innen?\s+(gibt|existieren|haben\s+wir)\b",
-]
-
-
-def _is_broad_listing_query(query: str) -> bool:
-    q = str(query or "").lower().strip()
-    if len(q) < 5:
-        return False
-    for pat in _BROAD_LISTING_PATTERNS:
-        if re.search(pat, q, re.IGNORECASE):
-            return True
-    return False
-
-
-def _is_author_listing_query(query: str) -> bool:
-    q = str(query or "").lower().strip()
-    for pat in _AUTHOR_LISTING_PATTERNS:
-        if re.search(pat, q, re.IGNORECASE):
-            return True
-    return False
-
 
 def _clean_paper(item):
     if not isinstance(item, dict):
@@ -65,6 +20,17 @@ def _clean_paper(item):
     return obj if any(obj.values()) else None
 
 
+def _fallback_result():
+    """Fallback when router JSON is unparseable."""
+    return {
+        "intent": "knowledge_retrieval",
+        "paper_list": [],
+        "paper_count": 0,
+        "rewritten_query": "",
+        "list_mode": "papers",
+    }
+
+
 def main(router_text=None, conversation_memory=None, sys_query=None):
     text = str(router_text or "").strip()
     # Strip <think> tags
@@ -75,19 +41,11 @@ def main(router_text=None, conversation_memory=None, sys_query=None):
     # Find JSON object
     m = re.search(r"\{.*\}", text, re.DOTALL)
     if not m:
-        return {
-            "intent": "knowledge_retrieval",
-            "paper_list": [],
-            "rewritten_query": "",
-        }
+        return _fallback_result()
     try:
         obj = json.loads(m.group())
     except Exception:
-        return {
-            "intent": "knowledge_retrieval",
-            "paper_list": [],
-            "rewritten_query": "",
-        }
+        return _fallback_result()
 
     intent = str(obj.get("intent", "")).strip()
     if intent not in (
@@ -99,14 +57,10 @@ def main(router_text=None, conversation_memory=None, sys_query=None):
     ):
         intent = "knowledge_retrieval"
 
-    # ── Override: broad listing queries → metadata_list ──
-    query = str(sys_query or "").strip()
-    list_mode = "papers"  # default
-    if intent == "knowledge_retrieval" and _is_broad_listing_query(query):
-        intent = "metadata_list"
-        obj["paper_list"] = []  # empty → Metadata Query lists ALL
-    if _is_author_listing_query(query):
-        list_mode = "authors"
+    # ── Read list_mode from router JSON (LLM-native, no regex) ──
+    list_mode = str(obj.get("list_mode") or "").strip()
+    if list_mode not in ("papers", "authors"):
+        list_mode = "papers"  # default
 
     paper_list = obj.get("paper_list")
     mem = conversation_memory if isinstance(conversation_memory, list) else []
@@ -131,12 +85,21 @@ def main(router_text=None, conversation_memory=None, sys_query=None):
         paper_list = cleaned_list
 
     # Auto-fallback: if paper_list is empty but intent requires papers, use conversation.memory
-    if not paper_list and intent in ("metadata_list", "content_summary") and mem:
+    # ONLY for content_summary (follow-up "Summarize them").
+    # For metadata_list, empty paper_list means "all papers" — do NOT override.
+    if not paper_list and intent == "content_summary" and mem:
         paper_list = []
         for item in mem:
             cleaned = _clean_paper(item)
             if cleaned:
                 paper_list.append(cleaned)
+
+    # ── Cap papers for content_summary to avoid context overflow ──
+    # Full paper texts average ~11K chars each; 15 papers ≈ 165K chars ≈ 41K tokens
+    # which fits in the Summary LLM's 65K context window (with room for prompt + output).
+    MAX_PAPERS_FOR_SUMMARY = 15
+    if intent == "content_summary" and len(paper_list) > MAX_PAPERS_FOR_SUMMARY:
+        paper_list = paper_list[:MAX_PAPERS_FOR_SUMMARY]
 
     rw = str(obj.get("rewritten_query") or "").strip()
     return {

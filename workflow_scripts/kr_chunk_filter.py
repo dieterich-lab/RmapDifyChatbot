@@ -213,8 +213,8 @@ def main(kr_result=None):
             + " RETRIEVED CHUNKS WERE REFERENCE LISTS AND FILTERED OUT. The query may match bibliography sections rather than paper body text. Try a more specific query or different search terms."
         )
     return {
-        "filtered_chunks": deduped,
-        "chunk_count": len(deduped),
+        "filtered_chunks": deduped[:30],
+        "chunk_count": min(len(deduped), 30),
         "chunks_removed": removed,
         "doc_names": sorted(seen_docs)[:30],
     }
