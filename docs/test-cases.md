@@ -1,7 +1,7 @@
 # RMAP Chatbot – Test Cases
 
 > Living document: current behavior of all release test cases.
-> Last updated: 2026-07-16 (v0.4.5)
+> Last updated: 2026-07-17 (v0.4.6, +test case 14)
 
 ## Overview
 
@@ -20,6 +20,7 @@
 | 11 | "List all researchers" | metadata_list | ✅ | ✅ API-fetched |
 | 12 | "Who is using HEK cells?" | author_lookup | ⚠️ | ⚠️ cites HEK but drifts |
 | 13 | "Find papers by Mark Helm" → "Summarize them" | content_summary | ✅ | ✅ none |
+| 14 | "Find Papers by Dieterich" (last name only) | metadata_list | ⚠️ | ✅ none (same 8/8, "7" miscount) |
 
 ---
 
@@ -244,6 +245,35 @@ Ends with: *"Insufficient context for other modifications."*
   1. Added `"paper_count": 0` to `_fallback_result()` in `parse_router_output.py`
   2. Added `MAX_PAPERS_FOR_SUMMARY = 15` cap in `parse_router_output.py` to prevent Summary LLM context overflow (28 papers × ~11K chars = 308K chars > 65K window)
   3. Updated Metadata LLM prompt with `{{#conversation.memory#}}` context reference
+
+---
+
+### 14. "Find Papers by Dieterich" (last name only)
+
+- **Date tested:** 2026-07-17
+- **Intent:** `metadata_list`
+- **Status:** ⚠️ minor display bug (same as #1)
+
+**Answer:**
+> There are 7 papers authored by Christoph Dieterich:
+> 1. APOBEC2 safeguards skeletal muscle cell fate… – 2024, PNAS
+> 2. m6A sites in the coding region trigger translation-dependent mRNA decay. – 2024, Mol Cell
+> 3. PEPseq quantifies transcriptome-wide changes… – 2023, Nucleic Acids Res
+> 4. The RMaP challenge of predicting RNA modifications… – 2025, Commun Chem
+> 5. Detection of queuosine and queuosine precursors… – 2023, Nucleic Acids Res
+> 6. Adaptive sampling for nanopore direct RNA-sequencing – 2023, RNA
+> 7. Detecting m(6)A at single-molecular resolution… – 2024, Nat Commun
+> 8. Sci-ModoM: a quantitative database… – 2025, Nucleic Acids Res
+
+**Analysis:**
+
+- Metadata Query correctly matches 8 papers by last name "Dieterich" (same result set as "Christoph Dieterich").
+- The last-name-only filter works: `_matches_filters()` in `metadata_query.py` matches "Dieterich" against all author name variants (last name, initials, full name).
+- **Same display bug as test case #1:** Metadata LLM says "7 papers" but lists 8. Paper #8 (*Sci-ModoM*) is included in the list but excluded from the count.
+- Result is identical to test case #1 ("Which papers are (co-) authored by Christoph Dieterich?"), confirming the Metadata Query normalizes both queries to the same author filter.
+- **No new issues introduced** by the last-name-only query variant.
+
+**Verdict:** ✅ Functionally correct — 8/8 papers returned. The "7 out of 8" miscount is a known Metadata LLM (qwen2.5:14b) formatting quirk, not a retrieval problem. Same root cause as test case #1.
 
 ---
 

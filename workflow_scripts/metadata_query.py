@@ -277,13 +277,20 @@ def _render_result(matches: list[dict], total_docs: int) -> str:
 
 
 def main(
-    year=None, authors=None, journal=None, title=None, paper_list=None, list_mode=None
+    year=None,
+    authors=None,
+    journal=None,
+    title=None,
+    paper_list=None,
+    list_mode=None,
+    api_key_input=None,
+    dataset_id_input=None,
 ):
     api_base = (os.getenv("DIFY_API_URL") or "http://rmap-chatbot-demo-dify/v1").rstrip(
         "/"
     )
     dataset_id = os.getenv("DIFY_DATASET_ID") or "<your-dataset-id>"
-    api_key = os.getenv("DIFY_API_KEY") or ""
+    api_key = os.getenv("DIFY_API_KEY") or api_key_input or ""
 
     if not _is_set(api_base) or not _is_set(dataset_id) or not _is_set(api_key):
         return {

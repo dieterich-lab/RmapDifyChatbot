@@ -772,12 +772,13 @@ workflow:
           \        result += (\n            f\"\\n\\n(Es werden nur die ersten {MAX_RESULTS}\
           \ von {len(matches)} Ergebnissen angezeigt. \"\n            \"Bitte die\
           \ Suche mit einem Autor:innen-Namen, Jahr oder Journal einschränken.)\"\n\
-          \        )\n    return result\n\n\ndef main(\n    year=None, authors=None,\
-          \ journal=None, title=None, paper_list=None, list_mode=None\n):\n    api_base\
-          \ = (os.getenv(\"DIFY_API_URL\") or \"http://rmap-chatbot-demo-dify/v1\"\
-          ).rstrip(\n        \"/\"\n    )\n    dataset_id = os.getenv(\"DIFY_DATASET_ID\"\
-          ) or \"<your-dataset-id>\"\n    api_key = os.getenv(\"\
-          DIFY_API_KEY\") or \"\"\n\n    if not _is_set(api_base) or not _is_set(dataset_id)\
+          \        )\n    return result\n\n\ndef main(\n    year=None,\n    authors=None,\n\
+          \    journal=None,\n    title=None,\n    paper_list=None,\n    list_mode=None,\n\
+          \    api_key_input=None,\n    dataset_id_input=None,\n):\n    api_base =\
+          \ (os.getenv(\"DIFY_API_URL\") or \"http://rmap-chatbot-demo-dify/v1\").rstrip(\n\
+          \        \"/\"\n    )\n    dataset_id = os.getenv(\"DIFY_DATASET_ID\") or\
+          \ \"<your-dataset-id>\"\n    api_key = os.getenv(\"DIFY_API_KEY\"\
+          ) or api_key_input or \"\"\n\n    if not _is_set(api_base) or not _is_set(dataset_id)\
           \ or not _is_set(api_key):\n        return {\n            \"result\": (\n\
           \                \"Dify API Konfiguration unvollstaendig. \"\n         \
           \       \"Erwarte DIFY_API_URL, DIFY_DATASET_ID und DIFY_API_KEY.\"\n  \
@@ -861,6 +862,16 @@ workflow:
           - list_mode
           value_type: string
           variable: list_mode
+        - value_selector:
+          - env
+          - DIFY_API_KEY
+          value_type: string
+          variable: api_key_input
+        - value_selector:
+          - env
+          - DIFY_DATASET_ID
+          value_type: string
+          variable: dataset_id_input
       height: 52
       id: '17786780698570'
       position:
@@ -1147,36 +1158,38 @@ workflow:
           \                    return doc_id, None\n        if len(items) < 100:\n\
           \            break\n    return \"\", f\"no document found for title: {title!r}\"\
           \n\n\ndef main(\n    doc_id=None,\n    item_title=None,\n    item_authors=None,\n\
-          \    item_year=None,\n    item_journal=None,\n    paper_count=None,\n):\n\
-          \    api_base = (\n        _norm(os.getenv(\"DIFY_API_URL\")) or \"http://rmap-chatbot-demo-dify/v1\"\
-          \n    ).rstrip(\"/\")\n    dataset_id = (\n        _norm(os.getenv(\"DIFY_DATASET_ID\"\
-          )) or \"<your-dataset-id>\"\n    )\n    api_key = _norm(os.getenv(\"\
-          DIFY_API_KEY\")) or \"\"\n    headers = {\"Authorization\": f\"Bearer {api_key}\"\
-          , \"Content-Type\": \"application/json\"}\n\n    resolved = _norm(doc_id)\n\
-          \    used_title_fallback = False\n    if not resolved:\n        title =\
-          \ _norm(item_title)\n        if not title:\n            return {\"paper_context\"\
-          : \"\", \"paper_fetch_error\": \"no doc_id and no title\"}\n        resolved,\
-          \ err = _find_doc_id_by_title(api_base, dataset_id, title, headers)\n  \
-          \      if not resolved:\n            return {\n                \"paper_context\"\
-          : \"\",\n                \"paper_fetch_error\": err or \"title lookup failed\"\
-          ,\n            }\n        used_title_fallback = True\n\n    text, err =\
-          \ _fetch_all_segments(api_base, dataset_id, resolved, headers)\n\n    #\
-          \ Fallback: if doc_id fetch returned no segments, try title lookup\n   \
-          \ if (not text or err) and not used_title_fallback:\n        title = _norm(item_title)\n\
-          \        if title:\n            fallback_id, fb_err = _find_doc_id_by_title(\n\
-          \                api_base, dataset_id, title, headers\n            )\n \
-          \           if fallback_id and fallback_id != resolved:\n              \
-          \  text2, err2 = _fetch_all_segments(\n                    api_base, dataset_id,\
-          \ fallback_id, headers\n                )\n                if text2:\n \
-          \                   text, err = text2, None\n\n    if err:\n        return\
-          \ {\"paper_context\": \"\", \"paper_fetch_error\": err}\n\n    title = _norm(item_title)\n\
-          \    year = _norm(item_year)\n    journal = _norm(item_journal)\n    authors\
-          \ = _norm(item_authors)\n    meta_line = (\n        f\"{title} ({year},\
-          \ {journal}) — {authors}\"\n        if (year or journal or authors)\n  \
-          \      else title\n    )\n    header = f\"=== {meta_line} ===\"\n    n =\
-          \ int(paper_count) if paper_count and int(paper_count) > 0 else 1\n    chars_per_paper\
-          \ = max(4000, 48000 // n)\n    context = f\"{header}\\n\\n{text[:chars_per_paper]}\"\
-          \n    return {\"paper_context\": context, \"paper_fetch_error\": \"\"}\n"
+          \    item_year=None,\n    item_journal=None,\n    paper_count=None,\n  \
+          \  api_key_input=None,\n):\n    api_base = (\n        _norm(os.getenv(\"\
+          DIFY_API_URL\")) or \"http://rmap-chatbot-demo-dify/v1\"\n    ).rstrip(\"\
+          /\")\n    dataset_id = (\n        _norm(os.getenv(\"DIFY_DATASET_ID\"))\
+          \ or \"<your-dataset-id>\"\n    )\n    api_key = _norm(os.getenv(\"\
+          DIFY_API_KEY\")) or api_key_input or \"\"\n    headers = {\"Authorization\"\
+          : f\"Bearer {api_key}\", \"Content-Type\": \"application/json\"}\n\n   \
+          \ resolved = _norm(doc_id)\n    used_title_fallback = False\n    if not\
+          \ resolved:\n        title = _norm(item_title)\n        if not title:\n\
+          \            return {\"paper_context\": \"\", \"paper_fetch_error\": \"\
+          no doc_id and no title\"}\n        resolved, err = _find_doc_id_by_title(api_base,\
+          \ dataset_id, title, headers)\n        if not resolved:\n            return\
+          \ {\n                \"paper_context\": \"\",\n                \"paper_fetch_error\"\
+          : err or \"title lookup failed\",\n            }\n        used_title_fallback\
+          \ = True\n\n    text, err = _fetch_all_segments(api_base, dataset_id, resolved,\
+          \ headers)\n\n    # Fallback: if doc_id fetch returned no segments, try\
+          \ title lookup\n    if (not text or err) and not used_title_fallback:\n\
+          \        title = _norm(item_title)\n        if title:\n            fallback_id,\
+          \ fb_err = _find_doc_id_by_title(\n                api_base, dataset_id,\
+          \ title, headers\n            )\n            if fallback_id and fallback_id\
+          \ != resolved:\n                text2, err2 = _fetch_all_segments(\n   \
+          \                 api_base, dataset_id, fallback_id, headers\n         \
+          \       )\n                if text2:\n                    text, err = text2,\
+          \ None\n\n    if err:\n        return {\"paper_context\": \"\", \"paper_fetch_error\"\
+          : err}\n\n    title = _norm(item_title)\n    year = _norm(item_year)\n \
+          \   journal = _norm(item_journal)\n    authors = _norm(item_authors)\n \
+          \   meta_line = (\n        f\"{title} ({year}, {journal}) — {authors}\"\n\
+          \        if (year or journal or authors)\n        else title\n    )\n  \
+          \  header = f\"=== {meta_line} ===\"\n    n = int(paper_count) if paper_count\
+          \ and int(paper_count) > 0 else 1\n    chars_per_paper = max(4000, 48000\
+          \ // n)\n    context = f\"{header}\\n\\n{text[:chars_per_paper]}\"\n   \
+          \ return {\"paper_context\": context, \"paper_fetch_error\": \"\"}\n"
         code_language: python3
         isInIteration: true
         isInLoop: false
@@ -1227,6 +1240,11 @@ workflow:
           - paper_count
           value_type: number
           variable: paper_count
+        - value_selector:
+          - env
+          - DIFY_API_KEY
+          value_type: string
+          variable: api_key_input
       height: 52
       id: '1778800001025'
       parentId: '1778676584534'
