@@ -777,12 +777,12 @@ workflow:
           \ = (os.getenv(\"DIFY_API_URL\") or \"http://rmap-chatbot-demo-dify/v1\"\
           ).rstrip(\n        \"/\"\n    )\n    dataset_id = os.getenv(\"DIFY_DATASET_ID\"\
           ) or \"<your-dataset-id>\"\n    api_key = os.getenv(\"\
-          DIFY_API_KEY\") or \"REDACTED\"\n\n    if not _is_set(api_base)\
-          \ or not _is_set(dataset_id) or not _is_set(api_key):\n        return {\n\
-          \            \"result\": (\n                \"Dify API Konfiguration unvollstaendig.\
-          \ \"\n                \"Erwarte DIFY_API_URL, DIFY_DATASET_ID und DIFY_API_KEY.\"\
-          \n            )\n        }\n\n    # Extract filter values from paper_list\
-          \ if passed (Parse Router Output)\n    if isinstance(paper_list, list) and\
+          DIFY_API_KEY\") or \"\"\n\n    if not _is_set(api_base) or not _is_set(dataset_id)\
+          \ or not _is_set(api_key):\n        return {\n            \"result\": (\n\
+          \                \"Dify API Konfiguration unvollstaendig. \"\n         \
+          \       \"Erwarte DIFY_API_URL, DIFY_DATASET_ID und DIFY_API_KEY.\"\n  \
+          \          )\n        }\n\n    # Extract filter values from paper_list if\
+          \ passed (Parse Router Output)\n    if isinstance(paper_list, list) and\
           \ len(paper_list) > 0:\n        first = paper_list[0]\n        if isinstance(first,\
           \ dict):\n            if not _is_set(authors):\n                authors\
           \ = first.get(\"authors\", \"\")\n            if not _is_set(year):\n  \
@@ -1151,33 +1151,32 @@ workflow:
           \    api_base = (\n        _norm(os.getenv(\"DIFY_API_URL\")) or \"http://rmap-chatbot-demo-dify/v1\"\
           \n    ).rstrip(\"/\")\n    dataset_id = (\n        _norm(os.getenv(\"DIFY_DATASET_ID\"\
           )) or \"<your-dataset-id>\"\n    )\n    api_key = _norm(os.getenv(\"\
-          DIFY_API_KEY\")) or \"REDACTED\"\n    headers =\
-          \ {\"Authorization\": f\"Bearer {api_key}\", \"Content-Type\": \"application/json\"\
-          }\n\n    resolved = _norm(doc_id)\n    used_title_fallback = False\n   \
-          \ if not resolved:\n        title = _norm(item_title)\n        if not title:\n\
-          \            return {\"paper_context\": \"\", \"paper_fetch_error\": \"\
-          no doc_id and no title\"}\n        resolved, err = _find_doc_id_by_title(api_base,\
-          \ dataset_id, title, headers)\n        if not resolved:\n            return\
-          \ {\n                \"paper_context\": \"\",\n                \"paper_fetch_error\"\
-          : err or \"title lookup failed\",\n            }\n        used_title_fallback\
-          \ = True\n\n    text, err = _fetch_all_segments(api_base, dataset_id, resolved,\
-          \ headers)\n\n    # Fallback: if doc_id fetch returned no segments, try\
-          \ title lookup\n    if (not text or err) and not used_title_fallback:\n\
-          \        title = _norm(item_title)\n        if title:\n            fallback_id,\
-          \ fb_err = _find_doc_id_by_title(\n                api_base, dataset_id,\
-          \ title, headers\n            )\n            if fallback_id and fallback_id\
-          \ != resolved:\n                text2, err2 = _fetch_all_segments(\n   \
-          \                 api_base, dataset_id, fallback_id, headers\n         \
-          \       )\n                if text2:\n                    text, err = text2,\
-          \ None\n\n    if err:\n        return {\"paper_context\": \"\", \"paper_fetch_error\"\
-          : err}\n\n    title = _norm(item_title)\n    year = _norm(item_year)\n \
-          \   journal = _norm(item_journal)\n    authors = _norm(item_authors)\n \
-          \   meta_line = (\n        f\"{title} ({year}, {journal}) — {authors}\"\n\
-          \        if (year or journal or authors)\n        else title\n    )\n  \
-          \  header = f\"=== {meta_line} ===\"\n    n = int(paper_count) if paper_count\
-          \ and int(paper_count) > 0 else 1\n    chars_per_paper = max(4000, 48000\
-          \ // n)\n    context = f\"{header}\\n\\n{text[:chars_per_paper]}\"\n   \
-          \ return {\"paper_context\": context, \"paper_fetch_error\": \"\"}\n"
+          DIFY_API_KEY\")) or \"\"\n    headers = {\"Authorization\": f\"Bearer {api_key}\"\
+          , \"Content-Type\": \"application/json\"}\n\n    resolved = _norm(doc_id)\n\
+          \    used_title_fallback = False\n    if not resolved:\n        title =\
+          \ _norm(item_title)\n        if not title:\n            return {\"paper_context\"\
+          : \"\", \"paper_fetch_error\": \"no doc_id and no title\"}\n        resolved,\
+          \ err = _find_doc_id_by_title(api_base, dataset_id, title, headers)\n  \
+          \      if not resolved:\n            return {\n                \"paper_context\"\
+          : \"\",\n                \"paper_fetch_error\": err or \"title lookup failed\"\
+          ,\n            }\n        used_title_fallback = True\n\n    text, err =\
+          \ _fetch_all_segments(api_base, dataset_id, resolved, headers)\n\n    #\
+          \ Fallback: if doc_id fetch returned no segments, try title lookup\n   \
+          \ if (not text or err) and not used_title_fallback:\n        title = _norm(item_title)\n\
+          \        if title:\n            fallback_id, fb_err = _find_doc_id_by_title(\n\
+          \                api_base, dataset_id, title, headers\n            )\n \
+          \           if fallback_id and fallback_id != resolved:\n              \
+          \  text2, err2 = _fetch_all_segments(\n                    api_base, dataset_id,\
+          \ fallback_id, headers\n                )\n                if text2:\n \
+          \                   text, err = text2, None\n\n    if err:\n        return\
+          \ {\"paper_context\": \"\", \"paper_fetch_error\": err}\n\n    title = _norm(item_title)\n\
+          \    year = _norm(item_year)\n    journal = _norm(item_journal)\n    authors\
+          \ = _norm(item_authors)\n    meta_line = (\n        f\"{title} ({year},\
+          \ {journal}) — {authors}\"\n        if (year or journal or authors)\n  \
+          \      else title\n    )\n    header = f\"=== {meta_line} ===\"\n    n =\
+          \ int(paper_count) if paper_count and int(paper_count) > 0 else 1\n    chars_per_paper\
+          \ = max(4000, 48000 // n)\n    context = f\"{header}\\n\\n{text[:chars_per_paper]}\"\
+          \n    return {\"paper_context\": context, \"paper_fetch_error\": \"\"}\n"
         code_language: python3
         isInIteration: true
         isInLoop: false

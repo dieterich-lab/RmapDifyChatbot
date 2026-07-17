@@ -6,6 +6,7 @@ __pycache__/
 
 # Virtual environments and editor artifacts
 .venv/
+.env
 .vscode/
 
 # Type checker cache

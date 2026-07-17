@@ -283,7 +283,7 @@ def main(
         "/"
     )
     dataset_id = os.getenv("DIFY_DATASET_ID") or "<your-dataset-id>"
-    api_key = os.getenv("DIFY_API_KEY") or "REDACTED"
+    api_key = os.getenv("DIFY_API_KEY") or ""
 
     if not _is_set(api_base) or not _is_set(dataset_id) or not _is_set(api_key):
         return {

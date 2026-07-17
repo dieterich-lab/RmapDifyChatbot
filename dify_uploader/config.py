@@ -5,7 +5,7 @@ DIFY_API_URL = os.getenv("DIFY_API_URL", "http://rmap-chatbot-demo-dify/v1")
 # Backward-compatible fallback: DIFY_API_KEY.
 DIFY_DATASET_API_KEY = os.getenv(
     "DIFY_DATASET_API_KEY",
-    os.getenv("DIFY_API_KEY", "REDACTED"),
+    os.getenv("DIFY_API_KEY"),
 )
 
 # Backward-compatible alias kept for existing imports.

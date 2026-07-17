@@ -118,7 +118,7 @@ def main(
     dataset_id = (
         _norm(os.getenv("DIFY_DATASET_ID")) or "<your-dataset-id>"
     )
-    api_key = _norm(os.getenv("DIFY_API_KEY")) or "REDACTED"
+    api_key = _norm(os.getenv("DIFY_API_KEY")) or ""
     headers = {"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"}
 
     resolved = _norm(doc_id)

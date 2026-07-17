@@ -28,7 +28,7 @@ for pdf in "$FOLDER"/*.pdf; do
 
     DATASET_ID="$DATASET_ID" \
     DIFY_API_URL="${DIFY_API_URL:-http://rmap-chatbot-demo-dify/v1}" \
-    DIFY_DATASET_API_KEY="${DIFY_DATASET_API_KEY:-REDACTED}" \
+    DIFY_DATASET_API_KEY="${DIFY_DATASET_API_KEY:-}" \
     "$REPO_ROOT/.venv/bin/python" -c "
 import os, sys, json, requests, time
 
