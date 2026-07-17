@@ -36,7 +36,7 @@ fi
 
 SESSION_DIR="$REPO_ROOT/.secrets"
 SESSION_FILE="$SESSION_DIR/dify_console_session.env"
-LOGIN_FILE="$SESSION_DIR/dify_console_login.env"
+ENV_FILE="$REPO_ROOT/.env"
 mkdir -p "$SESSION_DIR"
 chmod 700 "$SESSION_DIR"
 
@@ -55,8 +55,8 @@ done
 BOOTSTRAP_REQUESTED=0
 [[ -n "${DIFY_CONSOLE_COOKIE:-}" ]] && BOOTSTRAP_REQUESTED=1
 
+[[ -f "$ENV_FILE" ]]     && source "$ENV_FILE"
 [[ -f "$SESSION_FILE" ]] && source "$SESSION_FILE"
-[[ -f "$LOGIN_FILE" ]] && source "$LOGIN_FILE"
 for key in "${!EXPLICIT[@]}"; do export "$key=${EXPLICIT[$key]}"; done
 
 : "${DIFY_BASE_URL:?DIFY_BASE_URL is required}"

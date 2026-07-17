@@ -10,7 +10,7 @@ set -euo pipefail
 
 REPO_ROOT="${REPO_ROOT:-/home/pwiesenbach/rmap-chatbot}"
 FOLDER="${FOLDER:-$REPO_ROOT/RMaP papers first funding period}"
-ENV_FILE="${ENV_FILE:-$REPO_ROOT/.secrets/dify_console.env}"
+ENV_FILE="${ENV_FILE:-$REPO_ROOT/.env}"
 SESSION_FILE="${SESSION_FILE:-$REPO_ROOT/.secrets/dify_console_session.env}"
 
 # Target dataset for the user-created test KB.

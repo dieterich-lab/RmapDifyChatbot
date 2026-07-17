@@ -168,7 +168,9 @@ rmap-chatbot/
 │   ├── export_dify_dsl.sh      # Export + KR-Dataset-Patch
 │   └── debug_route_draft.sh    # Draft-Modus Test-Runner
 ├── dify_uploader/              # CLI für Paper-Upload & Metadaten-Extraktion
-└── .secrets/                   # Credentials (git-ignored)
+├── .env                        # Alle Secrets & Konfiguration (git-ignored)
+├── .env.example                # Template ohne echte Keys (committed)
+└── .secrets/                   # Runtime-Session-Tokens (git-ignored)
 ```
 
 ## Development Workflow

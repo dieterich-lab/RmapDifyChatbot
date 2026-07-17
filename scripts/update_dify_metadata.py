@@ -5,7 +5,7 @@ Bulk-update Dify document metadata using PubMed (DOI → PMID → MEDLINE).
 Usage:
     python scripts/update_dify_metadata.py [--dry-run]
 
-Requires .secrets/dify_console_login.env for auto-login.
+Requires .env with DIFY_CONSOLE_EMAIL and DIFY_CONSOLE_PASSWORD_B64 for auto-login.
 """
 
 import http.cookiejar
@@ -24,7 +24,7 @@ from dify_uploader.metadata import extract_metadata
 
 def _console_login(base_url):
     """Login to Dify console, return (opener, csrf_token)."""
-    login_file = REPO_ROOT / ".secrets" / "dify_console_login.env"
+    login_file = REPO_ROOT / ".env"
     login_env = {}
     with open(login_file) as f:
         for line in f:

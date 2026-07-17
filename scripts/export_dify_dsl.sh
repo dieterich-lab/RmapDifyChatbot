@@ -22,10 +22,10 @@ while [[ $# -gt 0 ]]; do
 done
 
 SESSION_FILE="$REPO_ROOT/.secrets/dify_console_session.env"
-LOGIN_FILE="$REPO_ROOT/.secrets/dify_console_login.env"
+ENV_FILE="$REPO_ROOT/.env"
 set -a
+[[ -f "$ENV_FILE" ]]     && source "$ENV_FILE"
 [[ -f "$SESSION_FILE" ]] && source "$SESSION_FILE"
-[[ -f "$LOGIN_FILE" ]]   && source "$LOGIN_FILE"
 set +a
 
 : "${DIFY_BASE_URL:?DIFY_BASE_URL is required}"

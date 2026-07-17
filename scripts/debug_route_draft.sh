@@ -61,7 +61,7 @@ done
 
 SESSION_DIR=".secrets"
 SESSION_FILE="$SESSION_DIR/dify_console_session.env"
-LOGIN_FILE="$SESSION_DIR/dify_console_login.env"
+ENV_FILE=".env"
 
 # Preserve explicit env values so they override persisted files.
 IN_DIFY_BASE_URL="${DIFY_BASE_URL-}"
@@ -74,14 +74,14 @@ IN_DIFY_CONSOLE_PASSWORD="${DIFY_CONSOLE_PASSWORD-}"
 IN_DIFY_CONSOLE_LOGIN_LANGUAGE="${DIFY_CONSOLE_LOGIN_LANGUAGE-}"
 IN_DIFY_CONSOLE_REMEMBER_ME="${DIFY_CONSOLE_REMEMBER_ME-}"
 
+if [[ -f "$ENV_FILE" ]]; then
+  # shellcheck source=/dev/null
+  source "$ENV_FILE"
+fi
+
 if [[ -f "$SESSION_FILE" ]]; then
   # shellcheck source=/dev/null
   source "$SESSION_FILE"
-fi
-
-if [[ -f "$LOGIN_FILE" ]]; then
-  # shellcheck source=/dev/null
-  source "$LOGIN_FILE"
 fi
 
 [[ -n "$IN_DIFY_BASE_URL" ]] && DIFY_BASE_URL="$IN_DIFY_BASE_URL"

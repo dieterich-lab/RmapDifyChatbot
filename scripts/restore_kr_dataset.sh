@@ -13,12 +13,12 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 
-SAVED_ID_FILE="$REPO_ROOT/.secrets/kr_dataset_id.txt"
+ENV_FILE="$REPO_ROOT/.env"
 SESSION_FILE="$REPO_ROOT/.secrets/dify_console_session.env"
-LOGIN_FILE="$REPO_ROOT/.secrets/dify_console_login.env"
+SAVED_ID_FILE="$REPO_ROOT/.secrets/kr_dataset_id.txt"
 set -a
+[[ -f "$ENV_FILE" ]]     && source "$ENV_FILE"
 [[ -f "$SESSION_FILE" ]] && source "$SESSION_FILE"
-[[ -f "$LOGIN_FILE" ]]   && source "$LOGIN_FILE"
 set +a
 
 : "${DIFY_BASE_URL:?DIFY_BASE_URL is required}"
