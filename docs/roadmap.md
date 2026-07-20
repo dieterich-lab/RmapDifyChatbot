@@ -1,14 +1,34 @@
 # RMAP Chatbot – Feature Roadmap & Analysis
 
-> Stand: 2026-07-08 · v0.4.3 · App `16d50bee-bc86-4bda-bb56-a861743f3ddb` · Model `qwen2.5:14b`
+> Stand: 2026-07-20 · v0.4.6 · App `16d50bee-bc86-4bda-bb56-a861743f3ddb` · Model `qwen2.5:14b` · 16 Test Cases
 
 ## Übersicht
 
-| Intent | Status | Präzision | Recall | Prompt reif? |
-|--------|--------|-----------|--------|-------------|
-| `author_lookup` | ✅ fertig | 100% (7/7 korrekt) | ~27% (7/26) | ✅ stabil |
-| `entity_lookup` | ✅ fertig | ⚠️ sauber, aber nur 6 Entities | ⚠️ ~6/38+ mods | ✅ stabil (v0.4.2 Prompt) |
-| `knowledge_retrieval` | ⚠️ braucht Metadata-Refresh | ⚠️ 4/5 Citations sauber | ⚠️ miCLIP/MeRIP fehlen | ⚠️ akzeptabel |
+| Intent | Status | Präzision | Recall / Scope | Prompt reif? |
+|--------|--------|-----------|----------------|-------------|
+| `metadata_list` | ✅ stabil | ✅ API-fetched (keine Halluzination) | ✅ 82 Papers, 776 Authors | ✅ stabil (v0.4.6) |
+| `content_summary` | ✅ stabil | ✅ 0 Halluzination (Volltext-verified) | ⚠️ Max 15 Papers (Context-Limit) | ✅ stabil |
+| `knowledge_retrieval` | ⚠️ akzeptabel | ⚠️ 4/5 Citations korrekt | ⚠️ miCLIP/MeRIP fehlen | ⚠️ akzeptabel |
+| `author_lookup` | ⚠️ Quote-Bug | ❌ 6/8 Quotes korrekt, 2/8 hallucinated | ~27% (7/26) | ⚠️ braucht Prompt-Hardening |
+| `entity_lookup` | ⚠️ Recall-Limit | ✅ sauber (keine Halluzination) | ⚠️ 5/38+ Modifikationen, m6A fehlt | ✅ stabil (v0.4.2) |
+
+### 16 Test Cases – Current Standings (2026-07-20)
+
+| # | Intent | Query | Status |
+|---|--------|-------|--------|
+| 1 | `metadata_list` | Papers by Christoph Dieterich | ⚠️ "7 of 8" miscount |
+| 2 | `content_summary` | → Summarize them | ✅ Grounded |
+| 3 | `knowledge_retrieval` | What is m6A? | ⚠️ 1 citation swap |
+| 4 | `author_lookup` | Who worked on tRNA? | ❌ 2/8 quotes hallucinated |
+| 5 | `entity_lookup` | Which RNA mods most studied? | ⚠️ 5 entities, m6A missing |
+| 6–9 | `metadata_list` | Tuorto, Ketting, Höbartner, Saunders | ✅ |
+| 10 | `metadata_list` | Find all research papers | ✅ LLM-native |
+| 11 | `metadata_list` | List all researchers | ✅ LLM-native |
+| 12 | `author_lookup` | Who is using HEK cells? | ⚠️ context drift |
+| 13 | `content_summary` | Mark Helm → Summarize | ✅ Fixed (v0.4.6) |
+| 14 | `metadata_list` | Papers by Dieterich (last name) | ⚠️ same #1 miscount |
+| 15 | `content_summary` | Papers by X → Group by journal | ❌ lists ALL 81 |
+| 16 | `knowledge_retrieval` | PI Collaboration Analysis | ❌ beyond architecture |
 
 ---
 
@@ -62,21 +82,22 @@ NO fabricated names. NO <think>. Keep under 300 words.
 | v3 (Author LLM v3) | Name-Expansion ("Fabio Tuorto") | → nur exakte Header-Namen |
 | v3 (v0.4.3) | PubMed-Metadaten | → Autoritative Titel + ALLE Autoren |
 
-### Verifikation (2026-07-07, grep gegen Original-PDFs)
+### Verifikation (2026-07-16, Volltext-Abgleich via Fetch Full Paper)
 
-Query: *"Who has worked on tRNA modifications or queuosine detection?"*
+Query: *"Who has worked on tRNA modifications?"*
 
-| # | Paper | Autoren (PDF) | Quote (PDF) | Status |
-|---|-------|---------------|-------------|--------|
-| 1 | Detection of queuosine… (Nucleic Acids Res, 2023) | 5/5 ✅ | ✅ | `Ehrenhofer-Murray AE, Sun Y, 2023` |
-| 2 | Functional integration… (Nucleic Acids Res, 2022) | 10/10 ✅ | ✅ | `Helm M, Bessler L, 2022` |
-| 3 | Queuosine‐tRNA promotes… (EMBO J, 2023) | 16/16 ✅ | ✅ | `Tuorto, F, Cirzi C, 2023` |
-| 4 | Spectral libraries… (Rapid Comm Mass Spectrom, 2024) | 6/6 ✅ | ✅ | `Sabido E, Espadas G, 2024` |
-| 5 | Lost in translation… (BioEssays, 2024) | 3/3 ✅ | ✅ | `Tuorto F, Guo W, 2024` |
-| 6 | General Principles… (Acc Chem Res, 2024) | 2/2 ✅ | ✅ | `Helm M, Motorin Y, 2024` (neu in v0.4.3) |
-| 7 | Interplay Between tRNA Mods… (J Mol Biol, 2025) | 2/2 ✅ | ✅ | `Tuorto F, Peschek J, 2025` (neu in v0.4.2) |
+| # | Paper | Autoren vs PubMed | Quote vs Full Text | Status |
+|---|-------|-------------------|--------------------|--------|
+| 1 | Biedenbander et al. (Nucleic Acids Res, 2022) | ✅ 6/6 | ✅ verbatim | – |
+| 2 | Peschek, Tuorto (J Mol Biol, 2025) | ⬜ | ⬜ | – |
+| 3 | Guo, Russo, Tuorto (BioEssays, 2024) | ⬜ | ⬜ | – |
+| 4 | Sun et al. (Nucleic Acids Res, 2023) | ✅ 5/5 | ✅ verbatim | – |
+| 5 | Pichot et al. (Comput Struct Biotechnol J, 2023) | ✅ 10/10 | ❌ **Fabricated!** | 🔴 Priorität 1 |
+| 6 | Morishima et al. (Sci Adv, 2025) | ✅ PubMed | ⚠️ paraphrasiert | – |
+| 7 | Richter et al. (Nucleic Acids Res, 2022) | ❌ Falsche Autoren | ❌ **Fabricated!** | 🔴 Priorität 1 |
+| 8 | Gerber et al. (Biol Chem, 2022) | ⬜ | ⬜ | – |
 
-**Fazit:** 100% Präzision – alle Autor:innen-Nennungen und Zitate in den PDFs belegt. v0.4.3: 5→7 Papers dank PubMed-Metadaten.
+**Fazit v0.4.6:** 6/8 Paper korrekt, aber 2/8 mit fabricateten Quotes – **keine 100% Präzision** wie zuvor angenommen. Prompt-Hardening nötig.
 
 ### Recall-Analyse
 
@@ -102,6 +123,7 @@ Query: *"Who has worked on tRNA modifications or queuosine detection?"*
 
 - [x] ~~"and colleagues"/"et al."~~ → ✅ Gefixt (v0.4.0)
 - [x] ~~Garbled author names ("Tuorto, F, Cirzi C")~~ → ✅ Gefixt (v0.4.3 PubMed)
+- [ ] **🔴 Quote-Halluzination beheben**: 2/8 Papers (Pichot, Richter) haben fabricatete Quotes. Prompt-Hardening: "If no verbatim quotable sentence found → write 'No verbatim quote available.' NEVER fabricate." (~15 Min Fix)
 - [ ] **Recall weiter verbessern**: top_k erhöhen (Dify-Limit), besseres Embedding-Model
 
 ---
@@ -158,25 +180,38 @@ Context ("From paper:" headers with real metadata):
 
 ## Metriken & Qualitätskriterien
 
-| Kriterium | author_lookup | entity_lookup | knowledge_retrieval |
-|-----------|:------------:|:------------:|:-------------------:|
-| Präzision (keine Halluzinationen) | ✅ 100% | ✅ sauber | ✅ 100% |
-| Recall (Vollständigkeit) | ⚠️ 27% (7/26) | ⚠️ 6 Entities | ⚠️ miCLIP/MeRIP fehlen |
-| Autoren-Vollständigkeit | ✅ ALLE (PubMed!) | ✅ aus Headern | ✅ 4/5 korrekt |
-| "and colleagues"-Frei | ✅ | ✅ | ✅ |
-| Quote-Verifikation (PDF) | ✅ 7/7 | – | ⚠️ 3/5 sauber |
-| Prompt-Stabilität | ✅ v3 final | ✅ v0.4.2 | ⚠️ akzeptabel |
-| Metadata-Qualität | ✅ 83% PubMed | ✅ | ⚠️ 2/5 Filename-Fallback |
+| Kriterium | metadata_list | content_summary | author_lookup | entity_lookup | knowledge_retrieval |
+|-----------|:------------:|:------------:|:------------:|:------------:|:-------------------:|
+| Präzision (keine Halluzinationen) | ✅ API | ✅ Volltext | ❌ 6/8 Quotes | ✅ sauber | ⚠️ 4/5 Citations |
+| Recall / Scope | ✅ 82 Papers | ⚠️ Max 15 | ⚠️ 27% (7/26) | ⚠️ 5/38+ mods | ⚠️ miCLIP/MeRIP |
+| Autoren-Vollständigkeit | ✅ PubMed | ✅ Volltext | ✅ PubMed | ✅ Header | ✅ 4/5 korrekt |
+| Follow-up-Fähigkeit | ✅ "Summarize" | – | – | – | ❌ "Group by" |
+| Prompt-Stabilität | ✅ v0.4.6 | ✅ stabil | ⚠️ braucht Fix | ✅ v0.4.2 | ⚠️ akzeptabel |
+| Metadata-Qualität | ✅ 83% PubMed | ✅ | ✅ 83% PubMed | ✅ | ⚠️ 2/5 Fallback |
 
 ---
 
 ## Nächste Schritte
 
-1. **Metadata-Rest**: Die 14 nicht-PubMed Papers manuell oder via LLM nachziehen
-2. **knowledge_retrieval** mit sauberen Metadaten neu testen
-3. **top_k-Erhöhung**: Dify `TOP_K_MAX_VALUE` auf 100 setzen (größter Recall-Hebel)
-4. **Embedding-Model**: `nomic-embed-text-v2-moe` → biomedizinisches Model evaluieren
-5. **LLM-Upgrade**: qwen2.5:14b → 32b für bessere Comprehensiveness (entity_lookup)
+### 🔴 Priorität 1 – Prompt-Fixes (~30 Min)
+
+| # | Fix | Betroffener Intent | Aufwand |
+|---|-----|-------------------|---------|
+| 1 | **Quote-Halluzination** (#4): Author Extraction LLM Prompt harden: "If no verbatim quotable sentence found, write 'No verbatim quote available.' NEVER fabricate." | `author_lookup` | 15 Min |
+| 2 | **Group-by Pronomen** (#15): Unified Router Prompt: "Group/Sort/Filter them by X → content_summary, paper_list: 'use_memory'" | `content_summary` | 10 Min |
+| 3 | **7-vs-8 Miscount** (#1/#14): Metadata LLM Prompt: "Count the items you listed – verify count matches." | `metadata_list` | 5 Min |
+
+### 🟡 Priorität 2 – Qualitätsverbesserungen
+
+4. **Citation-Attribution** (#3): KR Extraction LLM: Verhindern, dass Zitate aus benachbarten Chunks vermischt werden.
+5. **Metadata-Rest**: Die 14 nicht-PubMed Papers manuell oder via LLM nachziehen.
+6. **top_k-Erhöhung**: Dify `TOP_K_MAX_VALUE` auf 100 setzen (größter Recall-Hebel).
+
+### ⬜ Priorität 3 – Erweiterungen (nächster Sprint)
+
+7. **LLM-Upgrade**: qwen2.5:14b → 32b für bessere Comprehensiveness (`entity_lookup` m6A-Recall).
+8. **Embedding-Model**: `nomic-embed-text-v2-moe` → biomedizinisches Model evaluieren.
+9. **Collaboration Analysis** (#16): Neuer Intent für Multi-Author-Co-Autorenschaft-Analyse.
 
 ---
 

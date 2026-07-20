@@ -1,7 +1,7 @@
 # RMAP Chatbot – Test Cases
 
 > Living document: current behavior of all release test cases.
-> Last updated: 2026-07-17 (v0.4.6, +test case 14)
+> Last updated: 2026-07-20 (v0.4.6, +test cases 15+16)
 
 ## Overview
 
@@ -21,6 +21,8 @@
 | 12 | "Who is using HEK cells?" | author_lookup | ⚠️ | ⚠️ cites HEK but drifts |
 | 13 | "Find papers by Mark Helm" → "Summarize them" | content_summary | ✅ | ✅ none |
 | 14 | "Find Papers by Dieterich" (last name only) | metadata_list | ⚠️ | ✅ none (same 8/8, "7" miscount) |
+| 15 | "Papers by X" → "Group them by journal" | content_summary / unknown | ❌ | ⚠️ lists ALL 81 papers |
+| 16 | PI collaboration: Helm, Hengesbach, Höbartner, Jäschke, Ketting | knowledge_retrieval | ❌ | ⚠️ semantic search, no co-author analysis |
 
 ---
 
@@ -274,6 +276,87 @@ Ends with: *"Insufficient context for other modifications."*
 - **No new issues introduced** by the last-name-only query variant.
 
 **Verdict:** ✅ Functionally correct — 8/8 papers returned. The "7 out of 8" miscount is a known Metadata LLM (qwen2.5:14b) formatting quirk, not a retrieval problem. Same root cause as test case #1.
+
+---
+
+### 15. "Papers by X" → "Group them by journal"
+
+- **Date reported:** 2026-07-20
+- **Intent (expected):** `content_summary` or `metadata_list` with `paper_list="use_memory"`
+- **Intent (actual):** `knowledge_retrieval` with `paper_list=[]` → Metadata Query lists ALL 81 papers
+- **Status:** ❌
+
+**User report:**
+> "I also wanted to group the papers by their journal but it kept listing the entire paper database."
+
+**Analysis:**
+
+This is a **two-turn pronoun resolution failure**. The Unified Router LLM does not recognize "Group them by journal" as a follow-up query that references the prior turn's papers.
+
+Turn 1: `"Papers by Christoph Dieterich"` → `metadata_list`, `paper_list=[{authors: "Christoph Dieterich"}]` → 8 papers in `conversation.memory`
+
+Turn 2: `"Group them by journal"` → The router must:
+1. Recognize "them" as a pronoun referencing prior-turn papers
+2. Set `intent="content_summary"` or `metadata_list`
+3. Set `paper_list="use_memory"` so Parse Router Output populates from `conversation.memory`
+
+**What actually happens:** The router classifies "Group them by journal" as `knowledge_retrieval` (it sees a general instruction without paper references). `paper_list=[]`, `conversation.memory` is NOT used (auto-fallback only for `content_summary`). The Knowledge Retrieval path does a semantic search for "group by journal" which returns irrelevant chunks.
+
+**Root cause:** The Unified Router prompt's follow-up detection is narrow. It only recognizes `"Summarize them"`, `"Compare the papers"` etc. as follow-ups. "Group them by journal" doesn't match any follow-up pattern. The pronoun "them" is not resolved.
+
+**Why the user sees "entire paper database":**
+- If the router classifies as `metadata_list` with `paper_list=[]` → Metadata Query with NO filter → "Total papers in dataset: 81" (all papers listed)
+- If the router classifies as `knowledge_retrieval` → semantic search fails, returns empty or irrelevant
+
+**Potential fixes:**
+1. **Router prompt enhancement**: Add "group by"/"sort by"/"filter by" patterns to the follow-up recognition rules, with examples like `"Group them by journal" → content_summary, paper_list: "use_memory"`
+2. **Auto-fallback extension**: Extend the `conversation.memory` auto-fallback to also trigger for `knowledge_retrieval` when the prior turn has papers in memory.
+3. **New intent**: Add a `metadata_analysis` intent for grouping/sorting/filtering of existing paper lists — distinct from both `metadata_list` (API queries) and `content_summary` (full-text summary).
+
+---
+
+### 16. PI Collaboration Analysis
+
+- **Date reported:** 2026-07-20
+- **Intent (expected):** Multi-author collaboration analysis (no existing intent)
+- **Intent (actual):** `knowledge_retrieval` → semantic search, no co-author computation
+- **Status:** ❌ Beyond current architecture capabilities
+
+**User report:**
+> "From the following list of PIs, find out which of them have collaborated with each other (the most): Mark Helm, Martin Hengesbach, Claudia Höbartner, Andres Jäschke, René Ketting"
+
+**Analysis:**
+
+This query requires **computational co-authorship analysis**, which the chatbot's current architecture does not support. The required workflow would be:
+
+1. For each PI, find all their papers via Metadata Query
+2. For each pair of PIs, find papers where BOTH appear as co-authors
+3. Count collaborations per pair
+4. Rank and output the most frequent collaborations
+
+**What actually happens:** The Unified Router classifies this as `knowledge_retrieval`. The Knowledge Retrieval does a semantic search for these PI names. The KR Extraction LLM generates a text-based response about these PIs' research areas, but cannot compute co-authorship statistics because:
+- No access to structured author metadata for computation
+- No iteration/multi-query capability in the current graph
+- KR only does semantic search, not structured analysis
+
+**Root cause:** This is an **architectural gap**. The chatbot has 5 intents, none of which support multi-author intersection analysis. The Metadata Query can filter by ONE author at a time, not find intersections of multiple authors.
+
+**Potential fixes:**
+1. **New intent `collaboration_analysis`**: Dedicated code node that:
+   - Queries Metadata Query for each PI's paper IDs
+   - Builds an author-paper incidence matrix
+   - Computes pairwise co-authorship counts
+   - Returns ranked collaboration pairs
+2. **Multi-author Metadata Query**: Extend the existing Metadata Query to accept multiple author names and return the INTERSECTION (papers where ALL named authors appear).
+
+**Note:** The 5 named PIs have relatively few papers in the dataset:
+- Mark Helm: ~28 papers
+- Martin Hengesbach: ~1 paper
+- Claudia Höbartner: 1 paper
+- Andres Jäschke: ~1 paper
+- René Ketting: 1 paper
+
+So most pairs would have 0 collaborations. The only realistic collaboration pair would be Helm-Hengesbach or Helm-Höbartner (if they co-authored any papers in the dataset).
 
 ---
 
