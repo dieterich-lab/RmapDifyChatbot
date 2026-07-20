@@ -8,8 +8,8 @@
 |--------|--------|-----------|----------------|-------------|
 | `metadata_list` | ✅ stabil | ✅ API-fetched (keine Halluzination) | ✅ 82 Papers, 776 Authors | ✅ stabil (v0.4.6) |
 | `content_summary` | ✅ stabil | ✅ 0 Halluzination (Volltext-verified) | ⚠️ Max 15 Papers (Context-Limit) | ✅ stabil |
-| `knowledge_retrieval` | ⚠️ akzeptabel | ⚠️ 4/5 Citations korrekt | ⚠️ miCLIP/MeRIP fehlen | ⚠️ akzeptabel |
-| `author_lookup` | ⚠️ Quote-Bug | ❌ 6/8 Quotes korrekt, 2/8 hallucinated | ~27% (7/26) | ⚠️ braucht Prompt-Hardening |
+| `knowledge_retrieval` | ✅ stabil | ⚠️ 4/5 Citations korrekt (v0.4.6), ✅ fixed in v0.4.7 | ⚠️ miCLIP/MeRIP fehlen | ✅ stabil (v0.4.7) |
+| `author_lookup` | ✅ stabil | ✅ Quotes + Autoren korrekt (v0.4.7) | ~27% (7/26) | ✅ stabil (v0.4.7) |
 | `entity_lookup` | ⚠️ Recall-Limit | ✅ sauber (keine Halluzination) | ⚠️ 5/38+ Modifikationen, m6A fehlt | ✅ stabil (v0.4.2) |
 
 ### 16 Test Cases – Current Standings (2026-07-20)
@@ -18,16 +18,16 @@
 |---|--------|-------|--------|
 | 1 | `metadata_list` | Papers by Christoph Dieterich | ⚠️ "7 of 8" miscount |
 | 2 | `content_summary` | → Summarize them | ✅ Grounded |
-| 3 | `knowledge_retrieval` | What is m6A? | ⚠️ 1 citation swap |
-| 4 | `author_lookup` | Who worked on tRNA? | ❌ 2/8 quotes hallucinated |
+| 3 | `knowledge_retrieval` | What is m6A? | ✅ citation fixed (v0.4.7) |
+| 4 | `author_lookup` | Who worked on tRNA? | ✅ quote + cross-contamination fixed (v0.4.7) |
 | 5 | `entity_lookup` | Which RNA mods most studied? | ⚠️ 5 entities, m6A missing |
 | 6–9 | `metadata_list` | Tuorto, Ketting, Höbartner, Saunders | ✅ |
 | 10 | `metadata_list` | Find all research papers | ✅ LLM-native |
 | 11 | `metadata_list` | List all researchers | ✅ LLM-native |
 | 12 | `author_lookup` | Who is using HEK cells? | ⚠️ context drift |
-| 13 | `content_summary` | Mark Helm → Summarize | ✅ Fixed (v0.4.6) |
-| 14 | `metadata_list` | Papers by Dieterich (last name) | ⚠️ same #1 miscount |
-| 15 | `content_summary` | Papers by X → Group by journal | ❌ lists ALL 81 |
+| 13 | `content_summary` | Mark Helm → Summarize | ⚠️ Times out (>5 min, 28 papers) |
+| 14 | `metadata_list` | Papers by Dieterich (last name) | ✅ 8 papers (v0.4.6) |
+| 15 | `content_summary` | Papers by X → Group by journal | ✅ Groups by journal (v0.4.6) |
 | 16 | `knowledge_retrieval` | PI Collaboration Analysis | ❌ beyond architecture |
 
 ---
@@ -123,7 +123,8 @@ Query: *"Who has worked on tRNA modifications?"*
 
 - [x] ~~"and colleagues"/"et al."~~ → ✅ Gefixt (v0.4.0)
 - [x] ~~Garbled author names ("Tuorto, F, Cirzi C")~~ → ✅ Gefixt (v0.4.3 PubMed)
-- [ ] **🔴 Quote-Halluzination beheben**: 2/8 Papers (Pichot, Richter) haben fabricatete Quotes. Prompt-Hardening: "If no verbatim quotable sentence found → write 'No verbatim quote available.' NEVER fabricate." (~15 Min Fix)
+- [x] ~~**🔴 Quote-Halluzination beheben**~~ → ✅ Gefixt (v0.4.6)
+- [x] ~~**Autor-Cross-Contamination**~~ → ✅ Gefixt (v0.4.7)
 - [ ] **Recall weiter verbessern**: top_k erhöhen (Dify-Limit), besseres Embedding-Model
 
 ---

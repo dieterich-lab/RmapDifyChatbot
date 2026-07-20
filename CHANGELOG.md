@@ -1,5 +1,24 @@
 # Changelog
 
+## [0.4.7] - 2026-07-20
+
+### Fixed
+
+- **#3 Citation Attribution (knowledge_retrieval)**: KR Extraction LLM: "VERIFY each citation: claim MUST come from SAME chunk as header. Match each claim to the correct header carefully." Cross-reactivity claim now cites Koch/Lyko (was Chan et al.).
+- **#4 Author Cross-Contamination (author_lookup)**: Author Extraction LLM: "Each paper entry gets its authors ONLY from its OWN header. Do NOT copy authors from one header into another." Biedenbander now lists correct 6 authors.
+- **top_k: 100**: DSL YAML aligned with Dify GUI setting (was already 100 in GUI).
+
+### Changed
+
+- ⚠️ Cases reduced from 6 to 4 after #3 and #4 fixes.
+
+### Test Results (2026-07-20)
+
+| # | Intent | Query | v0.4.6 → v0.4.7 |
+|---|--------|-------|-------------------|
+| 3 | `knowledge_retrieval` | What is m6A? | ⚠️ citation error → ✅ fixed |
+| 4 | `author_lookup` | Who worked on tRNA? | ⚠️ cross-contamination → ✅ fixed |
+
 ## [0.4.6] - 2026-07-20
 
 ### Fixed

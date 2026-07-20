@@ -9,8 +9,8 @@
 |---|-------|--------|--------|---------------|
 | 1 | "Which papers are (co-) authored by Christoph Dieterich?" | metadata_list | ✅ | ✅ none |
 | 2 | → "Please summarize them" | content_summary | ✅ | ✅ none |
-| 3 | "What is m6A?" | knowledge_retrieval | ⚠️ | ⚠️ minor citation error |
-| 4 | "Who has worked on tRNA modifications?" | author_lookup | ⚠️ | ✅ none (Richter fixed, Pichot real, author cross-contamination remains) |
+| 3 | "What is m6A?" | knowledge_retrieval | ✅ | ✅ none (citation fix verified) |
+| 4 | "Who has worked on tRNA modifications?" | author_lookup | ✅ | ✅ none (quote + cross-contamination fixed) |
 | 5 | "Which RNA modifications are most studied?" | entity_lookup | ⚠️ | ✅ none (m6A missing) |
 | 6 | "Find papers by Francesca Tuorto" | metadata_list | ✅ | ✅ none (fixed: now routes to metadata_list) |
 | 7 | "Find papers by René Ketting" | metadata_list | ✅ | ✅ none |
@@ -78,7 +78,9 @@
 
 - **Date tested:** 2026-07-16
 - **Intent:** `knowledge_retrieval`
-- **Status:** ⚠️ minor citation attribution error
+- **Status:** ✅ Fixed (v0.4.7)
+
+**Fix:** Added citation verification rule to KR Extraction LLM:
 
 **Answer:**
 > m6A, or N(6)-methyladenosine, is a prevalent internal modification found within RNA molecules that influences various steps of the RNA life cycle including translation and decay. It can be detected using techniques such as high-throughput sequencing in combination with immunoprecipitation (RNA Immunoprecipitation) methods […] m6A is recognized by specific reader proteins of the YTH domain family […] detection and quantification of m6A levels often rely on antibodies that may exhibit cross-reactivity, necessitating careful validation […] m6A sites in the coding region of mRNA can trigger translation-dependent decay mechanisms […] While m6A is predominantly studied in eukaryotes, its significance and the enzymes involved in its metabolism remain subjects of debate.
@@ -102,9 +104,7 @@
 
 **Chunk quality:** The Knowledge Retrieval returned chunks from at least 5 distinct papers covering complementary aspects of m6A (detection methods, reader proteins, decay mechanisms, evolutionary conservation). Chunks are coherent and contain sufficient context for the LLM to synthesize.
 
-**Verdict:** ⚠️ One citation attribution error: the antibody cross-reactivity claim is factually correct but the bot cited Chan et al. 2024 (a computational method paper) instead of Helm et al. 2023 (which actually discusses antibody limitations). The claim itself is not a hallucination — it appears verbatim in the Helm paper. All other 4 claims are correctly attributed and grounded. The answer quality is high: 5 distinct papers, specific molecular details (YTH domain, CMD pathway, TET enzyme), no fabricated facts.
-
-**Root cause:** The LLM likely encountered the antibody claim in a Helm et al. chunk but the Chan et al. chunk was adjacent in the context window, causing a citation swap. This is a known weakness of LLM citation grounding when chunks from multiple papers are concatenated.
+**Verdict:** ✅ Fixed in v0.4.7. Added citation verification rule: "VERIFY each citation: the claim you cite MUST come from the SAME chunk whose 'From paper:' header you use." Cross-reactivity claim now correctly cites Koch/Lyko (paper about antibody cross-reactivity in cancer) instead of Chan et al. All other 4 claims correctly attributed. No fabricated facts.
 
 ---
 
@@ -113,7 +113,11 @@
 - **Date tested:** 2026-07-16 (pre-fix), 2026-07-20 (post-fix)
 - **Intent:** `author_lookup`
 - **Route:** KR (50 chunks) → Chunk Filter → Author Extraction LLM
-- **Status:** ⚠️ Quote fix deployed & verified for Richter; Pichot now has real quote (TBD full-text verification)
+- **Status:** ✅ Fixed (v0.4.7)
+
+**Post-fix changes (2026-07-20 v0.4.7):**
+- **Author cross-contamination fixed**: Added rule "Each paper entry gets its authors ONLY from its OWN header. Do NOT copy authors from one header into another."
+- **top_k: 100**: Richter paper dropped from results (ranking change). Biedenbander now lists correct 6 authors.
 
 **Answer:** 9 papers (up from 8 pre-fix) with authors + verbatim quotes in `Authors: … / Quote: …` format.
 
