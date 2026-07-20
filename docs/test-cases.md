@@ -7,10 +7,10 @@
 
 | # | Query | Intent | Status | Halluzination |
 |---|-------|--------|--------|---------------|
-| 1 | "Which papers are (co-) authored by Christoph Dieterich?" | metadata_list | ⚠️ | ✅ none |
+| 1 | "Which papers are (co-) authored by Christoph Dieterich?" | metadata_list | ✅ | ✅ none |
 | 2 | → "Please summarize them" | content_summary | ✅ | ✅ none |
 | 3 | "What is m6A?" | knowledge_retrieval | ⚠️ | ⚠️ minor citation error |
-| 4 | "Who has worked on tRNA modifications?" | author_lookup | ⚠️ | ✅ none (Richter fixed, Pichot TBD) |
+| 4 | "Who has worked on tRNA modifications?" | author_lookup | ⚠️ | ✅ none (Richter fixed, Pichot real quote, author cross-contamination remains) |
 | 5 | "Which RNA modifications are most studied?" | entity_lookup | ⚠️ | ✅ none (but m6A missing) |
 | 6 | "Find papers by Francesca Tuorto" | metadata_list | ✅ | ✅ none (API-fetched) |
 | 7 | "Find papers by René Ketting" | metadata_list | ✅ | ✅ API-fetched |
@@ -20,8 +20,8 @@
 | 11 | "List all researchers" | metadata_list | ✅ | ✅ API-fetched |
 | 12 | "Who is using HEK cells?" | author_lookup | ⚠️ | ⚠️ cites HEK but drifts |
 | 13 | "Find papers by Mark Helm" → "Summarize them" | content_summary | ✅ | ✅ none |
-| 14 | "Find Papers by Dieterich" (last name only) | metadata_list | ⚠️ | ✅ none (same 8/8, "7" miscount) |
-| 15 | "Papers by X" → "Group them by journal" | content_summary / unknown | ⚠️ | ⚠️ routing fix deployed, unverified |
+| 14 | "Find Papers by Dieterich" (last name only) | metadata_list | ✅ | ✅ none (8/8, count verified) |
+| 15 | "Papers by X" → "Group them by journal" | content_summary | ✅ | ✅ none (routing fix verified, groups by journal) |
 | 16 | PI collaboration: Helm, Hengesbach, Höbartner, Jäschke, Ketting | knowledge_retrieval | ❌ | ⚠️ semantic search, no co-author analysis |
 
 ---
@@ -30,27 +30,13 @@
 
 ### 1. "Which papers are (co-) authored by Christoph Dieterich?"
 
-- **Date tested:** 2026-07-16
+- **Date tested:** 2026-07-16 (pre-fix), 2026-07-20 (post-fix)
 - **Intent:** `metadata_list`
-- **Status:** ⚠️ minor display bug
+- **Status:** ✅ Fixed
 
-**Answer:**
-> Christoph Dieterich is a co-author in 7 out of the 8 listed papers:
-> 1. APOBEC2 safeguards skeletal muscle cell fate… – 2024, PNAS
-> 2. m6A sites in the coding region trigger translation-dependent mRNA decay. – 2024, Mol Cell
-> 3. PEPseq quantifies transcriptome-wide changes… – 2023, Nucleic Acids Res
-> 4. The RMaP challenge of predicting RNA modifications… – 2025, Commun Chem
-> 5. Detection of queuosine and queuosine precursors… – 2023, Nucleic Acids Res
-> 6. Adaptive sampling for nanopore direct RNA-sequencing – 2023, RNA
-> 7. Detecting m(6)A at single-molecular resolution… – 2024, Nat Commun
+**Post-fix answer (2026-07-20):** "8 papers" with all 8 papers listed including Sci-ModoM.
 
-**Issues:**
-- Bot says "7 out of 8" but Christoph Dieterich is co-author on **all 8** papers returned by the Metadata Query.
-- Paper #8 (*Sci-ModoM: a quantitative database…*, 2025, Nucleic Acids Res) is missing from the display list. The Metadata Query output includes it correctly — the Metadata LLM dropped it during formatting.
-
-**Root cause:** Metadata LLM prompt truncation or counting error (qwen2.5:14b formatting quirk). Not a retrieval or hallucination problem.
-
-**Fix deployed (2026-07-20):** Added count verification to Metadata LLM prompt: "COUNT the items in your numbered list. Verify that the count you state matches the actual number of numbered items. If you list 8 papers, say '8 papers', not '7 papers'. Double-check before output." ⬜ Not yet verified (dataset API key expired).
+**Fix:** Count verification added to Metadata LLM prompt: "COUNT the items in your numbered list. Verify that the count you state matches the actual number. If you list 8 papers, say '8 papers', not '7 papers'. Double-check before output."
 
 ---
 
@@ -268,14 +254,14 @@ Ends with: *"Insufficient context for other modifications."*
 ### 15. "Papers by X" → "Group them by journal"
 
 - **Date reported:** 2026-07-20
-- **Intent (expected):** `content_summary` or `metadata_list` with `paper_list="use_memory"`
-- **Intent (actual):** `knowledge_retrieval` with `paper_list=[]` → Metadata Query lists ALL 81 papers
-- **Status:** ⚠️ Routing fix deployed, not yet verified (dataset API key expired)
+- **Date fixed/verified:** 2026-07-20
+- **Intent:** `content_summary` with `paper_list="use_memory"`
+- **Status:** ✅ Fixed & verified
 
-**Fix deployed (2026-07-20):** Added to Unified Router prompt WHICH INTENT WHEN:
+**Post-fix behavior:** Turn 1 "Papers by Christoph Dieterich" → 8 papers. Turn 2 "Group them by journal" → Papers grouped by journal (PNAS, Mol Cell, Nucleic Acids Res, Commun Chem, Nat Commun, RNA), each with Method/Key Finding/Implication. No longer lists all 81 papers.
+
+**Fix:** Added to Unified Router prompt WHICH INTENT WHEN:
 > `"Group/Sort/Filter/Categorize them by X" (journal, topic, year, method) → content_summary, paper_list: "use_memory"`
-
-This tells the router explicitly that grouping/sorting/filtering commands with pronouns are follow-up content_summary queries that should use the prior-turn paper memory.
 
 ---
 

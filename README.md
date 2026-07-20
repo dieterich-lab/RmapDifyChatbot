@@ -2,15 +2,16 @@
 
 RmapDifyChatbot is a Dify-based academic literature assistant for the RMaP project. It answers questions about 84 RNA-modification papers using hybrid retrieval (keyword + vector) and intent-based routing.
 
-## Status Snapshot (2026-07-16)
+## Status Snapshot (2026-07-20)
 
-**v0.4.6 — Regex-Free Broad-Query Routing & Hallucination Audit**
+**v0.4.6 — Drei Prompt-Fixes deployed & verified**
 
 1. **5 Query-Intents**: `metadata_list`, `content_summary`, `knowledge_retrieval`, `author_lookup`, `entity_lookup`
-2. **LLM-native Broad-Query Routing**: Kein Regex mehr – Unified Router steuert "Find all papers" und "List all researchers" nativ via `list_mode`
-3. **Hallucination Audit**: Alle 13 Test Cases in `docs/test-cases.md` dokumentiert mit Volltext-Verifikation
-4. **top_k: 50**, Hybrid **0.7/0.3**, Model **qwen2.5:14b** (Ollama), Embedding **nomic-embed-text-v2-moe**
-5. **22 Nodes, 28 Edges**
+2. **#4 Quote-Halluzination gefixt**: Richter sagt "No verbatim quote available." statt zu fabricaten
+3. **#1 7-vs-8 Miscount gefixt**: Metadata LLM zählt korrekt "8 papers"
+4. **#15 Group-by gefixt**: "Group them by journal" routet korrekt zu content_summary
+5. **top_k: 50**, Hybrid **0.7/0.3**, Model **qwen2.5:14b** (Ollama), Embedding **nomic-embed-text-v2-moe**
+6. **23 Nodes, 28 Edges**, Dataset: `<your-dataset-id>` (82 docs)
 
 ---
 
@@ -40,7 +41,7 @@ Du bekommst eine Einladung zur Dify-Account-Erstellung. Nach dem Login findest d
 | `metadata_list` | "List all researchers" | 776 Authors (LLM-native) | – |
 | `content_summary` | "Summarize them" (nach metadata_list) | Global Synthesis + 3 Bullet Points/Paper | Max 15 Papers (Context-Limit) |
 | `knowledge_retrieval` | "What is m6A?" | Methoden mit Inline-Citations | ⚠️ 1/5 Citations falsch zugeordnet |
-| `author_lookup` | "Who has worked on tRNA modifications?" | ~8 Papers mit Autoren + Quotes | ❌ 2/8 Quotes hallucinated |
+| `author_lookup` | "Who has worked on tRNA modifications?" | ~9 Papers mit Autoren + Quotes | ⚠️ Autor-Cross-Contamination (Richter), Quote-Fabrikation gefixt |
 | `entity_lookup` | "Which RNA modifications are most studied?" | ~5 Entity-Typen mit Paper-Zuordnung | ⚠️ m6A fehlt (LLM-Limit) |
 
 → Detaillierte Test-Ergebnisse: [`docs/test-cases.md`](docs/test-cases.md)
@@ -148,11 +149,10 @@ flowchart TD
 
 | # | Intent | Problem | Schweregrad | Details |
 |---|--------|---------|-------------|---------|
-| 1 | `author_lookup` | Quote Halluzination | ❌ Hoch | 2/8 Papers fabricatete Quotes (Pichot et al., Richter et al.). LLM generiert plausible Zitate wenn Chunk keine zitierbare Passage enthält. |
+| 1 | `author_lookup` | Autor-Cross-Contamination | ⚠️ Mittel | Richter-Paper hat falsche Autoren (Corzilius/Furtig aus Paper #1).Quote-Halluzination in v0.4.6 gefixt. |
 | 2 | `entity_lookup` | Recall-Limit | ⚠️ Mittel | Nur 5 Entities (pseudouridine, queuosine, Nm, m1, 2-O-Me). m6A – die meistuntersuchte RNA-Modifikation – fehlt. qwen2.5:14b stoppt intrinsisch bei ~6 Entities. |
 | 3 | `knowledge_retrieval` | Citation-Attribution | ⚠️ Niedrig | 1 von 5 Citations falsch zugeordnet (Antikörper-Claim zitiert Chan et al. statt Helm et al.). |
 | 4 | `author_lookup` | "Science Journals — AAAS" | ⚠️ Kosmetisch | Paper #6 hat Garbled Metadata (bekannt seit v0.4.1). |
-| 5 | `content_summary` | 15-Paper Cap | ⚠️ Niedrig | Autoren mit >15 Papers (z.B. Mark Helm mit 28) werden auf 15 gekappt um Context Overflow zu vermeiden. |
 
 → Detaillierte Analyse: [`docs/test-cases.md`](docs/test-cases.md)
 
