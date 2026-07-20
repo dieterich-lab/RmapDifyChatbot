@@ -1851,12 +1851,14 @@ workflow:
 
             4. Copy title, journal, and year EXACTLY from the header.
 
-            5. Pick ONE verbatim quote about tRNA modifications or queuosine. The
-            quote MUST appear verbatim in the provided context. If NO verbatim quotable
-            sentence about the topic exists in the context, write EXACTLY: "No verbatim
-            quote available." NEVER fabricate, paraphrase, or invent a quote.
+            5. Pick ONE verbatim quote from the chunk relevant to the user''s query.
+            The quote MUST appear verbatim in the provided context. If NO verbatim
+            quotable sentence about the query topic exists in the context, write EXACTLY:
+            "No verbatim quote available." NEVER fabricate, paraphrase, or invent
+            a quote.
 
-            6. Skip papers not about tRNA modifications or queuosine detection.
+            6. Only include papers whose chunks contain information relevant to the
+            user''s query. Skip papers with no relevant content.
 
 
             Format (use EXACTLY this format):

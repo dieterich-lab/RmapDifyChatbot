@@ -18,7 +18,7 @@
 | 9 | "Find papers by Lauren Saunders" | metadata_list | ✅ | ✅ 0 results (not in dataset) |
 | 10 | "Find all research papers" | metadata_list | ✅ | ✅ none (81 papers) |
 | 11 | "List all researchers" | metadata_list | ✅ | ✅ none (776 authors) |
-| 12 | "Who is using HEK cells?" | author_lookup | ⚠️ | ⚠️ cites HEK but papers may not use HEK |
+| 12 | "Who is using HEK cells?" | author_lookup | ✅ | ✅ none (prompt de-tRNA-fied, speculative claims removed) |
 | 13 | "Find papers by Mark Helm" → "Summarize them" | content_summary | ⚠️ | ⚠️ hangs on 2nd turn (28 papers, ~15 fetched) |
 | 14 | "Find Papers by Dieterich" (last name only) | metadata_list | ✅ | ✅ none (8/8, count verified) |
 | 15 | "Papers by X" → "Group them by journal" | content_summary | ✅ | ✅ none (groups by journal) |
@@ -215,7 +215,13 @@ Ends with: *"Insufficient context for other modifications."*
 
 ### 12. "Who is using HEK cells?"
 
-⬜ *Detailed review pending*
+- **Date tested:** 2026-07-20 (fixed v0.4.7)
+- **Intent:** `author_lookup`
+- **Status:** ✅ Fixed
+
+**Fix:** Made Author Extraction prompt query-agnostic. Rules 5 and 6 were hardcoded to "tRNA modifications or queuosine" — changed to "relevant to the user's query". Speculative language ("likely involved", "could be implied", "no specific mention") eliminated. All papers without HEK evidence now say "No verbatim quote available."
+
+**Also fixed:** "Science Journals — AAAS" garbled metadata → "Post-transcriptional modifications in mitochondrial tRNA and their role in human disease" (Sci Adv, 2025)
 
 ---
 
