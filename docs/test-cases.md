@@ -1,7 +1,7 @@
 # RMAP Chatbot – Test Cases
 
 > Living document: current behavior of all release test cases.
-> Last updated: 2026-07-20 (v0.4.6, +test cases 15+16)
+> Last updated: 2026-07-20 (v0.4.6, all 16 cases re-verified post prompt fixes)
 
 ## Overview
 
@@ -10,18 +10,18 @@
 | 1 | "Which papers are (co-) authored by Christoph Dieterich?" | metadata_list | ✅ | ✅ none |
 | 2 | → "Please summarize them" | content_summary | ✅ | ✅ none |
 | 3 | "What is m6A?" | knowledge_retrieval | ⚠️ | ⚠️ minor citation error |
-| 4 | "Who has worked on tRNA modifications?" | author_lookup | ⚠️ | ✅ none (Richter fixed, Pichot real quote, author cross-contamination remains) |
-| 5 | "Which RNA modifications are most studied?" | entity_lookup | ⚠️ | ✅ none (but m6A missing) |
-| 6 | "Find papers by Francesca Tuorto" | metadata_list | ✅ | ✅ none (API-fetched) |
-| 7 | "Find papers by René Ketting" | metadata_list | ✅ | ✅ API-fetched |
-| 8 | "Find papers by Claudia Höbartner" | metadata_list | ✅ | ✅ API-fetched |
+| 4 | "Who has worked on tRNA modifications?" | author_lookup | ⚠️ | ✅ none (Richter fixed, Pichot real, author cross-contamination remains) |
+| 5 | "Which RNA modifications are most studied?" | entity_lookup | ⚠️ | ✅ none (m6A missing) |
+| 6 | "Find papers by Francesca Tuorto" | metadata_list | ⚠️ | ⚠️ routes to content_summary, wrong papers returned |
+| 7 | "Find papers by René Ketting" | metadata_list | ✅ | ✅ none |
+| 8 | "Find papers by Claudia Höbartner" | metadata_list | ✅ | ✅ none |
 | 9 | "Find papers by Lauren Saunders" | metadata_list | ✅ | ✅ 0 results (not in dataset) |
-| 10 | "Find all research papers" | metadata_list | ✅ | ✅ API-fetched |
-| 11 | "List all researchers" | metadata_list | ✅ | ✅ API-fetched |
-| 12 | "Who is using HEK cells?" | author_lookup | ⚠️ | ⚠️ cites HEK but drifts |
-| 13 | "Find papers by Mark Helm" → "Summarize them" | content_summary | ✅ | ✅ none |
+| 10 | "Find all research papers" | metadata_list | ✅ | ✅ none (81 papers) |
+| 11 | "List all researchers" | metadata_list | ✅ | ✅ none (776 authors) |
+| 12 | "Who is using HEK cells?" | author_lookup | ⚠️ | ⚠️ cites HEK but papers may not use HEK |
+| 13 | "Find papers by Mark Helm" → "Summarize them" | content_summary | ⚠️ | ⚠️ hangs on 2nd turn (28 papers, ~15 fetched) |
 | 14 | "Find Papers by Dieterich" (last name only) | metadata_list | ✅ | ✅ none (8/8, count verified) |
-| 15 | "Papers by X" → "Group them by journal" | content_summary | ✅ | ✅ none (routing fix verified, groups by journal) |
+| 15 | "Papers by X" → "Group them by journal" | content_summary | ✅ | ✅ none (groups by journal) |
 | 16 | PI collaboration: Helm, Hengesbach, Höbartner, Jäschke, Ketting | knowledge_retrieval | ❌ | ⚠️ semantic search, no co-author analysis |
 
 ---
@@ -169,7 +169,14 @@ Ends with: *"Insufficient context for other modifications."*
 
 ### 6. "Find papers by Francesca Tuorto"
 
-⬜ *Detailed review pending*
+- **Date tested:** 2026-07-20
+- **Intent (expected):** `metadata_list`
+- **Intent (actual):** Routes to `content_summary` path — returns papers about tRNA modifications (not Tuorto's papers)
+- **Status:** ⚠️ Routing regression
+
+**Post-fix test (2026-07-20):** Query returns 6 papers with full Method/Key Finding/Implication summaries — but these are papers ABOUT tRNA modifications from various authors, not papers BY Francesca Tuorto. The Metadata Query → Metadata LLM path is not being used; instead the query goes through Fetch Full Paper → Summary LLM.
+
+**Suspected cause:** The Unified Router may be misclassifying "Find papers by Francesca Tuorto" as `content_summary` or `author_lookup` instead of `metadata_list`. The router prompt has the rule "Just an author name, no instruction → metadata_list" but "Find papers by" with an author name may trigger a different path.
 
 ---
 
@@ -213,41 +220,23 @@ Ends with: *"Insufficient context for other modifications."*
 
 ### 13. "Find papers by Mark Helm" → "Summarize them"
 
-- **Date tested:** 2026-07-16
-- **Status:** ✅ (fixed from ❌)
+- **Date tested:** 2026-07-16 (fixed), 2026-07-20 (re-verified)
+- **Status:** ⚠️ First turn works (Metadata Query returns papers), second turn "Summarize them" hangs (>5 min timeout)
 - **Fixes applied:**
   1. Added `"paper_count": 0` to `_fallback_result()` in `parse_router_output.py`
   2. Added `MAX_PAPERS_FOR_SUMMARY = 15` cap in `parse_router_output.py` to prevent Summary LLM context overflow (28 papers × ~11K chars = 308K chars > 65K window)
   3. Updated Metadata LLM prompt with `{{#conversation.memory#}}` context reference
+- **Current issue:** Fetch Full Paper for 15 papers takes too long (~0.5s/paper API call × 15 = ~7.5s for fetching, plus LLM processing). The draft API times out before the full response is ready. Works when given more time or via published API.
 
 ---
 
 ### 14. "Find Papers by Dieterich" (last name only)
 
-- **Date tested:** 2026-07-17
+- **Date tested:** 2026-07-17 (pre-fix), 2026-07-20 (post-fix verified)
 - **Intent:** `metadata_list`
-- **Status:** ⚠️ minor display bug (same as #1)
+- **Status:** ✅ Fixed
 
-**Answer:**
-> There are 7 papers authored by Christoph Dieterich:
-> 1. APOBEC2 safeguards skeletal muscle cell fate… – 2024, PNAS
-> 2. m6A sites in the coding region trigger translation-dependent mRNA decay. – 2024, Mol Cell
-> 3. PEPseq quantifies transcriptome-wide changes… – 2023, Nucleic Acids Res
-> 4. The RMaP challenge of predicting RNA modifications… – 2025, Commun Chem
-> 5. Detection of queuosine and queuosine precursors… – 2023, Nucleic Acids Res
-> 6. Adaptive sampling for nanopore direct RNA-sequencing – 2023, RNA
-> 7. Detecting m(6)A at single-molecular resolution… – 2024, Nat Commun
-> 8. Sci-ModoM: a quantitative database… – 2025, Nucleic Acids Res
-
-**Analysis:**
-
-- Metadata Query correctly matches 8 papers by last name "Dieterich" (same result set as "Christoph Dieterich").
-- The last-name-only filter works: `_matches_filters()` in `metadata_query.py` matches "Dieterich" against all author name variants (last name, initials, full name).
-- **Same display bug as test case #1:** Metadata LLM says "7 papers" but lists 8. Paper #8 (*Sci-ModoM*) is included in the list but excluded from the count.
-- Result is identical to test case #1 ("Which papers are (co-) authored by Christoph Dieterich?"), confirming the Metadata Query normalizes both queries to the same author filter.
-- **No new issues introduced** by the last-name-only query variant.
-
-**Verdict:** ✅ Functionally correct — 8/8 papers returned. The "7 out of 8" miscount is a known Metadata LLM (qwen2.5:14b) formatting quirk, not a retrieval problem. Same root cause as test case #1.
+**Post-fix:** Returns "8 papers" with all 8 listed including Sci-ModoM. The count verification fix from #1 also resolves this variant.
 
 ---
 
