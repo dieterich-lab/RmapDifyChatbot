@@ -344,21 +344,20 @@ for node in graph.get("nodes", []):
 
         # Try saved ID first
         saved_file = os.environ.get("SAVED_ID_FILE", "")
-        if saved_file and os.path.isfile(saved_file):
-            saved = open(saved_file).read().strip()
-            if saved:
-                node["data"]["dataset_ids"] = [saved]
-                # Write back modified draft and build payload
-                payload = {
-                    "graph": graph,
-                    "features": draft.get("features", {}),
-                    "environment_variables": draft.get("environment_variables", []),
-                    "conversation_variables": draft.get("conversation_variables", []),
-                    "hash": draft.get("hash", ""),
-                }
-                json.dump(payload, open(os.environ["TMP_KR_PAYLOAD"], "w"))
-                print("fixed")
-                sys.exit(0)
+        dataset_id = os.environ.get("DIFY_DATASET_ID") or ""
+        # Prefer DIFY_DATASET_ID from .env (single source of truth)
+        if dataset_id:
+            node["data"]["dataset_ids"] = [dataset_id]
+            payload = {
+                "graph": graph,
+                "features": draft.get("features", {}),
+                "environment_variables": draft.get("environment_variables", []),
+                "conversation_variables": draft.get("conversation_variables", []),
+                "hash": draft.get("hash", ""),
+            }
+            json.dump(payload, open(os.environ["TMP_KR_PAYLOAD"], "w"))
+            print("fixed")
+            sys.exit(0)
 
         # Fallback: Meta Routing config
         try:
@@ -393,7 +392,7 @@ PYEOF
   local fixed
   fixed=$(TMP_KR_GET="$TMP_KR_GET" \
     TMP_KR_PAYLOAD="$TMP_KR_PAYLOAD" \
-    SAVED_ID_FILE="$REPO_ROOT/.secrets/kr_dataset_id.txt" \
+    DIFY_DATASET_ID="${DIFY_DATASET_ID:-}" \
     META_ROUTING_YML="$REPO_ROOT/config/RMAP Chatbot Meta Routing.yml" \
     "$PYTHON_BIN" "$TMP_KR_PY")
 

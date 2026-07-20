@@ -15,7 +15,6 @@ done
 
 ENV_FILE="$REPO_ROOT/.env"
 SESSION_FILE="$REPO_ROOT/.secrets/dify_console_session.env"
-SAVED_ID_FILE="$REPO_ROOT/.secrets/kr_dataset_id.txt"
 set -a
 [[ -f "$ENV_FILE" ]]     && source "$ENV_FILE"
 [[ -f "$SESSION_FILE" ]] && source "$SESSION_FILE"
@@ -24,14 +23,9 @@ set +a
 : "${DIFY_BASE_URL:?DIFY_BASE_URL is required}"
 : "${DIFY_APP_ID:?DIFY_APP_ID is required}"
 
-if [[ ! -f "$SAVED_ID_FILE" ]]; then
-  echo "No saved dataset ID found. Add the dataset manually in Dify UI once, then run:"
-  echo "  python3 -c \"import yaml; d=yaml.safe_load(open('config/RMAP Chatbot Iterative Retrieval.yml')); kr=[n for n in d['workflow']['graph']['nodes'] if n['id']=='17785930638200'][0]; print(kr['data']['dataset_ids'][0])\" > .secrets/kr_dataset_id.txt"
-  exit 1
-fi
-
-SAVED_ID=$(cat "$SAVED_ID_FILE")
-echo "Restoring dataset: ${SAVED_ID:0:40}..."
+# Use DIFY_DATASET_ID from .env (single source of truth)
+SAVED_ID="${DIFY_DATASET_ID:-<your-dataset-id>}"
+echo "Using dataset ID from .env: ${SAVED_ID:0:40}..."
 
 PYTHON_BIN="${PYTHON_BIN:-$REPO_ROOT/.venv/bin/python}"
 

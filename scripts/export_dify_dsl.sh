@@ -102,13 +102,7 @@ for node in dsl["workflow"]["graph"]["nodes"]:
     if node.get("id") == "17785930638200":
         dids = node.get("data", {}).get("dataset_ids", [])
         if not dids or not dids[0] or "fiCgoIRC" in str(dids[0]):
-            # Try saved file first
-            saved_file = os.path.join(repo_root, ".secrets", "kr_dataset_id.txt")
-            new_id = "<your-dataset-id>"
-            if os.path.isfile(saved_file):
-                saved = open(saved_file).read().strip()
-                if saved and "-" in saved:  # UUID has hyphens
-                    new_id = saved
+            new_id = os.environ.get("DIFY_DATASET_ID") or "<your-dataset-id>"
             node["data"]["dataset_ids"] = [new_id]
             kr_fixed = True
             print(f"KR dataset patched in export: {new_id}")

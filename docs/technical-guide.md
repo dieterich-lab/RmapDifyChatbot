@@ -91,6 +91,8 @@ Metadata LLM       Summary LLM         ┌───┼───┐              
 
 ### 2.1 Key Types and Their Roles
 
+**Single source of truth:** All configuration lives in `.env`. There is no `.secrets/kr_dataset_id.txt` – the dataset UUID is stored as `DIFY_DATASET_ID` in `.env`. All scripts (`export_dify_dsl.sh`, `import_dify_dsl.sh`, `restore_kr_dataset.sh`) read it from there.
+
 The chatbot uses three distinct API key types, each serving a different purpose:
 
 | Key Type | Prefix | Purpose | Stored In |
@@ -234,7 +236,7 @@ bash scripts/export_dify_dsl.sh "config/RMAP Chatbot Iterative Retrieval.yml" --
 This script:
 1. Authenticates via `/console/api/login` (if `--auto-login`)
 2. GETs `/console/api/apps/{id}/export?include_secret=false`
-3. Patches the Knowledge Retrieval `dataset_ids` from `.secrets/kr_dataset_id.txt`
+3. Patches the Knowledge Retrieval `dataset_ids` from `DIFY_DATASET_ID` in `.env`
 4. Strips `zIndex` fields (Dify UI validator rejects them)
 5. Writes the YAML to the config file
 
@@ -742,9 +744,8 @@ bash scripts/fix_kr_dataset.sh --app-id 16d50bee-... --auto-login
 | `scripts/debug_route_runtime.sh` | Test via published app API |
 | `scripts/fix_kr_dataset.sh` | Restore KR dataset after import |
 | `scripts/update_dify_metadata.py` | Bulk metadata update via PubMed |
-| `.env` | DIFY_API_KEY, DIFY_BASE_URL, credentials |
+| `.env` | DIFY_API_KEY, DIFY_BASE_URL, DIFY_DATASET_ID, credentials – **single source of truth** for all config |
 | `.secrets/dify_console_session.env` | Console auth tokens (cookie, csrf) |
-| `.secrets/kr_dataset_id.txt` | KR dataset UUID (fallback) |
 | `docs/test-cases.md` | Living document: 16 test cases with status |
 | `docs/roadmap.md` | Feature roadmap & intent analysis |
 | `docs/technical-guide.md` | This document |
