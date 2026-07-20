@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.4.8] - 2026-07-20
+
+### Fixed
+
+- **#12 HEK cells (author_lookup)**: Author Extraction prompt de-tRNA-fied. Rules 5/6 changed from "tRNA/queuosine" to "relevant to the user's query". Speculative language eliminated.
+- **Science Journals AAAS metadata**: "Science Journals — AAAS" → "Post-transcriptional modifications in mitochondrial tRNA..." via dataset API metadata update.
+
+### Test Results
+
+| # | v0.4.7 | v0.4.8 |
+|---|--------|--------|
+| 12 | ⚠️ | ✅ |
+| AAAS metadata | ⚠️ | ✅ |
+
 ## [0.4.7] - 2026-07-20
 
 ### Fixed

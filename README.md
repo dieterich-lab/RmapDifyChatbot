@@ -4,14 +4,13 @@ RmapDifyChatbot is a Dify-based academic literature assistant for the RMaP proje
 
 ## Status Snapshot (2026-07-20)
 
-**v0.4.7 — #3 Citation + #4 Cross-Contamination Fixes**
+**v0.4.8 — #12 HEK + Science Journals AAAS Fixes**
 
-1. **5 Query-Intents**: `metadata_list`, `content_summary`, `knowledge_retrieval`, `author_lookup`, `entity_lookup`
-2. **#3 Citation gefixt**: Cross-reactivity claim cites Koch/Lyko (was Chan)
-3. **#4 Cross-Contamination gefixt**: Authors per paper from own header only
-4. **v0.4.6 fixes**: Quote-Halluzination, 7-vs-8 Miscount, Group-by, Find-by-name
-5. **top_k: 100**, Hybrid **0.7/0.3**, **qwen2.5:14b**, **nomic-embed-text-v2-moe**
-6. **23 Nodes, 28 Edges**, Dataset: `5a231cec` (82 docs)
+1. **5 Query-Intents**: ✅ `metadata_list`, `content_summary`, `knowledge_retrieval`, `author_lookup`, `entity_lookup`
+2. **#12 HEK cells gefixt**: Prompt de-tRNA-fied, speculative claims removed
+3. **Science Journals AAAS gefixt**: Metadata korrigiert via API
+4. **Alle v0.4.6/v0.4.7 Fixes**: Quote, Count, Group-by, Find-by-name, Citation, Cross-Contamination
+5. **top_k: 100**, Hybrid **0.7/0.3**, **qwen2.5:14b**, 23 Nodes, 28 Edges
 
 ---
 
