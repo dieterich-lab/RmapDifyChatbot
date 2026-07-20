@@ -1307,8 +1307,11 @@ workflow:
             bullet points for details.
 
             If the context only contains PAPER METADATA (titles, authors, years):
-            - State the EXACT total count, then a clean numbered list: title, year,
-            journal.
+            - State the EXACT total count of papers you are listing. - COUNT the items
+            in your numbered list. Verify that the count you state matches the actual
+            number of numbered items. If you list 8 papers, say "8 papers", not "7
+            papers". Double-check before output. - Then output a clean numbered list:
+            title, year, journal.
 
             Always: - Answer in the same language as the user. - Output final answer
             text only. No <think> tags or hidden reasoning. - If context includes
@@ -1396,25 +1399,27 @@ workflow:
             , paper_list: [], list_mode: \"authors\" for researchers\n- Just a topic,\
             \ no paper reference → \"knowledge_retrieval\"\n- Author + \"summarize\
             \ their findings\" → \"content_summary\"\n- \"Compare the papers by X\
-            \ and Y\" → \"content_summary\"\n\n=== paper_list RULES ===\n\nFor \"\
-            knowledge_retrieval\", \"author_lookup\", \"entity_lookup\": paper_list\
-            \ MUST be [].\nFor \"metadata_list\" and \"content_summary\": follow the\
-            \ same rules as before.\n\nFOR NEW QUERIES (conversation.memory is empty\
-            \ or irrelevant):\n  → paper_list = SEARCH CONSTRAINTS for the database\
-            \ lookup.\n  Examples:\n  - \"papers by Christoph Dieterich\" → [{\"authors\"\
-            : \"Christoph Dieterich\"}]\n  - \"papers about RNA from 2024\" → [{\"\
-            title\": \"RNA\", \"year\": \"2024\"}]\n\nFOR FOLLOW-UP QUERIES (conversation.memory\
-            \ has papers AND query references them):\n  → paper_list = the STRING\
-            \ \"use_memory\". The downstream parser will fill in the actual papers.\n\
-            \  The query contains pronouns or references to prior turns.\n\nFor \"\
-            metadata_list\": empty paper_list IS VALID (means all papers / all authors).\n\
-            For \"content_summary\": paper_list MUST NOT be empty. If you cannot determine\
-            \ which papers to summarize, use \"knowledge_retrieval\" instead.\n\n\
-            === REWRITTEN QUERY RULES ===\n\n- Resolve pronouns: \"them\" → \"the\
-            \ papers from the previous turn\".\n- For author_lookup and entity_lookup:\
-            \ keep the original query as-is (it will be used for KR search).\n- Keep\
-            \ original language and intent.\n\nOutput ONLY the JSON. No <think> tags,\
-            \ no explanations, no markdown fences."
+            \ and Y\" → \"content_summary\"\n- \"Group/Sort/Filter/Categorize them\
+            \ by X\" (journal, topic, year, method) → \"content_summary\", paper_list:\
+            \ \"use_memory\"\n\n=== paper_list RULES ===\n\nFor \"knowledge_retrieval\"\
+            , \"author_lookup\", \"entity_lookup\": paper_list MUST be [].\nFor \"\
+            metadata_list\" and \"content_summary\": follow the same rules as before.\n\
+            \nFOR NEW QUERIES (conversation.memory is empty or irrelevant):\n  → paper_list\
+            \ = SEARCH CONSTRAINTS for the database lookup.\n  Examples:\n  - \"papers\
+            \ by Christoph Dieterich\" → [{\"authors\": \"Christoph Dieterich\"}]\n\
+            \  - \"papers about RNA from 2024\" → [{\"title\": \"RNA\", \"year\":\
+            \ \"2024\"}]\n\nFOR FOLLOW-UP QUERIES (conversation.memory has papers\
+            \ AND query references them):\n  → paper_list = the STRING \"use_memory\"\
+            . The downstream parser will fill in the actual papers.\n  The query contains\
+            \ pronouns or references to prior turns.\n\nFor \"metadata_list\": empty\
+            \ paper_list IS VALID (means all papers / all authors).\nFor \"content_summary\"\
+            : paper_list MUST NOT be empty. If you cannot determine which papers to\
+            \ summarize, use \"knowledge_retrieval\" instead.\n\n=== REWRITTEN QUERY\
+            \ RULES ===\n\n- Resolve pronouns: \"them\" → \"the papers from the previous\
+            \ turn\".\n- For author_lookup and entity_lookup: keep the original query\
+            \ as-is (it will be used for KR search).\n- Keep original language and\
+            \ intent.\n\nOutput ONLY the JSON. No <think> tags, no explanations, no\
+            \ markdown fences."
         reasoning_format: separated
         selected: false
         structured_output:
@@ -1837,7 +1842,10 @@ workflow:
 
             4. Copy title, journal, and year EXACTLY from the header.
 
-            5. Pick ONE verbatim quote about tRNA modifications or queuosine.
+            5. Pick ONE verbatim quote about tRNA modifications or queuosine. The
+            quote MUST appear verbatim in the provided context. If NO verbatim quotable
+            sentence about the topic exists in the context, write EXACTLY: "No verbatim
+            quote available." NEVER fabricate, paraphrase, or invent a quote.
 
             6. Skip papers not about tRNA modifications or queuosine detection.
 
