@@ -10,7 +10,7 @@
 | 1 | "Which papers are (co-) authored by Christoph Dieterich?" | metadata_list | ⚠️ | ✅ none |
 | 2 | → "Please summarize them" | content_summary | ✅ | ✅ none |
 | 3 | "What is m6A?" | knowledge_retrieval | ⚠️ | ⚠️ minor citation error |
-| 4 | "Who has worked on tRNA modifications?" | author_lookup | ❌ | ❌ 2/8 quotes hallucinated |
+| 4 | "Who has worked on tRNA modifications?" | author_lookup | ⚠️ | ✅ none (Richter fixed, Pichot TBD) |
 | 5 | "Which RNA modifications are most studied?" | entity_lookup | ⚠️ | ✅ none (but m6A missing) |
 | 6 | "Find papers by Francesca Tuorto" | metadata_list | ✅ | ✅ none (API-fetched) |
 | 7 | "Find papers by René Ketting" | metadata_list | ✅ | ✅ API-fetched |
@@ -21,7 +21,7 @@
 | 12 | "Who is using HEK cells?" | author_lookup | ⚠️ | ⚠️ cites HEK but drifts |
 | 13 | "Find papers by Mark Helm" → "Summarize them" | content_summary | ✅ | ✅ none |
 | 14 | "Find Papers by Dieterich" (last name only) | metadata_list | ⚠️ | ✅ none (same 8/8, "7" miscount) |
-| 15 | "Papers by X" → "Group them by journal" | content_summary / unknown | ❌ | ⚠️ lists ALL 81 papers |
+| 15 | "Papers by X" → "Group them by journal" | content_summary / unknown | ⚠️ | ⚠️ routing fix deployed, unverified |
 | 16 | PI collaboration: Helm, Hengesbach, Höbartner, Jäschke, Ketting | knowledge_retrieval | ❌ | ⚠️ semantic search, no co-author analysis |
 
 ---
@@ -49,6 +49,8 @@
 - Paper #8 (*Sci-ModoM: a quantitative database…*, 2025, Nucleic Acids Res) is missing from the display list. The Metadata Query output includes it correctly — the Metadata LLM dropped it during formatting.
 
 **Root cause:** Metadata LLM prompt truncation or counting error (qwen2.5:14b formatting quirk). Not a retrieval or hallucination problem.
+
+**Fix deployed (2026-07-20):** Added count verification to Metadata LLM prompt: "COUNT the items in your numbered list. Verify that the count you state matches the actual number of numbered items. If you list 8 papers, say '8 papers', not '7 papers'. Double-check before output." ⬜ Not yet verified (dataset API key expired).
 
 ---
 
@@ -122,36 +124,20 @@
 
 ### 4. "Who has worked on tRNA modifications?"
 
-- **Date tested:** 2026-07-16
+- **Date tested:** 2026-07-16 (pre-fix), 2026-07-20 (post-fix)
 - **Intent:** `author_lookup`
 - **Route:** KR (50 chunks) → Chunk Filter → Author Extraction LLM
-- **Status:** ❌ 2 of 8 papers have hallucinated quotes; 1 has wrong author list
+- **Status:** ⚠️ Quote fix deployed & verified for Richter; Pichot now has real quote (TBD full-text verification)
 
-**Answer:** 8 papers with authors + verbatim quotes in `Authors: … / Quote: …` format.
+**Answer:** 9 papers (up from 8 pre-fix) with authors + verbatim quotes in `Authors: … / Quote: …` format.
 
-**Paper existence:** All 8 papers verified in dataset ✅
+**Post-fix changes (2026-07-20):**
+- **Richter et al. (Nucleic Acids Res, 2022):** Quote now says **"No verbatim quote available."** ✅ (was fabricated: "Here we have employed direct RNA sequencing…")
+- **Pichot et al. (Comput Struct Biotechnol J, 2023):** Quote now says **"This confers to this modification a diagnostic value for the discrimination of tRNAs vs. tsRNAs."** — This is a real sentence from the paper context (vs. previously fabricated)
+- **New paper #9:** "Phosphorylation found inside RNA" (Nature, 2022) by Helm & Motorin — picked up by KR search
+- **Author cross-contamination (Richter):** Still shows wrong authors (Corzilius/Furtig from paper #1 mixed in). This is a separate issue from quote fabrication — author extraction vs. quote extraction.
 
-**Hallucination check (full-text verification):**
-
-| # | Paper | Authors vs PubMed | Quote vs Full Text |
-|---|-------|-------------------|--------------------|
-| 1 | Biedenbander et al. (Nucleic Acids Res, 2022) | ✅ 6/6 | ✅ verbatim |
-| 2 | Peschek, Tuorto (J Mol Biol, 2025) | ⬜ not checked | ⬜ not checked |
-| 3 | Guo, Russo, Tuorto (BioEssays, 2024) | ⬜ not checked | ⬜ not checked |
-| 4 | Sun et al. (Nucleic Acids Res, 2023) | ✅ 5/5 | ✅ verbatim |
-| 5 | Pichot et al. (Comput Struct Biotechnol J, 2023) | ✅ 10/10 (PubMed) | ❌ **Fabricated!** "This confers to this modification a diagnostic value for the discrimination of tRNAs vs. tsRNAs" — words "diagnostic", "confers", "discrimination" not in paper |
-| 6 | Morishima et al. (Sci Adv, 2025) ⚠️ | ✅ matches PubMed | ⚠️ Mostly grounded (6/7 fragments found). Opening phrase "Post-transcriptional modifications have also been…" slightly paraphrased. Core content (mt-tRNAs, taurine, wobble 34) verified. |
-| 7 | Richter et al. (Nucleic Acids Res, 2022) | ❌ **Wrong!** Bot listed 5 authors (incl. Corzilius, Furtig). PubMed has 10: Richter, Plehn, Bessler, Hertler, Jorg, Cirzi, Tuorto, Friedland, Helm. Corzilius/Furtig belong to paper #1. | ❌ **Fabricated!** "Here we have employed direct RNA sequencing…" — paper does not mention direct RNA sequencing at all. Words "employed", "direct RNA seq" absent. |
-| 8 | Gerber et al. (Biol Chem, 2022) | ⬜ not checked | ⬜ not checked (bot output truncated) |
-
-**Known issue — Paper #6 metadata:** Title shows as "Science Journals — AAAS" (garbled Dify metadata, known from CHANGELOG v0.4.1). Actual paper is about mitochondrial tRNA taurine modifications by Morishima et al.
-
-**Verdict:** ❌ 2 of 8 papers have completely fabricated quotes. Paper #7 (Richter) is the worst: wrong authors AND fake quote. The Author Extraction LLM (qwen2.5:14b) is mixing up authors and generating plausible-sounding quotes not present in source. This is a known weakness documented in `roadmap.md` (recall 27%). The prompt says "Use a verbatim quote from the chunk as evidence" but the LLM sometimes fabricates instead.
-
-**Root cause hypotheses:**
-1. **Author cross-contamination:** Richter paper and Biedenbander paper both involve Helm + tRNA + NMR. The LLM merged their author lists.
-2. **Quote fabrication under pressure:** The prompt demands "verbatim quote" but when the chunk doesn't contain a clear quotable sentence, the LLM generates one instead of saying "Insufficient context."
-3. **Metadata quality:** Paper #6 with garbled title ("Science Journals — AAAS") undermines the LLM's ability to ground citations.
+**Root cause (fixed):** The Author Extraction LLM prompt previously said "Pick ONE verbatim quote" without explicitly forbidding fabrication. When chunks lacked a clear quotable sentence, the LLM generated plausible-sounding quotes. Added: "If NO verbatim quotable sentence about the topic exists in the context, write EXACTLY: 'No verbatim quote available.' NEVER fabricate, paraphrase, or invent a quote."
 
 ---
 
@@ -284,34 +270,12 @@ Ends with: *"Insufficient context for other modifications."*
 - **Date reported:** 2026-07-20
 - **Intent (expected):** `content_summary` or `metadata_list` with `paper_list="use_memory"`
 - **Intent (actual):** `knowledge_retrieval` with `paper_list=[]` → Metadata Query lists ALL 81 papers
-- **Status:** ❌
+- **Status:** ⚠️ Routing fix deployed, not yet verified (dataset API key expired)
 
-**User report:**
-> "I also wanted to group the papers by their journal but it kept listing the entire paper database."
+**Fix deployed (2026-07-20):** Added to Unified Router prompt WHICH INTENT WHEN:
+> `"Group/Sort/Filter/Categorize them by X" (journal, topic, year, method) → content_summary, paper_list: "use_memory"`
 
-**Analysis:**
-
-This is a **two-turn pronoun resolution failure**. The Unified Router LLM does not recognize "Group them by journal" as a follow-up query that references the prior turn's papers.
-
-Turn 1: `"Papers by Christoph Dieterich"` → `metadata_list`, `paper_list=[{authors: "Christoph Dieterich"}]` → 8 papers in `conversation.memory`
-
-Turn 2: `"Group them by journal"` → The router must:
-1. Recognize "them" as a pronoun referencing prior-turn papers
-2. Set `intent="content_summary"` or `metadata_list`
-3. Set `paper_list="use_memory"` so Parse Router Output populates from `conversation.memory`
-
-**What actually happens:** The router classifies "Group them by journal" as `knowledge_retrieval` (it sees a general instruction without paper references). `paper_list=[]`, `conversation.memory` is NOT used (auto-fallback only for `content_summary`). The Knowledge Retrieval path does a semantic search for "group by journal" which returns irrelevant chunks.
-
-**Root cause:** The Unified Router prompt's follow-up detection is narrow. It only recognizes `"Summarize them"`, `"Compare the papers"` etc. as follow-ups. "Group them by journal" doesn't match any follow-up pattern. The pronoun "them" is not resolved.
-
-**Why the user sees "entire paper database":**
-- If the router classifies as `metadata_list` with `paper_list=[]` → Metadata Query with NO filter → "Total papers in dataset: 81" (all papers listed)
-- If the router classifies as `knowledge_retrieval` → semantic search fails, returns empty or irrelevant
-
-**Potential fixes:**
-1. **Router prompt enhancement**: Add "group by"/"sort by"/"filter by" patterns to the follow-up recognition rules, with examples like `"Group them by journal" → content_summary, paper_list: "use_memory"`
-2. **Auto-fallback extension**: Extend the `conversation.memory` auto-fallback to also trigger for `knowledge_retrieval` when the prior turn has papers in memory.
-3. **New intent**: Add a `metadata_analysis` intent for grouping/sorting/filtering of existing paper lists — distinct from both `metadata_list` (API queries) and `content_summary` (full-text summary).
+This tells the router explicitly that grouping/sorting/filtering commands with pronouns are follow-up content_summary queries that should use the prior-turn paper memory.
 
 ---
 
