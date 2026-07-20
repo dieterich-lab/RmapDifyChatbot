@@ -1376,12 +1376,14 @@ workflow:
             \ queries with NO filter.\nIf the query contains ANY author name, year,\
             \ journal, or title constraint → paper_list MUST include it.\nExamples:\n\
             \  - \"Papers by Dieterich\" → paper_list: [{\"authors\": \"Christoph\
-            \ Dieterich\"}]  ← NOT empty!\n  - \"Find all research papers\" → paper_list:\
-            \ []  ← truly no constraints\n  - \"Papers from 2024\" → paper_list: [{\"\
-            year\": \"2024\"}]  ← has year filter\n\n\"content_summary\" — User wants\
-            \ to SUMMARIZE, COMPARE, or ANALYZE specific papers by their content.\n\
-            \  paper_list MUST contain paper identities to fetch and summarize.\n\n\
-            \"author_lookup\" — User asks WHO: \"Who has experience with X?\", \"\
+            \ Dieterich\"}]  ← NOT empty!\n  - \"Find papers by Francesca Tuorto\"\
+            \ → metadata_list, paper_list: [{\"authors\": \"Francesca Tuorto\"}] \
+            \ ← author filter, not content search!\n  - \"Find all research papers\"\
+            \ → paper_list: []  ← truly no constraints\n  - \"Papers from 2024\" →\
+            \ paper_list: [{\"year\": \"2024\"}]  ← has year filter\n\n\"content_summary\"\
+            \ — User wants to SUMMARIZE, COMPARE, or ANALYZE specific papers by their\
+            \ content.\n  paper_list MUST contain paper identities to fetch and summarize.\n\
+            \n\"author_lookup\" — User asks WHO: \"Who has experience with X?\", \"\
             Who worked on Y?\", \"Which authors studied Z?\".\n  paper_list MUST be\
             \ []. The Knowledge Retrieval will find relevant papers, and a downstream\n\
             \  extraction step will identify the authors. This is a content-based\
@@ -1395,7 +1397,10 @@ workflow:
             \n- \"Who synthesized Y?\" / \"Wer hat Y synthetisiert?\" → \"author_lookup\"\
             \n- \"Which tRNAs / proteins / methods ...?\" → \"entity_lookup\"\n- Just\
             \ an author name, no instruction → \"metadata_list\" (list their papers)\n\
-            - \"Find/LIst all papers\" / \"List all researchers\" → \"metadata_list\"\
+            - IMPORTANT: \"Find papers by <name>\" or \"Papers by <name>\" or \"Show\
+            \ papers by <name>\" → \"metadata_list\", paper_list: [{\"authors\": \"\
+            <name>\"}]. This is a metadata filter, NOT a content search.\n- \"Find\
+            \ all research papers\" / \"List all researchers\" → \"metadata_list\"\
             , paper_list: [], list_mode: \"authors\" for researchers\n- Just a topic,\
             \ no paper reference → \"knowledge_retrieval\"\n- Author + \"summarize\
             \ their findings\" → \"content_summary\"\n- \"Compare the papers by X\

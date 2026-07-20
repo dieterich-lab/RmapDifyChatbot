@@ -12,7 +12,7 @@
 | 3 | "What is m6A?" | knowledge_retrieval | ⚠️ | ⚠️ minor citation error |
 | 4 | "Who has worked on tRNA modifications?" | author_lookup | ⚠️ | ✅ none (Richter fixed, Pichot real, author cross-contamination remains) |
 | 5 | "Which RNA modifications are most studied?" | entity_lookup | ⚠️ | ✅ none (m6A missing) |
-| 6 | "Find papers by Francesca Tuorto" | metadata_list | ⚠️ | ⚠️ routes to content_summary, wrong papers returned |
+| 6 | "Find papers by Francesca Tuorto" | metadata_list | ✅ | ✅ none (fixed: now routes to metadata_list) |
 | 7 | "Find papers by René Ketting" | metadata_list | ✅ | ✅ none |
 | 8 | "Find papers by Claudia Höbartner" | metadata_list | ✅ | ✅ none |
 | 9 | "Find papers by Lauren Saunders" | metadata_list | ✅ | ✅ 0 results (not in dataset) |
@@ -169,14 +169,11 @@ Ends with: *"Insufficient context for other modifications."*
 
 ### 6. "Find papers by Francesca Tuorto"
 
-- **Date tested:** 2026-07-20
-- **Intent (expected):** `metadata_list`
-- **Intent (actual):** Routes to `content_summary` path — returns papers about tRNA modifications (not Tuorto's papers)
-- **Status:** ⚠️ Routing regression
+- **Date tested:** 2026-07-20 (fixed)
+- **Intent:** `metadata_list`
+- **Status:** ✅ Fixed
 
-**Post-fix test (2026-07-20):** Query returns 6 papers with full Method/Key Finding/Implication summaries — but these are papers ABOUT tRNA modifications from various authors, not papers BY Francesca Tuorto. The Metadata Query → Metadata LLM path is not being used; instead the query goes through Fetch Full Paper → Summary LLM.
-
-**Suspected cause:** The Unified Router may be misclassifying "Find papers by Francesca Tuorto" as `content_summary` or `author_lookup` instead of `metadata_list`. The router prompt has the rule "Just an author name, no instruction → metadata_list" but "Find papers by" with an author name may trigger a different path.
+**Fix:** Added explicit router rule: "Find papers by \<name\>" → metadata_list with paper_list constraint. Added example with "Find papers by Francesca Tuorto" to disambiguate from "Find all research papers" and from author_lookup/content_search.
 
 ---
 
