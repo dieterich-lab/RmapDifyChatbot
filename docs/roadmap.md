@@ -193,25 +193,29 @@ Context ("From paper:" headers with real metadata):
 
 ## Nächste Schritte
 
-### 🔴 Priorität 1 – Prompt-Fixes (~30 Min)
+### 🔴 Priorität 1 – Prompt-Fixes (~30 Min) ✅ Erledigt in v0.4.6
 
-| # | Fix | Betroffener Intent | Aufwand |
-|---|-----|-------------------|---------|
-| 1 | **Quote-Halluzination** (#4): Author Extraction LLM Prompt harden: "If no verbatim quotable sentence found, write 'No verbatim quote available.' NEVER fabricate." | `author_lookup` | 15 Min |
-| 2 | **Group-by Pronomen** (#15): Unified Router Prompt: "Group/Sort/Filter them by X → content_summary, paper_list: 'use_memory'" | `content_summary` | 10 Min |
-| 3 | **7-vs-8 Miscount** (#1/#14): Metadata LLM Prompt: "Count the items you listed – verify count matches." | `metadata_list` | 5 Min |
+| # | Fix | Betroffener Intent | Status |
+|---|-----|-------------------|--------|
+| 1 | **Quote-Halluzination** (#4): "If no verbatim quotable sentence found, write 'No verbatim quote available.' NEVER fabricate." | `author_lookup` | ✅ Verified |
+| 2 | **Group-by Pronomen** (#15): "Group/Sort/Filter them by X → content_summary, paper_list: 'use_memory'" | `content_summary` | ✅ Verified |
+| 3 | **7-vs-8 Miscount** (#1/#14): "Count the items you listed – verify count matches." | `metadata_list` | ✅ Verified |
+| 4 | **Find papers by \<name\>** (#6): "Find papers by X → metadata_list, paper_list: [{'authors': 'X'}]" | `metadata_list` | ✅ Verified |
 
 ### 🟡 Priorität 2 – Qualitätsverbesserungen
 
-4. **Citation-Attribution** (#3): KR Extraction LLM: Verhindern, dass Zitate aus benachbarten Chunks vermischt werden.
-5. **Metadata-Rest**: Die 14 nicht-PubMed Papers manuell oder via LLM nachziehen.
-6. **top_k-Erhöhung**: Dify `TOP_K_MAX_VALUE` auf 100 setzen (größter Recall-Hebel).
+5. **Citation-Attribution** (#3): KR Extraction LLM: Verhindern, dass Zitate aus benachbarten Chunks vermischt werden.
+6. **Metadata-Rest**: Die 14 nicht-PubMed Papers manuell oder via LLM nachziehen.
+7. **top_k-Erhöhung**: Dify `TOP_K_MAX_VALUE` auf 100 setzen (größter Recall-Hebel).
 
 ### ⬜ Priorität 3 – Erweiterungen (nächster Sprint)
 
-7. **LLM-Upgrade**: qwen2.5:14b → 32b für bessere Comprehensiveness (`entity_lookup` m6A-Recall).
-8. **Embedding-Model**: `nomic-embed-text-v2-moe` → biomedizinisches Model evaluieren.
-9. **Collaboration Analysis** (#16): Neuer Intent für Multi-Author-Co-Autorenschaft-Analyse.
+8. **LLM-Upgrade**: qwen2.5:14b → 32b für bessere Comprehensiveness (`entity_lookup` m6A-Recall).
+9. **Embedding-Model**: `nomic-embed-text-v2-moe` → biomedizinisches Model evaluieren.
+
+### ❌ No-Fix – Architektonische Limits
+
+10. **Collaboration Analysis** (#16): Neuer Intent für Multi-Author-Co-Autorenschaft-Analyse. Nicht im Scope – >2h Aufwand, fast alle Pairs hätten 0 Collaborations bei nur 1 Paper/Author.
 
 ---
 

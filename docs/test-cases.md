@@ -22,7 +22,7 @@
 | 13 | "Find papers by Mark Helm" → "Summarize them" | content_summary | ⚠️ | ⚠️ hangs on 2nd turn (28 papers, ~15 fetched) |
 | 14 | "Find Papers by Dieterich" (last name only) | metadata_list | ✅ | ✅ none (8/8, count verified) |
 | 15 | "Papers by X" → "Group them by journal" | content_summary | ✅ | ✅ none (groups by journal) |
-| 16 | PI collaboration: Helm, Hengesbach, Höbartner, Jäschke, Ketting | knowledge_retrieval | ❌ | ⚠️ semantic search, no co-author analysis |
+| 16 | PI collaboration: Helm, Hengesbach, Höbartner, Jäschke, Ketting | N/A | ❌ | N/A (architectural gap – no fix planned) |
 
 ---
 
@@ -254,45 +254,11 @@ Ends with: *"Insufficient context for other modifications."*
 ### 16. PI Collaboration Analysis
 
 - **Date reported:** 2026-07-20
-- **Intent (expected):** Multi-author collaboration analysis (no existing intent)
-- **Intent (actual):** `knowledge_retrieval` → semantic search, no co-author computation
-- **Status:** ❌ Beyond current architecture capabilities
+- **Status:** ❌ Known limitation – no fix planned
 
-**User report:**
-> "From the following list of PIs, find out which of them have collaborated with each other (the most): Mark Helm, Martin Hengesbach, Claudia Höbartner, Andres Jäschke, René Ketting"
+**Decision (2026-07-20):** Marked as architectural gap beyond current scope. Requires new intent (`collaboration_analysis`) with dedicated code node for multi-author intersection computation. Low ROI: most PIs have only 1 paper in dataset → virtually all pairs would return 0 collaborations. Deferred indefinitely.
 
-**Analysis:**
-
-This query requires **computational co-authorship analysis**, which the chatbot's current architecture does not support. The required workflow would be:
-
-1. For each PI, find all their papers via Metadata Query
-2. For each pair of PIs, find papers where BOTH appear as co-authors
-3. Count collaborations per pair
-4. Rank and output the most frequent collaborations
-
-**What actually happens:** The Unified Router classifies this as `knowledge_retrieval`. The Knowledge Retrieval does a semantic search for these PI names. The KR Extraction LLM generates a text-based response about these PIs' research areas, but cannot compute co-authorship statistics because:
-- No access to structured author metadata for computation
-- No iteration/multi-query capability in the current graph
-- KR only does semantic search, not structured analysis
-
-**Root cause:** This is an **architectural gap**. The chatbot has 5 intents, none of which support multi-author intersection analysis. The Metadata Query can filter by ONE author at a time, not find intersections of multiple authors.
-
-**Potential fixes:**
-1. **New intent `collaboration_analysis`**: Dedicated code node that:
-   - Queries Metadata Query for each PI's paper IDs
-   - Builds an author-paper incidence matrix
-   - Computes pairwise co-authorship counts
-   - Returns ranked collaboration pairs
-2. **Multi-author Metadata Query**: Extend the existing Metadata Query to accept multiple author names and return the INTERSECTION (papers where ALL named authors appear).
-
-**Note:** The 5 named PIs have relatively few papers in the dataset:
-- Mark Helm: ~28 papers
-- Martin Hengesbach: ~1 paper
-- Claudia Höbartner: 1 paper
-- Andres Jäschke: ~1 paper
-- René Ketting: 1 paper
-
-So most pairs would have 0 collaborations. The only realistic collaboration pair would be Helm-Hengesbach or Helm-Höbartner (if they co-authored any papers in the dataset).
+**Original analysis:** Requires computational co-authorship analysis not supported by current 5-intent architecture.
 
 ---
 

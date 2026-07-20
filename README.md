@@ -4,14 +4,16 @@ RmapDifyChatbot is a Dify-based academic literature assistant for the RMaP proje
 
 ## Status Snapshot (2026-07-20)
 
-**v0.4.6 — Drei Prompt-Fixes deployed & verified**
+**v0.4.6 — 4 Prompt-Fixes + #16 als Known Limitation**
 
 1. **5 Query-Intents**: `metadata_list`, `content_summary`, `knowledge_retrieval`, `author_lookup`, `entity_lookup`
-2. **#4 Quote-Halluzination gefixt**: Richter sagt "No verbatim quote available." statt zu fabricaten
-3. **#1 7-vs-8 Miscount gefixt**: Metadata LLM zählt korrekt "8 papers"
-4. **#15 Group-by gefixt**: "Group them by journal" routet korrekt zu content_summary
-5. **top_k: 50**, Hybrid **0.7/0.3**, Model **qwen2.5:14b** (Ollama), Embedding **nomic-embed-text-v2-moe**
-6. **23 Nodes, 28 Edges**, Dataset: `<your-dataset-id>` (82 docs)
+2. **#4 Quote-Halluzination gefixt**: Richter sagt "No verbatim quote available."
+3. **#1 7-vs-8 Miscount gefixt**: "8 papers" (war "7 out of 8")
+4. **#15 Group-by gefixt**: "Group them by journal" routet korrekt
+5. **#6 "Find papers by \<name\>" gefixt**: Router-Regel für Author-Filter-Queries
+6. **#16 PI Collaboration**: Known limitation – no fix (architectural gap)
+7. **top_k: 50**, Hybrid **0.7/0.3**, **qwen2.5:14b**, **nomic-embed-text-v2-moe**
+8. **23 Nodes, 28 Edges**, Dataset: `5a231cec` (82 docs)
 
 ---
 
