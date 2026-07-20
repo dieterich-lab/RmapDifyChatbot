@@ -1844,6 +1844,10 @@ workflow:
             contains. This is the most important rule.
 
             3. Copy author names EXACTLY from the header — no initials expansion.
+            CRITICAL: Each paper entry gets its authors ONLY from its OWN header.
+            Do NOT copy authors from one header into another paper entry. If Paper
+            A has authors X,Y,Z and Paper B has authors P,Q,R, then Paper A lists
+            X,Y,Z and Paper B lists P,Q,R. NEVER mix them.
 
             4. Copy title, journal, and year EXACTLY from the header.
 
@@ -2010,6 +2014,11 @@ workflow:
             NEVER say "and colleagues" or "et al." — list EVERY author from the "From
             paper:" header exactly as written. Copy the title exactly. Never extract
             author names from the chunk body — use only the "From paper:" header.
+
+            VERIFY each citation: the claim you cite MUST come from the SAME chunk
+            whose "From paper:" header you use. If a claim appears in one chunk but
+            you cite a different paper, that is WRONG. Match each claim to the correct
+            header carefully.
 
 
             If context lacks information: "Insufficient context."
