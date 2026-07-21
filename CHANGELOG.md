@@ -1,5 +1,30 @@
 # Changelog
 
+## [0.4.9] - 2026-07-21
+
+### Fixed
+
+- **Author Name Format Normalization**: `"Helm, Mark"` und `"M. Helm"` routeten fälschlich als `author_lookup` (Content-Suche mit Quotes) statt `metadata_list` (API-basierte Paper-Liste). Alle drei Namensformate (`Mark Helm`, `Helm, Mark`, `M. Helm`) sowie reine Nachnamen (`Dieterich`) routen jetzt konsistent zu `metadata_list`.
+- **`_author_variants()` Robustheit**: "Last, First" → "First Last" Normalisierung, Last-Word-Fallback für alle Eingaben, Last-Resort-Nachname-Check in `_matches_filters()` für abgekürzte Vornamen (`Chr. Dieterich` → matcht `Christoph Dieterich`).
+
+### Changed
+
+- **`parse_router_output.py`**: Name-Only-Query-Guard erkennt bare person names (Komma-Format, Punkt-Initial-Format, 1–2 großgeschriebene Wörter ohne Frage-Marker) und overrided `author_lookup`/`knowledge_retrieval` → `metadata_list`.
+- **Router Prompt**: Explizite Beispiele für alle drei Namensformate (`Mark Helm`, `Helm, Mark`, `M. Helm`).
+
+### Test Results
+
+| # | Query | v0.4.8 | v0.4.9 |
+|---|-------|--------|--------|
+| – | `Mark Helm` | ✅ `metadata_list` | ✅ `metadata_list` |
+| – | `Helm, Mark` | ❌ `author_lookup` | ✅ `metadata_list` |
+| – | `M. Helm` | ❌ `author_lookup` | ✅ `metadata_list` |
+| – | `Dieterich` | ❌ `content_summary` | ✅ `metadata_list` |
+| 1 | Papers by Christoph Dieterich | ✅ | ✅ 8 papers |
+| 4 | Who worked on tRNA modifications? | ✅ | ✅ Authors + Quotes |
+| 12 | Who is using HEK cells? | ✅ | ✅ No speculative claims |
+| 14 | Find Papers by Dieterich | ✅ | ✅ 8 papers |
+
 ## [0.4.8] - 2026-07-20
 
 ### Fixed
