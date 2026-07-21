@@ -74,14 +74,27 @@ def _author_variants(author: str) -> list[str]:
         return []
 
     variants = [text]
+
+    # Normalize "Last, First" → "First Last"
+    if "," in text:
+        comma_parts = [p.strip() for p in text.split(",", 1)]
+        if len(comma_parts) == 2 and comma_parts[0] and comma_parts[1]:
+            variants.append(f"{comma_parts[1]} {comma_parts[0]}")
+
     parts = text.split(" ")
     if len(parts) >= 2:
-        first = parts[0].strip(".")
+        first = parts[0].strip(".,;")
         last = parts[-1].strip(".,;")
         if first and last:
             variants.append(f"{first[0]}. {last}")
             variants.append(f"{first[0]} {last}")
             variants.append(last)
+
+    # Always add just the last word as a variant (handles "Dieterich", "Helm" etc.)
+    if parts:
+        last_word = parts[-1].strip(".,;")
+        if last_word and last_word.lower() not in {v.lower() for v in variants}:
+            variants.append(last_word)
 
     seen = set()
     deduped = []
@@ -168,7 +181,12 @@ def _matches_filters(meta: dict[str, str], year, authors, journal, title) -> boo
     for author in author_inputs:
         variants = [v.lower() for v in _author_variants(author)]
         if not any(v in meta_authors.lower() for v in variants):
-            return False
+            # Last resort: extract just the last name and check again.
+            # Handles "Chr. Dieterich" vs "Christoph Dieterich" where
+            # the first name abbreviation doesn't match.
+            last_name = author.strip().split()[-1].strip(".,;").lower()
+            if not last_name or last_name not in meta_authors.lower():
+                return False
 
     return True
 

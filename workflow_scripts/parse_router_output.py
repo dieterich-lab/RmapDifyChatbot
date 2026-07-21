@@ -102,6 +102,47 @@ def main(router_text=None, conversation_memory=None, sys_query=None):
         paper_list = paper_list[:MAX_PAPERS_FOR_SUMMARY]
 
     rw = str(obj.get("rewritten_query") or "").strip()
+
+    # ── Name-only query guard: if the user typed what looks like just a person's
+    # name (e.g. "Helm, Mark", "M. Helm", "Dieterich") but the router misclassified
+    # it as author_lookup / knowledge_retrieval → override to metadata_list.
+    # Patterns detected: "Last, First", "X. Last", or 1-2 capitalized words.
+    if intent in ("author_lookup", "knowledge_retrieval") and sys_query:
+        q = str(sys_query).strip()
+        has_comma = "," in q and len(q.split(",")) == 2
+        has_dot_initials = bool(re.match(r"^[A-ZÀ-ÖØ-Ý]\.\s+\w{2,}$", q))
+        one_or_two_words = (
+            len(q.split()) in (1, 2)
+            and not re.search(r"[.?!/]", q)
+            and not any(
+                w.lower() in q.lower()
+                for w in (
+                    "who",
+                    "what",
+                    "which",
+                    "how",
+                    "why",
+                    "where",
+                    "when",
+                    "summarize",
+                    "compare",
+                    "group",
+                    "find",
+                    "list",
+                    "show",
+                    "experience",
+                    "worked",
+                    "using",
+                    "studied",
+                )
+            )
+        )
+        if has_comma or has_dot_initials or one_or_two_words:
+            intent = "metadata_list"
+            if not paper_list:
+                # Use the query text as author filter
+                paper_list = [{"authors": q, "title": "", "year": "", "journal": ""}]
+
     return {
         "intent": intent,
         "paper_list": paper_list,
