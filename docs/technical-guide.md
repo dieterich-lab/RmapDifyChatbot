@@ -91,7 +91,7 @@ Metadata LLM       Summary LLM         ┌───┼───┐              
 
 ### 2.1 Key Types and Their Roles
 
-**Single source of truth:** All configuration lives in `.env`. There is no `.secrets/kr_dataset_id.txt` – the dataset UUID is stored as `DIFY_DATASET_ID` in `.env`. All scripts (`export_dify_dsl.sh`, `import_dify_dsl.sh`, `restore_kr_dataset.sh`) read it from there.
+**Single source of truth:** All configuration lives in `.env`. All scripts (`export_dify_dsl.sh`, `import_dify_dsl.sh`, `restore_kr_dataset.sh`) read settings from there.
 
 The chatbot uses three distinct API key types, each serving a different purpose:
 
@@ -99,7 +99,9 @@ The chatbot uses three distinct API key types, each serving a different purpose:
 |----------|--------|---------|-----------|
 | **Dataset API Key** | `dataset-*` | Metadata Query code node reads documents from dataset | Dify App Environment Variables |
 | **App API Key** | `app-*` | Runtime API calls (v1/chat-messages) | `.env` → `DIFY_APP_API_KEY` |
-| **Console API Key** | (token) | Console API calls (import, publish, draft run) | `.secrets/dify_console_session.env` |
+| **Console Session** | (token) | Console API calls (import, publish, draft run) – obtained via auto-login, not a persistent key | `.secrets/dify_console_session.env` |
+
+**Note on Console Auth:** We do not use a persistent Console API Key. Instead, all admin scripts use **auto-login**: they POST email + base64-encoded password to `/console/api/login`, receive a session cookie + CSRF token, and store these in `.secrets/dify_console_session.env`. This session is automatically refreshed when it expires (HTTP 401 → re-login).
 
 ### 2.2 How the Dataset Key Reaches the Metadata Query Node
 
@@ -236,7 +238,7 @@ bash scripts/export_dify_dsl.sh "config/RMAP Chatbot Iterative Retrieval.yml" --
 This script:
 1. Authenticates via `/console/api/login` (if `--auto-login`)
 2. GETs `/console/api/apps/{id}/export?include_secret=false`
-3. Patches the Knowledge Retrieval `dataset_ids` from `DIFY_DATASET_ID` in `.env`
+3. Patches the Knowledge Retrieval `dataset_ids` (Dify export strips these; restores from `DIFY_DATASET_ID` in `.env`)
 4. Strips `zIndex` fields (Dify UI validator rejects them)
 5. Writes the YAML to the config file
 
@@ -256,7 +258,7 @@ What happens:
 1. **Build**: `build_dsl.py` injects `workflow_scripts/*.py` into YAML
 2. **Import**: POSTs YAML to `/console/api/apps/imports`
 3. **Draft sync**: Fetches current draft hash, then POSTs `{graph, features, environment_variables, conversation_variables, hash}` to `/console/api/apps/{id}/workflows/draft`
-4. **KR dataset fix**: Ensures `dataset_ids` is set on Knowledge Retrieval node (id `17785930638200`)
+4. **KR dataset fix**: Dify export/import sometimes strips `dataset_ids` from the Knowledge Retrieval node (id `17785930638200`). This step restores it from `DIFY_DATASET_ID` in `.env`. Still necessary as of v0.4.8.
 
 **After import, always re-set env vars and publish** (see §2.2).
 

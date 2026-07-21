@@ -24,7 +24,23 @@ workflow:
     - memory
     value: []
     value_type: array[object]
-  environment_variables: []
+  environment_variables:
+  - description: Dataset API key
+    id: 70e16451-c010-4c47-b8cd-7a34abd2a39d
+    name: DIFY_API_KEY
+    selector:
+    - env
+    - DIFY_API_KEY
+    value: dataset-<your-dataset-key>
+    value_type: string
+  - description: Dataset UUID
+    id: 4b3b4938-4697-4a1b-9e62-0080c4a102bc
+    name: DIFY_DATASET_ID
+    selector:
+    - env
+    - DIFY_DATASET_ID
+    value: <your-dataset-id>
+    value_type: string
   features:
     file_upload:
       allowed_file_extensions:
@@ -413,7 +429,7 @@ workflow:
         selected: false
         title: Knowledge Retrieval
         type: knowledge-retrieval
-      height: 90
+      height: 89
       id: '17785930638200'
       position:
         x: -1072.0495596626015
@@ -452,28 +468,15 @@ workflow:
         - id: 400aef06-66bf-4730-a1f4-3dd418d2d48e
           reasoning_format: separated
           role: system
-          text: "You are an academic literature assistant.\n\nThe context below contains\
-            \ raw text excerpts of one or more papers, each tagged with a header \
-            \ === <title> (<year>, <journal>) — <authors> ===.\n\nContext:\n{{#1778676584534.output#}}\n\
-            \nRequested paper identities (authoritative order):\n{{#1778800001033.paper_list#}}\n\
-            \nResponse policy:\n- **Global synthesis** first: 3–5 sentences comparing\
-            \ and contrasting themes across all papers.\n- Then, for each paper in\
-            \ numbered order:\n  - Header: **N. <full title>**\n  - Exactly 3 bullet\
-            \ points (method / key finding / implication), each at most 2 short sentences.\n\
-            \  - If a paper's text is missing or says \"Insufficient textual context\"\
-            , still emit the header and write: *Insufficient textual context — only\
-            \ metadata available.*\n  - STRICT GROUNDING GUARD: Do NOT fabricate methods\
-            \ or findings absent from the provided text.\n\nGeneral rules:\n- Answer\
-            \ in the same language as the user.\n- Output final answer text only.\
-            \ No <think> tags or hidden reasoning.\n- If context includes errors,\
-            \ explain clearly and suggest one concrete reformulation."
+          text: "You are an academic literature assistant.\n\nThe context below contains raw text excerpts of one or more papers, each tagged with a header  === <title> (<year>, <journal>) — <authors> ===.\n\nContext:\n{{#1778676584534.output#}}\n\nRequested paper identities (authoritative order):\n{{#1778800001033.paper_list#}}\n\nResponse policy:\n- **Global synthesis** first: 3–5 sentences comparing and contrasting themes across all papers.\n- Then, for each paper in numbered order:\n  - Header: **N. <full title>**\n  - Exactly 3 bullet points (method / key finding / implication), each at most 2 short sentences.\n  - If a paper's text is missing or says \"Insufficient textual context\", still emit the header and write: *Insufficient textual context — only metadata available.*\n  - STRICT GROUNDING GUARD: Do NOT fabricate methods or findings absent from the provided text.\n\nGeneral rules:\n- Answer in the same language as the user.\n- Output final answer text only. No <think> tags or\
+            \ hidden reasoning.\n- If context includes errors, explain clearly and suggest one concrete reformulation."
         reasoning_format: separated
         selected: false
         title: Summary LLM
         type: llm
         vision:
           enabled: false
-      height: 88
+      height: 87
       id: '17785945324000'
       position:
         x: 209.4752276329641
@@ -509,43 +512,9 @@ workflow:
       type: custom
       width: 242
     - data:
-        code: "import re\n\n\ndef _strip_think(text):\n    cleaned = str(text or \"\
-          \")\n    cleaned = re.sub(r\"<think>.*?</think>\", \"\", cleaned, flags=re.S\
-          \ | re.I)\n    cleaned = re.sub(r\"<think>.*$\", \"\", cleaned, flags=re.S\
-          \ | re.I)\n    return cleaned.strip()\n\n\ndef main(**kwargs):\n    parts\
-          \ = []\n    for key in (\n        \"extraction_text\",\n        \"entity_text\"\
-          ,\n        \"summary_text\",\n        \"knowledge_text\",\n        \"metadata_text\"\
-          ,\n    ):\n        text = kwargs.get(key)\n        if text:\n          \
-          \  cleaned = _strip_think(text)\n            if cleaned:\n             \
-          \   parts.append(cleaned)\n\n    # Fallback: use result_text from Metadata\
-          \ Query only if no meaningful LLM output\n    rt = kwargs.get(\"result_text\"\
-          )\n    if rt:\n        cleaned = _strip_think(rt)\n        is_meaningful\
-          \ = (\n            cleaned\n            and len(cleaned) > 50\n        \
-          \    and \"Insufficient context\" not in cleaned\n            and \"Keine\
-          \ Dokumente gefunden\" not in cleaned\n        )\n        # Check if all\
-          \ LLM outputs are weak (empty, short, or negative)\n        _WEAK_MARKERS\
-          \ = [\n            \"Insufficient\",\n            \"Keine Dokumente\",\n\
-          \            \"cannot determine\",\n            \"cannot answer\",\n   \
-          \         \"no relevant\",\n            \"does not contain\",\n        \
-          \    \"does not provide\",\n            \"not found\",\n            \"not\
-          \ available\",\n            \"unable to\",\n            \"I could not\"\
-          ,\n            \"I cannot\",\n        ]\n\n        def _is_weak(text):\n\
-          \            t = text.strip()\n            if len(t) < 40:\n           \
-          \     return True\n            t_lower = t.lower()\n            return any(m.lower()\
-          \ in t_lower for m in _WEAK_MARKERS)\n\n        # If no LLM parts OR all\
-          \ LLM parts are weak, use result_text\n        if is_meaningful and (not\
-          \ parts or all(_is_weak(p) for p in parts)):\n            parts = [cleaned]\
-          \  # Replace, don't append\n        elif not parts and cleaned:\n      \
-          \      parts.append(cleaned)\n    merged = \"\\n\\n\".join(parts).strip()\n\
-          \    if not merged:\n        merged = (\n            \"I could not generate\
-          \ a meaningful answer for your query. \"\n            \"This may be because\
-          \ the search was too broad or did not match any documents.\\n\\n\"\n   \
-          \         \"Suggestions:\\n\"\n            \"- For paper listings: try 'Papers\
-          \ by <author name>' or 'Papers from <year>'\\n\"\n            \"- For topic\
-          \ searches: try 'What is m6A?' or 'Which methods detect RNA modifications?'\\\
-          n\"\n            \"- For author lookups: try 'Who has worked on tRNA modifications?'\\\
-          n\"\n            \"- For entity lookups: try 'Which RNA modifications are\
-          \ most studied?'\"\n        )\n    return {\"cleaned_text\": merged}\n"
+        code: "import re\n\n\ndef _strip_think(text):\n    cleaned = str(text or \"\")\n    cleaned = re.sub(r\"<think>.*?</think>\", \"\", cleaned, flags=re.S | re.I)\n    cleaned = re.sub(r\"<think>.*$\", \"\", cleaned, flags=re.S | re.I)\n    return cleaned.strip()\n\n\ndef main(**kwargs):\n    parts = []\n    for key in (\n        \"extraction_text\",\n        \"entity_text\",\n        \"summary_text\",\n        \"knowledge_text\",\n        \"metadata_text\",\n    ):\n        text = kwargs.get(key)\n        if text:\n            cleaned = _strip_think(text)\n            if cleaned:\n                parts.append(cleaned)\n\n    # Fallback: use result_text from Metadata Query only if no meaningful LLM output\n    rt = kwargs.get(\"result_text\")\n    if rt:\n        cleaned = _strip_think(rt)\n        is_meaningful = (\n            cleaned\n            and len(cleaned) > 50\n            and \"Insufficient context\" not in cleaned\n            and \"Keine Dokumente gefunden\" not in cleaned\n\
+          \        )\n        # Check if all LLM outputs are weak (empty, short, or negative)\n        _WEAK_MARKERS = [\n            \"Insufficient\",\n            \"Keine Dokumente\",\n            \"cannot determine\",\n            \"cannot answer\",\n            \"no relevant\",\n            \"does not contain\",\n            \"does not provide\",\n            \"not found\",\n            \"not available\",\n            \"unable to\",\n            \"I could not\",\n            \"I cannot\",\n        ]\n\n        def _is_weak(text):\n            t = text.strip()\n            if len(t) < 40:\n                return True\n            t_lower = t.lower()\n            return any(m.lower() in t_lower for m in _WEAK_MARKERS)\n\n        # If no LLM parts OR all LLM parts are weak, use result_text\n        if is_meaningful and (not parts or all(_is_weak(p) for p in parts)):\n            parts = [cleaned]  # Replace, don't append\n        elif not parts and cleaned:\n            parts.append(cleaned)\n\
+          \    merged = \"\\n\\n\".join(parts).strip()\n    if not merged:\n        merged = (\n            \"I could not generate a meaningful answer for your query. \"\n            \"This may be because the search was too broad or did not match any documents.\\n\\n\"\n            \"Suggestions:\\n\"\n            \"- For paper listings: try 'Papers by <author name>' or 'Papers from <year>'\\n\"\n            \"- For topic searches: try 'What is m6A?' or 'Which methods detect RNA modifications?'\\n\"\n            \"- For author lookups: try 'Who has worked on tRNA modifications?'\\n\"\n            \"- For entity lookups: try 'Which RNA modifications are most studied?'\"\n        )\n    return {\"cleaned_text\": merged}\n"
         code_language: python3
         isInIteration: false
         isInLoop: false
@@ -587,7 +556,7 @@ workflow:
           - result_text
           value_type: string
           variable: result_text
-      height: 52
+      height: 51
       id: '1778800001013'
       position:
         x: 774.0487599774854
@@ -654,190 +623,20 @@ workflow:
       type: custom-iteration-start
       width: 44
     - data:
-        code: "import json\nimport os\nimport re\nfrom urllib.error import HTTPError,\
-          \ URLError\nfrom urllib.parse import urlencode\nfrom urllib.request import\
-          \ Request, urlopen\n\nCODE_VERSION = \"metadata_query_v2026-07-15_broad-query-fix\"\
-          \n\n_EMPTY_TOKENS = {\n    \"\",\n    \"null\",\n    \"none\",\n    \"unknown\"\
-          ,\n    \"n/a\",\n    \"na\",\n    \"[]\",\n    \"{}\",\n    \"-\",\n}\n\n\
-          \ndef _is_set(value) -> bool:\n    if value is None:\n        return False\n\
-          \    if isinstance(value, (int, float)) and value == 0:\n        return\
-          \ False\n    if isinstance(value, list):\n        return any(_is_set(item)\
-          \ for item in value)\n    if isinstance(value, dict):\n        return any(_is_set(v)\
-          \ for v in value.values())\n    text = str(value).strip()\n    return text.lower()\
-          \ not in _EMPTY_TOKENS\n\n\ndef _normalize_text(value) -> str:\n    if value\
-          \ is None:\n        return \"\"\n    text = str(value).strip()\n    return\
-          \ \"\" if text.lower() in _EMPTY_TOKENS else text\n\n\ndef _to_string_list(value)\
-          \ -> list[str]:\n    if value is None:\n        return []\n    if isinstance(value,\
-          \ list):\n        return [_normalize_text(v) for v in value if _is_set(v)]\n\
-          \    if isinstance(value, dict):\n        candidates = []\n        for key\
-          \ in (\"value\", \"name\", \"author\", \"authors\", \"text\"):\n       \
-          \     if key in value:\n                entry = value.get(key)\n       \
-          \         if isinstance(entry, list):\n                    candidates.extend(_to_string_list(entry))\n\
-          \                elif _is_set(entry):\n                    norm = _normalize_text(entry)\n\
-          \                    if norm:\n                        candidates.append(norm)\n\
-          \        if candidates:\n            return candidates\n        return [_normalize_text(v)\
-          \ for v in value.values() if _is_set(v)]\n    if _is_set(value):\n     \
-          \   normalized = _normalize_text(value)\n        return [normalized] if\
-          \ normalized else []\n    return []\n\n\ndef _author_variants(author: str)\
-          \ -> list[str]:\n    text = \" \".join(str(author).strip().split())\n  \
-          \  if not text:\n        return []\n\n    variants = [text]\n    parts =\
-          \ text.split(\" \")\n    if len(parts) >= 2:\n        first = parts[0].strip(\"\
-          .\")\n        last = parts[-1].strip(\".,;\")\n        if first and last:\n\
-          \            variants.append(f\"{first[0]}. {last}\")\n            variants.append(f\"\
-          {first[0]} {last}\")\n            variants.append(last)\n\n    seen = set()\n\
-          \    deduped = []\n    for item in variants:\n        key = item.lower()\n\
-          \        if key in seen:\n            continue\n        seen.add(key)\n\
-          \        deduped.append(item)\n    return deduped\n\n\ndef _build_headers(api_key:\
-          \ str) -> dict:\n    return {\n        \"Authorization\": f\"Bearer {api_key}\"\
-          ,\n        \"Content-Type\": \"application/json\",\n    }\n\n\ndef _run_json_get(\n\
-          \    url: str, headers: dict, timeout: int = 30\n) -> tuple[dict, str |\
-          \ None]:\n    request = Request(url=url, headers=headers, method=\"GET\"\
-          )\n    try:\n        with urlopen(request, timeout=timeout) as response:\n\
-          \            body = response.read().decode(\"utf-8\", errors=\"replace\"\
-          )\n            status = response.getcode()\n    except HTTPError as exc:\n\
-          \        body = exc.read().decode(\"utf-8\", errors=\"replace\")\n     \
-          \   return {}, f\"Dify API Error {exc.code}: {body}\"\n    except URLError\
-          \ as exc:\n        return {}, f\"Verbindungsfehler zur Dify API: {exc}\"\
-          \n    except Exception as exc:\n        return {}, f\"Unbekannter Dify API-Fehler:\
-          \ {exc}\"\n\n    if status != 200:\n        return {}, f\"Dify API Error\
-          \ {status}: {body}\"\n\n    try:\n        return json.loads(body), None\n\
-          \    except ValueError:\n        return {}, f\"Ungueltige JSON-Antwort:\
-          \ {body}\"\n\n\ndef _extract_items(payload: dict) -> list[dict]:\n    if\
-          \ isinstance(payload, dict):\n        if isinstance(payload.get(\"data\"\
-          ), list):\n            return payload.get(\"data\", [])\n        if isinstance(payload.get(\"\
-          documents\"), list):\n            return payload.get(\"documents\", [])\n\
-          \    return []\n\n\ndef _metadata_to_dict(detail: dict) -> dict[str, str]:\n\
-          \    result = {}\n    for item in detail.get(\"doc_metadata\", []) or []:\n\
-          \        name = str((item or {}).get(\"name\") or \"\").strip().lower()\n\
-          \        value = (item or {}).get(\"value\")\n        if name:\n       \
-          \     result[name] = \"\" if value is None else str(value).strip()\n   \
-          \ return result\n\n\ndef _matches_filters(meta: dict[str, str], year, authors,\
-          \ journal, title) -> bool:\n    meta_year = _normalize_text(meta.get(\"\
-          year\", \"\"))\n    meta_authors = _normalize_text(meta.get(\"authors\"\
-          , \"\"))\n    meta_journal = _normalize_text(meta.get(\"journal\", \"\"\
-          ))\n    meta_title = _normalize_text(meta.get(\"title\", \"\"))\n\n    year_text\
-          \ = _normalize_text(year)\n    journal_text = _normalize_text(journal)\n\
-          \    title_text = _normalize_text(title)\n\n    if _is_set(year_text) and\
-          \ year_text.lower() != meta_year.lower():\n        return False\n\n    if\
-          \ _is_set(journal_text) and journal_text.lower() not in meta_journal.lower():\n\
-          \        return False\n\n    if _is_set(title_text) and title_text.lower()\
-          \ not in meta_title.lower():\n        return False\n\n    author_inputs\
-          \ = _to_string_list(authors)\n    for author in author_inputs:\n       \
-          \ variants = [v.lower() for v in _author_variants(author)]\n        if not\
-          \ any(v in meta_authors.lower() for v in variants):\n            return\
-          \ False\n\n    return True\n\n\ndef _sanitize_year_filter(value) -> str:\n\
-          \    text = _normalize_text(value)\n    if not text:\n        return \"\"\
-          \n    return text if re.fullmatch(r\"(19|20)\\d{2}\", text) else \"\"\n\n\
-          \ndef _sanitize_free_text_filter(value, max_len: int = 120) -> str:\n  \
-          \  text = _normalize_text(value)\n    if not text:\n        return \"\"\n\
-          \    if len(text) > max_len:\n        return \"\"\n    if \"?\" in text:\n\
-          \        return \"\"\n    lower = text.lower()\n    noisy_markers = [\"\
-          which documents\", \"co-authored\", \"co-authored by\", \"authored by\"\
-          ]\n    if any(marker in lower for marker in noisy_markers):\n        return\
-          \ \"\"\n    return text\n\n\ndef _collect_documents(\n    api_base: str,\
-          \ dataset_id: str, headers: dict\n) -> tuple[list[dict], list[str]]:\n \
-          \   errors = []\n    docs = []\n\n    all_items = []\n    for page in range(1,\
-          \ 21):\n        q = urlencode({\"page\": page, \"limit\": 100})\n      \
-          \  list_url = f\"{api_base}/datasets/{dataset_id}/documents?{q}\"\n    \
-          \    payload, err = _run_json_get(list_url, headers=headers)\n        if\
-          \ err:\n            if page == 1:\n                return [], [err]\n  \
-          \          break\n\n        items = _extract_items(payload)\n        if\
-          \ not items:\n            break\n        all_items.extend(items)\n     \
-          \   if len(items) < 100:\n            break\n\n    for item in all_items:\n\
-          \        doc_id = str((item or {}).get(\"id\") or \"\").strip()\n      \
-          \  if not doc_id:\n            continue\n\n        detail_url = f\"{api_base}/datasets/{dataset_id}/documents/{doc_id}?{urlencode({'metadata':\
-          \ 'all'})}\"\n        detail, detail_err = _run_json_get(detail_url, headers=headers)\n\
-          \        if detail_err:\n            errors.append(f\"Dokument {doc_id}:\
-          \ {detail_err}\")\n            continue\n\n        meta = _metadata_to_dict(detail)\n\
-          \        docs.append(\n            {\n                \"id\": doc_id,\n\
-          \                \"title\": meta.get(\"title\") or str(detail.get(\"name\"\
-          ) or \"\").strip(),\n                \"authors\": meta.get(\"authors\",\
-          \ \"\"),\n                \"year\": meta.get(\"year\", \"\"),\n        \
-          \        \"journal\": meta.get(\"journal\", \"\"),\n            }\n    \
-          \    )\n\n    return docs, errors\n\n\ndef _render_result(matches: list[dict],\
-          \ total_docs: int) -> str:\n    MAX_RESULTS = 30  # Dify array output limit\n\
-          \    if not matches:\n        return (\n            \"Keine Dokumente gefunden.\\\
-          n\"\n            \"Tipps:\\n\"\n            \"- Autor:innen-Namen ausschreiben\
-          \ (z.B. 'Christoph Dieterich')\\n\"\n            \"- Nachname allein reicht\
-          \ oft (z.B. 'Dieterich')\\n\"\n            \"- Jahr als vierstellige Zahl\
-          \ angeben (z.B. '2024')\\n\"\n            f\"Code-Version: {CODE_VERSION};\
-          \ Dokumente geprueft: {total_docs}; Treffer: 0\"\n        )\n\n    truncated\
-          \ = len(matches) > MAX_RESULTS\n    display_docs = matches[:MAX_RESULTS]\
-          \ if truncated else matches\n\n    lines = []\n    for idx, doc in enumerate(display_docs,\
-          \ start=1):\n        lines.append(\n            f\"{idx}. {doc['title']}\
-          \ | {doc['authors']} | {doc['year']} | {doc['journal']} | {doc.get('id',\
-          \ '')}\"\n        )\n    header = (\n        f\"Code-Version: {CODE_VERSION};\
-          \ Dokumente geprueft: {total_docs}; \"\n        f\"Treffer: {len(matches)}\"\
-          \n    )\n    result = header + \"\\n\" + \"\\n\".join(lines)\n    if truncated:\n\
-          \        result += (\n            f\"\\n\\n(Es werden nur die ersten {MAX_RESULTS}\
-          \ von {len(matches)} Ergebnissen angezeigt. \"\n            \"Bitte die\
-          \ Suche mit einem Autor:innen-Namen, Jahr oder Journal einschränken.)\"\n\
-          \        )\n    return result\n\n\ndef main(\n    year=None,\n    authors=None,\n\
-          \    journal=None,\n    title=None,\n    paper_list=None,\n    list_mode=None,\n\
-          \    api_key_input=None,\n    dataset_id_input=None,\n):\n    api_base =\
-          \ (os.getenv(\"DIFY_API_URL\") or \"http://rmap-chatbot-demo-dify/v1\").rstrip(\n\
-          \        \"/\"\n    )\n    dataset_id = os.getenv(\"DIFY_DATASET_ID\") or\
-          \ \"<your-dataset-id>\"\n    api_key = os.getenv(\"DIFY_API_KEY\"\
-          ) or api_key_input or \"\"\n\n    if not _is_set(api_base) or not _is_set(dataset_id)\
-          \ or not _is_set(api_key):\n        return {\n            \"result\": (\n\
-          \                \"Dify API Konfiguration unvollstaendig. \"\n         \
-          \       \"Erwarte DIFY_API_URL, DIFY_DATASET_ID und DIFY_API_KEY.\"\n  \
-          \          )\n        }\n\n    # Extract filter values from paper_list if\
-          \ passed (Parse Router Output)\n    if isinstance(paper_list, list) and\
-          \ len(paper_list) > 0:\n        first = paper_list[0]\n        if isinstance(first,\
-          \ dict):\n            if not _is_set(authors):\n                authors\
-          \ = first.get(\"authors\", \"\")\n            if not _is_set(year):\n  \
-          \              year = first.get(\"year\", \"\")\n            if not _is_set(journal):\n\
-          \                journal = first.get(\"journal\", \"\")\n            if\
-          \ not _is_set(title):\n                title = first.get(\"title\", \"\"\
-          )\n\n    headers = _build_headers(str(api_key).strip())\n    docs, errors\
-          \ = _collect_documents(str(api_base), str(dataset_id).strip(), headers)\n\
-          \n    year_filter = _sanitize_year_filter(year)\n    journal_filter = _sanitize_free_text_filter(journal,\
-          \ max_len=80)\n    title_filter = _sanitize_free_text_filter(title, max_len=160)\n\
-          \n    has_any_filter = any(\n        [\n            _is_set(year_filter),\n\
-          \            _is_set(journal_filter),\n            _is_set(title_filter),\n\
-          \            _is_set(authors),\n        ]\n    )\n\n    # No-filter query\
-          \ → return all documents or distinct authors\n    if not has_any_filter:\n\
-          \        if str(list_mode or \"\").strip().lower() == \"authors\":\n   \
-          \         # Extract distinct authors from all docs\n            author_set\
-          \ = set()\n            for d in docs:\n                for a in d.get(\"\
-          authors\", \"\").split(\",\"):\n                    a = a.strip()\n    \
-          \                if a and len(a) > 2:\n                        author_set.add(a)\n\
-          \            author_list = sorted(author_set)\n            total = len(author_list)\n\
-          \            display = author_list[:100]\n            lines = [f\"{i}. {a}\"\
-          \ for i, a in enumerate(display, 1)]\n            text = f\"Distinct authors\
-          \ in dataset: {total}\\n\\n\" + \"\\n\".join(lines)\n            if total\
-          \ > 100:\n                text += f\"\\n\\n(Showing first 100 of {total}\
-          \ authors. Use 'Papers by <name>' to find specific authors.)\"\n       \
-          \     return {\n                \"result\": text.split(\"\\n\")[:30],\n\
-          \                \"result_text\": text,\n            }\n        else:\n\
-          \            uniq = {}\n            for d in docs:\n                k =\
-          \ (\n                    d.get(\"title\", \"\").strip().lower(),\n     \
-          \               d.get(\"authors\", \"\").strip().lower(),\n            \
-          \        d.get(\"year\", \"\").strip(),\n                    d.get(\"journal\"\
-          , \"\").strip().lower(),\n                )\n                if k not in\
-          \ uniq:\n                    uniq[k] = d\n            all_docs = list(uniq.values())\n\
-          \            total = len(all_docs)\n            lines = [\n            \
-          \    f\"{i}. {d['title']}, {d['year']}, {d['journal']}\"\n             \
-          \   for i, d in enumerate(all_docs, 1)\n            ]\n            text\
-          \ = f\"Total papers in dataset: {total}\\n\\n\" + \"\\n\".join(lines)\n\
-          \            return {\n                \"result\": text.split(\"\\n\")[:30],\n\
-          \                \"result_text\": text,\n            }\n\n    matches =\
-          \ []\n    for doc in docs:\n        if _matches_filters(doc, year_filter,\
-          \ authors, journal_filter, title_filter):\n            matches.append(doc)\n\
-          \n    unique = {}\n    for doc in matches:\n        key = (\n          \
-          \  (doc.get(\"title\") or \"\").strip().lower(),\n            (doc.get(\"\
-          authors\") or \"\").strip().lower(),\n            (doc.get(\"year\") or\
-          \ \"\").strip(),\n            (doc.get(\"journal\") or \"\").strip().lower(),\n\
-          \        )\n        if key not in unique:\n            unique[key] = doc\n\
-          \    final_docs = list(unique.values())\n\n    result_text = _render_result(final_docs,\
-          \ total_docs=len(docs))\n    if errors:\n        result_text += \"\\nFehlerdetails:\\\
-          n\" + \"\\n\".join(f\"- {e}\" for e in errors[:8])\n    # Cap result array\
-          \ at 30 elements (Dify limit); split only display lines\n    result_lines\
-          \ = result_text.split(\"\\n\") if result_text else []\n    if len(result_lines)\
-          \ > 30:\n        result_lines = result_lines[:30]\n    return {\n      \
-          \  \"result\": result_lines,\n        \"result_text\": result_text,\n  \
-          \  }\n"
+        code: "import json\nimport os\nimport re\nfrom urllib.error import HTTPError, URLError\nfrom urllib.parse import urlencode\nfrom urllib.request import Request, urlopen\n\nCODE_VERSION = \"metadata_query_v2026-07-15_broad-query-fix\"\n\n_EMPTY_TOKENS = {\n    \"\",\n    \"null\",\n    \"none\",\n    \"unknown\",\n    \"n/a\",\n    \"na\",\n    \"[]\",\n    \"{}\",\n    \"-\",\n}\n\n\ndef _is_set(value) -> bool:\n    if value is None:\n        return False\n    if isinstance(value, (int, float)) and value == 0:\n        return False\n    if isinstance(value, list):\n        return any(_is_set(item) for item in value)\n    if isinstance(value, dict):\n        return any(_is_set(v) for v in value.values())\n    text = str(value).strip()\n    return text.lower() not in _EMPTY_TOKENS\n\n\ndef _normalize_text(value) -> str:\n    if value is None:\n        return \"\"\n    text = str(value).strip()\n    return \"\" if text.lower() in _EMPTY_TOKENS else text\n\n\ndef _to_string_list(value)\
+          \ -> list[str]:\n    if value is None:\n        return []\n    if isinstance(value, list):\n        return [_normalize_text(v) for v in value if _is_set(v)]\n    if isinstance(value, dict):\n        candidates = []\n        for key in (\"value\", \"name\", \"author\", \"authors\", \"text\"):\n            if key in value:\n                entry = value.get(key)\n                if isinstance(entry, list):\n                    candidates.extend(_to_string_list(entry))\n                elif _is_set(entry):\n                    norm = _normalize_text(entry)\n                    if norm:\n                        candidates.append(norm)\n        if candidates:\n            return candidates\n        return [_normalize_text(v) for v in value.values() if _is_set(v)]\n    if _is_set(value):\n        normalized = _normalize_text(value)\n        return [normalized] if normalized else []\n    return []\n\n\ndef _author_variants(author: str) -> list[str]:\n    text = \" \".join(str(author).strip().split())\n\
+          \    if not text:\n        return []\n\n    variants = [text]\n    parts = text.split(\" \")\n    if len(parts) >= 2:\n        first = parts[0].strip(\".\")\n        last = parts[-1].strip(\".,;\")\n        if first and last:\n            variants.append(f\"{first[0]}. {last}\")\n            variants.append(f\"{first[0]} {last}\")\n            variants.append(last)\n\n    seen = set()\n    deduped = []\n    for item in variants:\n        key = item.lower()\n        if key in seen:\n            continue\n        seen.add(key)\n        deduped.append(item)\n    return deduped\n\n\ndef _build_headers(api_key: str) -> dict:\n    return {\n        \"Authorization\": f\"Bearer {api_key}\",\n        \"Content-Type\": \"application/json\",\n    }\n\n\ndef _run_json_get(\n    url: str, headers: dict, timeout: int = 30\n) -> tuple[dict, str | None]:\n    request = Request(url=url, headers=headers, method=\"GET\")\n    try:\n        with urlopen(request, timeout=timeout) as response:\n  \
+          \          body = response.read().decode(\"utf-8\", errors=\"replace\")\n            status = response.getcode()\n    except HTTPError as exc:\n        body = exc.read().decode(\"utf-8\", errors=\"replace\")\n        return {}, f\"Dify API Error {exc.code}: {body}\"\n    except URLError as exc:\n        return {}, f\"Verbindungsfehler zur Dify API: {exc}\"\n    except Exception as exc:\n        return {}, f\"Unbekannter Dify API-Fehler: {exc}\"\n\n    if status != 200:\n        return {}, f\"Dify API Error {status}: {body}\"\n\n    try:\n        return json.loads(body), None\n    except ValueError:\n        return {}, f\"Ungueltige JSON-Antwort: {body}\"\n\n\ndef _extract_items(payload: dict) -> list[dict]:\n    if isinstance(payload, dict):\n        if isinstance(payload.get(\"data\"), list):\n            return payload.get(\"data\", [])\n        if isinstance(payload.get(\"documents\"), list):\n            return payload.get(\"documents\", [])\n    return []\n\n\ndef _metadata_to_dict(detail:\
+          \ dict) -> dict[str, str]:\n    result = {}\n    for item in detail.get(\"doc_metadata\", []) or []:\n        name = str((item or {}).get(\"name\") or \"\").strip().lower()\n        value = (item or {}).get(\"value\")\n        if name:\n            result[name] = \"\" if value is None else str(value).strip()\n    return result\n\n\ndef _matches_filters(meta: dict[str, str], year, authors, journal, title) -> bool:\n    meta_year = _normalize_text(meta.get(\"year\", \"\"))\n    meta_authors = _normalize_text(meta.get(\"authors\", \"\"))\n    meta_journal = _normalize_text(meta.get(\"journal\", \"\"))\n    meta_title = _normalize_text(meta.get(\"title\", \"\"))\n\n    year_text = _normalize_text(year)\n    journal_text = _normalize_text(journal)\n    title_text = _normalize_text(title)\n\n    if _is_set(year_text) and year_text.lower() != meta_year.lower():\n        return False\n\n    if _is_set(journal_text) and journal_text.lower() not in meta_journal.lower():\n        return False\n\
+          \n    if _is_set(title_text) and title_text.lower() not in meta_title.lower():\n        return False\n\n    author_inputs = _to_string_list(authors)\n    for author in author_inputs:\n        variants = [v.lower() for v in _author_variants(author)]\n        if not any(v in meta_authors.lower() for v in variants):\n            return False\n\n    return True\n\n\ndef _sanitize_year_filter(value) -> str:\n    text = _normalize_text(value)\n    if not text:\n        return \"\"\n    return text if re.fullmatch(r\"(19|20)\\d{2}\", text) else \"\"\n\n\ndef _sanitize_free_text_filter(value, max_len: int = 120) -> str:\n    text = _normalize_text(value)\n    if not text:\n        return \"\"\n    if len(text) > max_len:\n        return \"\"\n    if \"?\" in text:\n        return \"\"\n    lower = text.lower()\n    noisy_markers = [\"which documents\", \"co-authored\", \"co-authored by\", \"authored by\"]\n    if any(marker in lower for marker in noisy_markers):\n        return \"\"\n\
+          \    return text\n\n\ndef _collect_documents(\n    api_base: str, dataset_id: str, headers: dict\n) -> tuple[list[dict], list[str]]:\n    errors = []\n    docs = []\n\n    all_items = []\n    for page in range(1, 21):\n        q = urlencode({\"page\": page, \"limit\": 100})\n        list_url = f\"{api_base}/datasets/{dataset_id}/documents?{q}\"\n        payload, err = _run_json_get(list_url, headers=headers)\n        if err:\n            if page == 1:\n                return [], [err]\n            break\n\n        items = _extract_items(payload)\n        if not items:\n            break\n        all_items.extend(items)\n        if len(items) < 100:\n            break\n\n    for item in all_items:\n        doc_id = str((item or {}).get(\"id\") or \"\").strip()\n        if not doc_id:\n            continue\n\n        detail_url = f\"{api_base}/datasets/{dataset_id}/documents/{doc_id}?{urlencode({'metadata': 'all'})}\"\n        detail, detail_err = _run_json_get(detail_url, headers=headers)\n\
+          \        if detail_err:\n            errors.append(f\"Dokument {doc_id}: {detail_err}\")\n            continue\n\n        meta = _metadata_to_dict(detail)\n        docs.append(\n            {\n                \"id\": doc_id,\n                \"title\": meta.get(\"title\") or str(detail.get(\"name\") or \"\").strip(),\n                \"authors\": meta.get(\"authors\", \"\"),\n                \"year\": meta.get(\"year\", \"\"),\n                \"journal\": meta.get(\"journal\", \"\"),\n            }\n        )\n\n    return docs, errors\n\n\ndef _render_result(matches: list[dict], total_docs: int) -> str:\n    MAX_RESULTS = 30  # Dify array output limit\n    if not matches:\n        return (\n            \"Keine Dokumente gefunden.\\n\"\n            \"Tipps:\\n\"\n            \"- Autor:innen-Namen ausschreiben (z.B. 'Christoph Dieterich')\\n\"\n            \"- Nachname allein reicht oft (z.B. 'Dieterich')\\n\"\n            \"- Jahr als vierstellige Zahl angeben (z.B. '2024')\\\
+          n\"\n            f\"Code-Version: {CODE_VERSION}; Dokumente geprueft: {total_docs}; Treffer: 0\"\n        )\n\n    truncated = len(matches) > MAX_RESULTS\n    display_docs = matches[:MAX_RESULTS] if truncated else matches\n\n    lines = []\n    for idx, doc in enumerate(display_docs, start=1):\n        lines.append(\n            f\"{idx}. {doc['title']} | {doc['authors']} | {doc['year']} | {doc['journal']} | {doc.get('id', '')}\"\n        )\n    header = (\n        f\"Code-Version: {CODE_VERSION}; Dokumente geprueft: {total_docs}; \"\n        f\"Treffer: {len(matches)}\"\n    )\n    result = header + \"\\n\" + \"\\n\".join(lines)\n    if truncated:\n        result += (\n            f\"\\n\\n(Es werden nur die ersten {MAX_RESULTS} von {len(matches)} Ergebnissen angezeigt. \"\n            \"Bitte die Suche mit einem Autor:innen-Namen, Jahr oder Journal einschränken.)\"\n        )\n    return result\n\n\ndef main(\n    year=None,\n    authors=None,\n    journal=None,\n    title=None,\n\
+          \    paper_list=None,\n    list_mode=None,\n    api_key_input=None,\n    dataset_id_input=None,\n):\n    api_base = (os.getenv(\"DIFY_API_URL\") or \"http://rmap-chatbot-demo-dify/v1\").rstrip(\n        \"/\"\n    )\n    dataset_id = os.getenv(\"DIFY_DATASET_ID\") or \"<your-dataset-id>\"\n    api_key = os.getenv(\"DIFY_API_KEY\") or api_key_input or \"\"\n\n    if not _is_set(api_base) or not _is_set(dataset_id) or not _is_set(api_key):\n        return {\n            \"result\": (\n                \"Dify API Konfiguration unvollstaendig. \"\n                \"Erwarte DIFY_API_URL, DIFY_DATASET_ID und DIFY_API_KEY.\"\n            )\n        }\n\n    # Extract filter values from paper_list if passed (Parse Router Output)\n    if isinstance(paper_list, list) and len(paper_list) > 0:\n        first = paper_list[0]\n        if isinstance(first, dict):\n            if not _is_set(authors):\n                authors = first.get(\"authors\", \"\")\n            if not\
+          \ _is_set(year):\n                year = first.get(\"year\", \"\")\n            if not _is_set(journal):\n                journal = first.get(\"journal\", \"\")\n            if not _is_set(title):\n                title = first.get(\"title\", \"\")\n\n    headers = _build_headers(str(api_key).strip())\n    docs, errors = _collect_documents(str(api_base), str(dataset_id).strip(), headers)\n\n    year_filter = _sanitize_year_filter(year)\n    journal_filter = _sanitize_free_text_filter(journal, max_len=80)\n    title_filter = _sanitize_free_text_filter(title, max_len=160)\n\n    has_any_filter = any(\n        [\n            _is_set(year_filter),\n            _is_set(journal_filter),\n            _is_set(title_filter),\n            _is_set(authors),\n        ]\n    )\n\n    # No-filter query → return all documents or distinct authors\n    if not has_any_filter:\n        if str(list_mode or \"\").strip().lower() == \"authors\":\n            # Extract distinct authors from all docs\n\
+          \            author_set = set()\n            for d in docs:\n                for a in d.get(\"authors\", \"\").split(\",\"):\n                    a = a.strip()\n                    if a and len(a) > 2:\n                        author_set.add(a)\n            author_list = sorted(author_set)\n            total = len(author_list)\n            display = author_list[:100]\n            lines = [f\"{i}. {a}\" for i, a in enumerate(display, 1)]\n            text = f\"Distinct authors in dataset: {total}\\n\\n\" + \"\\n\".join(lines)\n            if total > 100:\n                text += f\"\\n\\n(Showing first 100 of {total} authors. Use 'Papers by <name>' to find specific authors.)\"\n            return {\n                \"result\": text.split(\"\\n\")[:30],\n                \"result_text\": text,\n            }\n        else:\n            uniq = {}\n            for d in docs:\n                k = (\n                    d.get(\"title\", \"\").strip().lower(),\n                    d.get(\"\
+          authors\", \"\").strip().lower(),\n                    d.get(\"year\", \"\").strip(),\n                    d.get(\"journal\", \"\").strip().lower(),\n                )\n                if k not in uniq:\n                    uniq[k] = d\n            all_docs = list(uniq.values())\n            total = len(all_docs)\n            lines = [\n                f\"{i}. {d['title']}, {d['year']}, {d['journal']}\"\n                for i, d in enumerate(all_docs, 1)\n            ]\n            text = f\"Total papers in dataset: {total}\\n\\n\" + \"\\n\".join(lines)\n            return {\n                \"result\": text.split(\"\\n\")[:30],\n                \"result_text\": text,\n            }\n\n    matches = []\n    for doc in docs:\n        if _matches_filters(doc, year_filter, authors, journal_filter, title_filter):\n            matches.append(doc)\n\n    unique = {}\n    for doc in matches:\n        key = (\n            (doc.get(\"title\") or \"\").strip().lower(),\n            (doc.get(\"\
+          authors\") or \"\").strip().lower(),\n            (doc.get(\"year\") or \"\").strip(),\n            (doc.get(\"journal\") or \"\").strip().lower(),\n        )\n        if key not in unique:\n            unique[key] = doc\n    final_docs = list(unique.values())\n\n    result_text = _render_result(final_docs, total_docs=len(docs))\n    if errors:\n        result_text += \"\\nFehlerdetails:\\n\" + \"\\n\".join(f\"- {e}\" for e in errors[:8])\n    # Cap result array at 30 elements (Dify limit); split only display lines\n    result_lines = result_text.split(\"\\n\") if result_text else []\n    if len(result_lines) > 30:\n        result_lines = result_lines[:30]\n    return {\n        \"result\": result_lines,\n        \"result_text\": result_text,\n    }\n"
         code_language: python3
         isInIteration: false
         isInLoop: false
@@ -872,7 +671,7 @@ workflow:
           - DIFY_DATASET_ID
           value_type: string
           variable: dataset_id_input
-      height: 52
+      height: 51
       id: '17786780698570'
       position:
         x: -1072.0495596626015
@@ -886,49 +685,10 @@ workflow:
       type: custom
       width: 242
     - data:
-        code: "def _normalize_obj(item):\n    if not isinstance(item, dict):\n   \
-          \     return None\n    title = str(item.get(\"title\") or \"\").strip()\n\
-          \    authors = str(item.get(\"authors\") or item.get(\"author\") or \"\"\
-          ).strip()\n    year = str(item.get(\"year\") or \"\").strip()\n    journal\
-          \ = str(item.get(\"journal\") or \"\").strip()\n    doc_id = str(item.get(\"\
-          doc_id\") or \"\").strip()\n    if not any([title, authors, year, journal]):\n\
-          \        return None\n    return {\n        \"title\": title,\n        \"\
-          authors\": authors,\n        \"year\": year,\n        \"journal\": journal,\n\
-          \        \"doc_id\": doc_id,\n    }\n\n\ndef _parse_from_iteration_output(iteration_output):\n\
-          \    parsed = []\n    if not isinstance(iteration_output, list):\n     \
-          \   return parsed\n\n    for block in iteration_output:\n        if not\
-          \ isinstance(block, str):\n            continue\n        for line in block.splitlines():\n\
-          \            line = line.strip()\n            if not line:\n           \
-          \     continue\n            if \"|\" not in line:\n                continue\n\
-          \            # Strip leading numbering like \"1. \"\n            if \".\
-          \ \" in line:\n                _, _, line = line.partition(\". \")\n   \
-          \         parts = [p.strip() for p in line.split(\"|\")]\n            #\
-          \ Accept 3-5 parts: title | [authors] | year | journal | [doc_id]\n    \
-          \        if len(parts) < 3 or len(parts) > 5:\n                continue\n\
-          \            obj_dict = {}\n            if len(parts) == 3:\n          \
-          \      obj_dict = {\"title\": parts[0], \"year\": parts[1], \"journal\"\
-          : parts[2]}\n            elif len(parts) == 4:\n                obj_dict\
-          \ = {\n                    \"title\": parts[0],\n                    \"\
-          authors\": parts[1],\n                    \"year\": parts[2],\n        \
-          \            \"journal\": parts[3],\n                }\n            else:\
-          \  # 5 parts\n                obj_dict = {\n                    \"title\"\
-          : parts[0],\n                    \"authors\": parts[1],\n              \
-          \      \"year\": parts[2],\n                    \"journal\": parts[3],\n\
-          \                    \"doc_id\": parts[4],\n                }\n        \
-          \    obj = _normalize_obj(obj_dict)\n            if obj is not None:\n \
-          \               parsed.append(obj)\n    return parsed\n\n\ndef _dedupe(items):\n\
-          \    unique = {}\n    for item in items:\n        obj = _normalize_obj(item)\n\
-          \        if obj is None:\n            continue\n        key = (\n      \
-          \      obj[\"title\"].lower(),\n            obj[\"authors\"].lower(),\n\
-          \            obj[\"year\"],\n            obj[\"journal\"].lower(),\n   \
-          \     )\n        if key not in unique:\n            unique[key] = obj\n\
-          \    return list(unique.values())\n\n\ndef main(iteration_output=None, memory=None):\n\
-          \    parsed_docs = _dedupe(_parse_from_iteration_output(iteration_output))\n\
-          \    if parsed_docs:\n        return {\"memory\": parsed_docs}\n\n    #\
-          \ If parsing failed, return existing memory (don't overwrite with empty)\n\
-          \    existing = memory if isinstance(memory, list) else []\n    if existing:\n\
-          \        return {\"memory\": _dedupe(existing)}\n\n    # Last resort: return\
-          \ empty\n    return {\"memory\": []}\n"
+        code: "def _normalize_obj(item):\n    if not isinstance(item, dict):\n        return None\n    title = str(item.get(\"title\") or \"\").strip()\n    authors = str(item.get(\"authors\") or item.get(\"author\") or \"\").strip()\n    year = str(item.get(\"year\") or \"\").strip()\n    journal = str(item.get(\"journal\") or \"\").strip()\n    doc_id = str(item.get(\"doc_id\") or \"\").strip()\n    if not any([title, authors, year, journal]):\n        return None\n    return {\n        \"title\": title,\n        \"authors\": authors,\n        \"year\": year,\n        \"journal\": journal,\n        \"doc_id\": doc_id,\n    }\n\n\ndef _parse_from_iteration_output(iteration_output):\n    parsed = []\n    if not isinstance(iteration_output, list):\n        return parsed\n\n    for block in iteration_output:\n        if not isinstance(block, str):\n            continue\n        for line in block.splitlines():\n            line = line.strip()\n            if not line:\n                continue\n\
+          \            if \"|\" not in line:\n                continue\n            # Strip leading numbering like \"1. \"\n            if \". \" in line:\n                _, _, line = line.partition(\". \")\n            parts = [p.strip() for p in line.split(\"|\")]\n            # Accept 3-5 parts: title | [authors] | year | journal | [doc_id]\n            if len(parts) < 3 or len(parts) > 5:\n                continue\n            obj_dict = {}\n            if len(parts) == 3:\n                obj_dict = {\"title\": parts[0], \"year\": parts[1], \"journal\": parts[2]}\n            elif len(parts) == 4:\n                obj_dict = {\n                    \"title\": parts[0],\n                    \"authors\": parts[1],\n                    \"year\": parts[2],\n                    \"journal\": parts[3],\n                }\n            else:  # 5 parts\n                obj_dict = {\n                    \"title\": parts[0],\n                    \"authors\": parts[1],\n                    \"year\"\
+          : parts[2],\n                    \"journal\": parts[3],\n                    \"doc_id\": parts[4],\n                }\n            obj = _normalize_obj(obj_dict)\n            if obj is not None:\n                parsed.append(obj)\n    return parsed\n\n\ndef _dedupe(items):\n    unique = {}\n    for item in items:\n        obj = _normalize_obj(item)\n        if obj is None:\n            continue\n        key = (\n            obj[\"title\"].lower(),\n            obj[\"authors\"].lower(),\n            obj[\"year\"],\n            obj[\"journal\"].lower(),\n        )\n        if key not in unique:\n            unique[key] = obj\n    return list(unique.values())\n\n\ndef main(iteration_output=None, memory=None):\n    parsed_docs = _dedupe(_parse_from_iteration_output(iteration_output))\n    if parsed_docs:\n        return {\"memory\": parsed_docs}\n\n    # If parsing failed, return existing memory (don't overwrite with empty)\n    existing = memory if isinstance(memory, list) else []\n\
+          \    if existing:\n        return {\"memory\": _dedupe(existing)}\n\n    # Last resort: return empty\n    return {\"memory\": []}\n"
         code_language: python3
         isInIteration: false
         isInLoop: false
@@ -950,7 +710,7 @@ workflow:
           - memory
           value_type: array[object]
           variable: memory
-      height: 52
+      height: 51
       id: '1778800001002'
       position:
         x: -628.8956719908643
@@ -981,7 +741,7 @@ workflow:
         title: Persist Paper Memory
         type: assigner
         version: '2'
-      height: 84
+      height: 83
       id: '1778800001003'
       position:
         x: -319.81031088124917
@@ -995,49 +755,10 @@ workflow:
       type: custom
       width: 242
     - data:
-        code: "def _normalize_obj(item):\n    if not isinstance(item, dict):\n   \
-          \     return None\n    title = str(item.get(\"title\") or \"\").strip()\n\
-          \    authors = str(item.get(\"authors\") or item.get(\"author\") or \"\"\
-          ).strip()\n    year = str(item.get(\"year\") or \"\").strip()\n    journal\
-          \ = str(item.get(\"journal\") or \"\").strip()\n    doc_id = str(item.get(\"\
-          doc_id\") or \"\").strip()\n    if not any([title, authors, year, journal]):\n\
-          \        return None\n    return {\n        \"title\": title,\n        \"\
-          authors\": authors,\n        \"year\": year,\n        \"journal\": journal,\n\
-          \        \"doc_id\": doc_id,\n    }\n\n\ndef _parse_from_iteration_output(iteration_output):\n\
-          \    parsed = []\n    if not isinstance(iteration_output, list):\n     \
-          \   return parsed\n\n    for block in iteration_output:\n        if not\
-          \ isinstance(block, str):\n            continue\n        for line in block.splitlines():\n\
-          \            line = line.strip()\n            if not line:\n           \
-          \     continue\n            if \"|\" not in line:\n                continue\n\
-          \            # Strip leading numbering like \"1. \"\n            if \".\
-          \ \" in line:\n                _, _, line = line.partition(\". \")\n   \
-          \         parts = [p.strip() for p in line.split(\"|\")]\n            #\
-          \ Accept 3-5 parts: title | [authors] | year | journal | [doc_id]\n    \
-          \        if len(parts) < 3 or len(parts) > 5:\n                continue\n\
-          \            obj_dict = {}\n            if len(parts) == 3:\n          \
-          \      obj_dict = {\"title\": parts[0], \"year\": parts[1], \"journal\"\
-          : parts[2]}\n            elif len(parts) == 4:\n                obj_dict\
-          \ = {\n                    \"title\": parts[0],\n                    \"\
-          authors\": parts[1],\n                    \"year\": parts[2],\n        \
-          \            \"journal\": parts[3],\n                }\n            else:\
-          \  # 5 parts\n                obj_dict = {\n                    \"title\"\
-          : parts[0],\n                    \"authors\": parts[1],\n              \
-          \      \"year\": parts[2],\n                    \"journal\": parts[3],\n\
-          \                    \"doc_id\": parts[4],\n                }\n        \
-          \    obj = _normalize_obj(obj_dict)\n            if obj is not None:\n \
-          \               parsed.append(obj)\n    return parsed\n\n\ndef _dedupe(items):\n\
-          \    unique = {}\n    for item in items:\n        obj = _normalize_obj(item)\n\
-          \        if obj is None:\n            continue\n        key = (\n      \
-          \      obj[\"title\"].lower(),\n            obj[\"authors\"].lower(),\n\
-          \            obj[\"year\"],\n            obj[\"journal\"].lower(),\n   \
-          \     )\n        if key not in unique:\n            unique[key] = obj\n\
-          \    return list(unique.values())\n\n\ndef main(iteration_output=None, memory=None):\n\
-          \    parsed_docs = _dedupe(_parse_from_iteration_output(iteration_output))\n\
-          \    if parsed_docs:\n        return {\"memory\": parsed_docs}\n\n    #\
-          \ If parsing failed, return existing memory (don't overwrite with empty)\n\
-          \    existing = memory if isinstance(memory, list) else []\n    if existing:\n\
-          \        return {\"memory\": _dedupe(existing)}\n\n    # Last resort: return\
-          \ empty\n    return {\"memory\": []}\n"
+        code: "def _normalize_obj(item):\n    if not isinstance(item, dict):\n        return None\n    title = str(item.get(\"title\") or \"\").strip()\n    authors = str(item.get(\"authors\") or item.get(\"author\") or \"\").strip()\n    year = str(item.get(\"year\") or \"\").strip()\n    journal = str(item.get(\"journal\") or \"\").strip()\n    doc_id = str(item.get(\"doc_id\") or \"\").strip()\n    if not any([title, authors, year, journal]):\n        return None\n    return {\n        \"title\": title,\n        \"authors\": authors,\n        \"year\": year,\n        \"journal\": journal,\n        \"doc_id\": doc_id,\n    }\n\n\ndef _parse_from_iteration_output(iteration_output):\n    parsed = []\n    if not isinstance(iteration_output, list):\n        return parsed\n\n    for block in iteration_output:\n        if not isinstance(block, str):\n            continue\n        for line in block.splitlines():\n            line = line.strip()\n            if not line:\n                continue\n\
+          \            if \"|\" not in line:\n                continue\n            # Strip leading numbering like \"1. \"\n            if \". \" in line:\n                _, _, line = line.partition(\". \")\n            parts = [p.strip() for p in line.split(\"|\")]\n            # Accept 3-5 parts: title | [authors] | year | journal | [doc_id]\n            if len(parts) < 3 or len(parts) > 5:\n                continue\n            obj_dict = {}\n            if len(parts) == 3:\n                obj_dict = {\"title\": parts[0], \"year\": parts[1], \"journal\": parts[2]}\n            elif len(parts) == 4:\n                obj_dict = {\n                    \"title\": parts[0],\n                    \"authors\": parts[1],\n                    \"year\": parts[2],\n                    \"journal\": parts[3],\n                }\n            else:  # 5 parts\n                obj_dict = {\n                    \"title\": parts[0],\n                    \"authors\": parts[1],\n                    \"year\"\
+          : parts[2],\n                    \"journal\": parts[3],\n                    \"doc_id\": parts[4],\n                }\n            obj = _normalize_obj(obj_dict)\n            if obj is not None:\n                parsed.append(obj)\n    return parsed\n\n\ndef _dedupe(items):\n    unique = {}\n    for item in items:\n        obj = _normalize_obj(item)\n        if obj is None:\n            continue\n        key = (\n            obj[\"title\"].lower(),\n            obj[\"authors\"].lower(),\n            obj[\"year\"],\n            obj[\"journal\"].lower(),\n        )\n        if key not in unique:\n            unique[key] = obj\n    return list(unique.values())\n\n\ndef main(iteration_output=None, memory=None):\n    parsed_docs = _dedupe(_parse_from_iteration_output(iteration_output))\n    if parsed_docs:\n        return {\"memory\": parsed_docs}\n\n    # If parsing failed, return existing memory (don't overwrite with empty)\n    existing = memory if isinstance(memory, list) else []\n\
+          \    if existing:\n        return {\"memory\": _dedupe(existing)}\n\n    # Last resort: return empty\n    return {\"memory\": []}\n"
         code_language: python3
         isInIteration: false
         isInLoop: false
@@ -1059,7 +780,7 @@ workflow:
           - memory
           value_type: array[object]
           variable: memory
-      height: 52
+      height: 51
       id: '1778800001029'
       position:
         x: -628.8956719908643
@@ -1090,7 +811,7 @@ workflow:
         title: Persist Paper Memory
         type: assigner
         version: '2'
-      height: 84
+      height: 83
       id: '1778800001030'
       position:
         x: -62.63214964004112
@@ -1104,92 +825,13 @@ workflow:
       type: custom
       width: 242
     - data:
-        code: "import json\nimport os\nfrom urllib.error import HTTPError, URLError\n\
-          from urllib.parse import urlencode\nfrom urllib.request import Request,\
-          \ urlopen\n\n\ndef _norm(text):\n    return str(text or \"\").strip()\n\n\
-          \ndef _run_json_get(url, headers, timeout=30):\n    req = Request(url=url,\
-          \ headers=headers, method=\"GET\")\n    try:\n        with urlopen(req,\
-          \ timeout=timeout) as resp:\n            body = resp.read().decode(\"utf-8\"\
-          , errors=\"replace\")\n            status = resp.getcode()\n    except HTTPError\
-          \ as exc:\n        body = exc.read().decode(\"utf-8\", errors=\"replace\"\
-          )\n        return {}, f\"HTTPError {exc.code}: {body}\"\n    except URLError\
-          \ as exc:\n        return {}, f\"URLError: {exc}\"\n    except Exception\
-          \ as exc:\n        return {}, f\"Error: {exc}\"\n    if status != 200:\n\
-          \        return {}, f\"HTTP {status}: {body}\"\n    try:\n        return\
-          \ json.loads(body), None\n    except Exception:\n        return {}, f\"\
-          Invalid JSON: {body[:400]}\"\n\n\ndef _fetch_all_segments(api_base, dataset_id,\
-          \ doc_id, headers):\n    all_segs = []\n    seen = set()\n    for page in\
-          \ range(1, 31):\n        q = urlencode({\"page\": page, \"limit\": 100})\n\
-          \        url = f\"{api_base}/datasets/{dataset_id}/documents/{doc_id}/segments?{q}\"\
-          \n        payload, err = _run_json_get(url, headers=headers, timeout=30)\n\
-          \        if err:\n            if page == 1:\n                return \"\"\
-          , f\"segments error: {err}\"\n            break\n        items = payload.get(\"\
-          data\") or payload.get(\"segments\") or []\n        if not items:\n    \
-          \        break\n        for seg in items:\n            for key in (\"content\"\
-          , \"text\"):\n                val = seg.get(key)\n                if isinstance(val,\
-          \ str) and val.strip():\n                    sid = _norm(seg.get(\"id\"\
-          )) or val[:100]\n                    if sid not in seen:\n             \
-          \           seen.add(sid)\n                        pos = seg.get(\"position\"\
-          , 10**9)\n                        all_segs.append((pos, val.strip()))\n\
-          \                    break\n        if len(items) < 100:\n            break\n\
-          \    if not all_segs:\n        return \"\", \"no segments found\"\n    all_segs.sort(key=lambda\
-          \ x: x[0])\n    return \"\\n\\n\".join(t for _, t in all_segs), None\n\n\
-          \ndef _find_doc_id_by_title(api_base, dataset_id, title, headers):\n   \
-          \ # Find document ID by matching title against doc_metadata from the list\
-          \ response.\n    # Uses the list endpoint doc_metadata field directly -\
-          \ no per-document detail calls.\n    expected = title.lower().strip()\n\
-          \    exp_words = set(expected.split())\n    for page in range(1, 21):\n\
-          \        q = urlencode({\"page\": page, \"limit\": 100})\n        url =\
-          \ f\"{api_base}/datasets/{dataset_id}/documents?{q}\"\n        payload,\
-          \ err = _run_json_get(url, headers=headers, timeout=30)\n        if err:\n\
-          \            break\n        items = payload.get(\"data\") or []\n      \
-          \  if not items:\n            break\n        for item in items:\n      \
-          \      doc_id = _norm(item.get(\"id\"))\n            if not doc_id:\n  \
-          \              continue\n            # Read title from doc_metadata (already\
-          \ in list response, no extra call)\n            doc_title = \"\"\n     \
-          \       for m in item.get(\"doc_metadata\") or []:\n                if _norm((m\
-          \ or {}).get(\"name\")).lower() == \"title\":\n                    doc_title\
-          \ = _norm((m or {}).get(\"value\"))\n                    break\n       \
-          \     if not doc_title:\n                doc_title = _norm(item.get(\"name\"\
-          , \"\"))\n            if not doc_title:\n                continue\n    \
-          \        if doc_title.lower() == expected:\n                return doc_id,\
-          \ None\n            if exp_words:\n                doc_words = set(doc_title.lower().split())\n\
-          \                if len(exp_words & doc_words) / len(exp_words) >= 0.8:\n\
-          \                    return doc_id, None\n        if len(items) < 100:\n\
-          \            break\n    return \"\", f\"no document found for title: {title!r}\"\
-          \n\n\ndef main(\n    doc_id=None,\n    item_title=None,\n    item_authors=None,\n\
-          \    item_year=None,\n    item_journal=None,\n    paper_count=None,\n  \
-          \  api_key_input=None,\n):\n    api_base = (\n        _norm(os.getenv(\"\
-          DIFY_API_URL\")) or \"http://rmap-chatbot-demo-dify/v1\"\n    ).rstrip(\"\
-          /\")\n    dataset_id = (\n        _norm(os.getenv(\"DIFY_DATASET_ID\"))\
-          \ or \"<your-dataset-id>\"\n    )\n    api_key = _norm(os.getenv(\"\
-          DIFY_API_KEY\")) or api_key_input or \"\"\n    headers = {\"Authorization\"\
-          : f\"Bearer {api_key}\", \"Content-Type\": \"application/json\"}\n\n   \
-          \ resolved = _norm(doc_id)\n    used_title_fallback = False\n    if not\
-          \ resolved:\n        title = _norm(item_title)\n        if not title:\n\
-          \            return {\"paper_context\": \"\", \"paper_fetch_error\": \"\
-          no doc_id and no title\"}\n        resolved, err = _find_doc_id_by_title(api_base,\
-          \ dataset_id, title, headers)\n        if not resolved:\n            return\
-          \ {\n                \"paper_context\": \"\",\n                \"paper_fetch_error\"\
-          : err or \"title lookup failed\",\n            }\n        used_title_fallback\
-          \ = True\n\n    text, err = _fetch_all_segments(api_base, dataset_id, resolved,\
-          \ headers)\n\n    # Fallback: if doc_id fetch returned no segments, try\
-          \ title lookup\n    if (not text or err) and not used_title_fallback:\n\
-          \        title = _norm(item_title)\n        if title:\n            fallback_id,\
-          \ fb_err = _find_doc_id_by_title(\n                api_base, dataset_id,\
-          \ title, headers\n            )\n            if fallback_id and fallback_id\
-          \ != resolved:\n                text2, err2 = _fetch_all_segments(\n   \
-          \                 api_base, dataset_id, fallback_id, headers\n         \
-          \       )\n                if text2:\n                    text, err = text2,\
-          \ None\n\n    if err:\n        return {\"paper_context\": \"\", \"paper_fetch_error\"\
-          : err}\n\n    title = _norm(item_title)\n    year = _norm(item_year)\n \
-          \   journal = _norm(item_journal)\n    authors = _norm(item_authors)\n \
-          \   meta_line = (\n        f\"{title} ({year}, {journal}) — {authors}\"\n\
-          \        if (year or journal or authors)\n        else title\n    )\n  \
-          \  header = f\"=== {meta_line} ===\"\n    n = int(paper_count) if paper_count\
-          \ and int(paper_count) > 0 else 1\n    chars_per_paper = max(4000, 48000\
-          \ // n)\n    context = f\"{header}\\n\\n{text[:chars_per_paper]}\"\n   \
-          \ return {\"paper_context\": context, \"paper_fetch_error\": \"\"}\n"
+        code: "import json\nimport os\nfrom urllib.error import HTTPError, URLError\nfrom urllib.parse import urlencode\nfrom urllib.request import Request, urlopen\n\n\ndef _norm(text):\n    return str(text or \"\").strip()\n\n\ndef _run_json_get(url, headers, timeout=30):\n    req = Request(url=url, headers=headers, method=\"GET\")\n    try:\n        with urlopen(req, timeout=timeout) as resp:\n            body = resp.read().decode(\"utf-8\", errors=\"replace\")\n            status = resp.getcode()\n    except HTTPError as exc:\n        body = exc.read().decode(\"utf-8\", errors=\"replace\")\n        return {}, f\"HTTPError {exc.code}: {body}\"\n    except URLError as exc:\n        return {}, f\"URLError: {exc}\"\n    except Exception as exc:\n        return {}, f\"Error: {exc}\"\n    if status != 200:\n        return {}, f\"HTTP {status}: {body}\"\n    try:\n        return json.loads(body), None\n    except Exception:\n        return {}, f\"Invalid JSON: {body[:400]}\"\n\n\ndef _fetch_all_segments(api_base,\
+          \ dataset_id, doc_id, headers):\n    all_segs = []\n    seen = set()\n    for page in range(1, 31):\n        q = urlencode({\"page\": page, \"limit\": 100})\n        url = f\"{api_base}/datasets/{dataset_id}/documents/{doc_id}/segments?{q}\"\n        payload, err = _run_json_get(url, headers=headers, timeout=30)\n        if err:\n            if page == 1:\n                return \"\", f\"segments error: {err}\"\n            break\n        items = payload.get(\"data\") or payload.get(\"segments\") or []\n        if not items:\n            break\n        for seg in items:\n            for key in (\"content\", \"text\"):\n                val = seg.get(key)\n                if isinstance(val, str) and val.strip():\n                    sid = _norm(seg.get(\"id\")) or val[:100]\n                    if sid not in seen:\n                        seen.add(sid)\n                        pos = seg.get(\"position\", 10**9)\n                        all_segs.append((pos, val.strip()))\n      \
+          \              break\n        if len(items) < 100:\n            break\n    if not all_segs:\n        return \"\", \"no segments found\"\n    all_segs.sort(key=lambda x: x[0])\n    return \"\\n\\n\".join(t for _, t in all_segs), None\n\n\ndef _find_doc_id_by_title(api_base, dataset_id, title, headers):\n    # Find document ID by matching title against doc_metadata from the list response.\n    # Uses the list endpoint doc_metadata field directly - no per-document detail calls.\n    expected = title.lower().strip()\n    exp_words = set(expected.split())\n    for page in range(1, 21):\n        q = urlencode({\"page\": page, \"limit\": 100})\n        url = f\"{api_base}/datasets/{dataset_id}/documents?{q}\"\n        payload, err = _run_json_get(url, headers=headers, timeout=30)\n        if err:\n            break\n        items = payload.get(\"data\") or []\n        if not items:\n            break\n        for item in items:\n            doc_id = _norm(item.get(\"id\"))\n         \
+          \   if not doc_id:\n                continue\n            # Read title from doc_metadata (already in list response, no extra call)\n            doc_title = \"\"\n            for m in item.get(\"doc_metadata\") or []:\n                if _norm((m or {}).get(\"name\")).lower() == \"title\":\n                    doc_title = _norm((m or {}).get(\"value\"))\n                    break\n            if not doc_title:\n                doc_title = _norm(item.get(\"name\", \"\"))\n            if not doc_title:\n                continue\n            if doc_title.lower() == expected:\n                return doc_id, None\n            if exp_words:\n                doc_words = set(doc_title.lower().split())\n                if len(exp_words & doc_words) / len(exp_words) >= 0.8:\n                    return doc_id, None\n        if len(items) < 100:\n            break\n    return \"\", f\"no document found for title: {title!r}\"\n\n\ndef main(\n    doc_id=None,\n    item_title=None,\n    item_authors=None,\n\
+          \    item_year=None,\n    item_journal=None,\n    paper_count=None,\n    api_key_input=None,\n):\n    api_base = (\n        _norm(os.getenv(\"DIFY_API_URL\")) or \"http://rmap-chatbot-demo-dify/v1\"\n    ).rstrip(\"/\")\n    dataset_id = (\n        _norm(os.getenv(\"DIFY_DATASET_ID\")) or \"<your-dataset-id>\"\n    )\n    api_key = _norm(os.getenv(\"DIFY_API_KEY\")) or api_key_input or \"\"\n    headers = {\"Authorization\": f\"Bearer {api_key}\", \"Content-Type\": \"application/json\"}\n\n    resolved = _norm(doc_id)\n    used_title_fallback = False\n    if not resolved:\n        title = _norm(item_title)\n        if not title:\n            return {\"paper_context\": \"\", \"paper_fetch_error\": \"no doc_id and no title\"}\n        resolved, err = _find_doc_id_by_title(api_base, dataset_id, title, headers)\n        if not resolved:\n            return {\n                \"paper_context\": \"\",\n                \"paper_fetch_error\": err or \"title lookup failed\"\
+          ,\n            }\n        used_title_fallback = True\n\n    text, err = _fetch_all_segments(api_base, dataset_id, resolved, headers)\n\n    # Fallback: if doc_id fetch returned no segments, try title lookup\n    if (not text or err) and not used_title_fallback:\n        title = _norm(item_title)\n        if title:\n            fallback_id, fb_err = _find_doc_id_by_title(\n                api_base, dataset_id, title, headers\n            )\n            if fallback_id and fallback_id != resolved:\n                text2, err2 = _fetch_all_segments(\n                    api_base, dataset_id, fallback_id, headers\n                )\n                if text2:\n                    text, err = text2, None\n\n    if err:\n        return {\"paper_context\": \"\", \"paper_fetch_error\": err}\n\n    title = _norm(item_title)\n    year = _norm(item_year)\n    journal = _norm(item_journal)\n    authors = _norm(item_authors)\n    meta_line = (\n        f\"{title} ({year}, {journal}) — {authors}\"\
+          \n        if (year or journal or authors)\n        else title\n    )\n    header = f\"=== {meta_line} ===\"\n    n = int(paper_count) if paper_count and int(paper_count) > 0 else 1\n    chars_per_paper = max(4000, 48000 // n)\n    context = f\"{header}\\n\\n{text[:chars_per_paper]}\"\n    return {\"paper_context\": context, \"paper_fetch_error\": \"\"}\n"
         code_language: python3
         isInIteration: true
         isInLoop: false
@@ -1245,7 +887,7 @@ workflow:
           - DIFY_API_KEY
           value_type: string
           variable: api_key_input
-      height: 52
+      height: 51
       id: '1778800001025'
       parentId: '1778676584534'
       position:
@@ -1292,37 +934,25 @@ workflow:
 
             Paper metadata from database query: {{#17786780698570.result_text#}}
 
-            Resolved paper memory (may contain full paper texts from Fetch Full Paper):
-            {{#conversation.memory#}}
+            Resolved paper memory (may contain full paper texts from Fetch Full Paper): {{#conversation.memory#}}
 
             Requested paper identities (authoritative order): {{#1778800001033.paper_list#}}
 
 
             === RESPONSE POLICY ===
 
-            If the context contains FULL PAPER TEXTS (with methods, findings, details):
-            - Produce a SUMMARIZATION: 3-5 sentence global synthesis comparing themes
-            across papers. - Then for each paper: **Title** → Method, Key finding,
-            Implication (1 sentence each). - Use markdown: **Title** for paper titles,
-            bullet points for details.
+            If the context contains FULL PAPER TEXTS (with methods, findings, details): - Produce a SUMMARIZATION: 3-5 sentence global synthesis comparing themes across papers. - Then for each paper: **Title** → Method, Key finding, Implication (1 sentence each). - Use markdown: **Title** for paper titles, bullet points for details.
 
-            If the context only contains PAPER METADATA (titles, authors, years):
-            - State the EXACT total count of papers you are listing. - COUNT the items
-            in your numbered list. Verify that the count you state matches the actual
-            number of numbered items. If you list 8 papers, say "8 papers", not "7
-            papers". Double-check before output. - Then output a clean numbered list:
-            title, year, journal.
+            If the context only contains PAPER METADATA (titles, authors, years): - State the EXACT total count of papers you are listing. - COUNT the items in your numbered list. Verify that the count you state matches the actual number of numbered items. If you list 8 papers, say "8 papers", not "7 papers". Double-check before output. - Then output a clean numbered list: title, year, journal.
 
-            Always: - Answer in the same language as the user. - Output final answer
-            text only. No <think> tags or hidden reasoning. - If context includes
-            errors, explain clearly and suggest one concrete reformulation.'
+            Always: - Answer in the same language as the user. - Output final answer text only. No <think> tags or hidden reasoning. - If context includes errors, explain clearly and suggest one concrete reformulation.'
         reasoning_format: separated
         selected: false
         title: Metadata LLM
         type: llm
         vision:
           enabled: false
-      height: 88
+      height: 87
       id: '1778800001027'
       position:
         x: 345.7855416125657
@@ -1358,73 +988,11 @@ workflow:
         - id: unified-router-prompt
           reasoning_format: separated
           role: system
-          text: "You are the routing brain of an academic literature chatbot. Analyze\
-            \ the user query and decide the single correct intent and search constraints.\n\
-            \nAuthoritative resolved paper memory from prior turns:\n{{#conversation.memory#}}\n\
-            \nReturn valid JSON only via structured output:\n{\n  \"intent\": \"knowledge_retrieval\"\
-            \ | \"metadata_list\" | \"content_summary\" | \"author_lookup\" | \"entity_lookup\"\
-            ,\n  \"paper_list\": [{\"title\": \"\", \"authors\": \"\", \"year\": \"\
-            \", \"journal\": \"\"}],\n  \"list_mode\": \"papers\" | \"authors\",\n\
-            \  \"rewritten_query\": \"standalone version of the user query\"\n}\n\n\
-            === INTENT RULES ===\n\n\"knowledge_retrieval\" — General knowledge question\
-            \ about a topic, method, or concept.\n  paper_list MUST be [].\n\n\"metadata_list\"\
-            \ — User wants to COUNT, LIST, or FILTER papers by metadata (titles, authors,\
-            \ years, journals).\n  paper_list = search constraints (e.g. {\"authors\"\
-            : \"Dieterich\"}).\n  If user wants ALL papers/authors with NO filter\
-            \ → paper_list = [] and list_mode = \"authors\" for author listing.\n\
-            \  paper_list MAY be [] ONLY for EXPLICIT \"all papers / all researchers\"\
-            \ queries with NO filter.\nIf the query contains ANY author name, year,\
-            \ journal, or title constraint → paper_list MUST include it.\nExamples:\n\
-            \  - \"Papers by Dieterich\" → paper_list: [{\"authors\": \"Christoph\
-            \ Dieterich\"}]  ← NOT empty!\n  - \"Find papers by Francesca Tuorto\"\
-            \ → metadata_list, paper_list: [{\"authors\": \"Francesca Tuorto\"}] \
-            \ ← author filter, not content search!\n  - \"Find all research papers\"\
-            \ → paper_list: []  ← truly no constraints\n  - \"Papers from 2024\" →\
-            \ paper_list: [{\"year\": \"2024\"}]  ← has year filter\n\n\"content_summary\"\
-            \ — User wants to SUMMARIZE, COMPARE, or ANALYZE specific papers by their\
-            \ content.\n  paper_list MUST contain paper identities to fetch and summarize.\n\
-            \n\"author_lookup\" — User asks WHO: \"Who has experience with X?\", \"\
-            Who worked on Y?\", \"Which authors studied Z?\".\n  paper_list MUST be\
-            \ []. The Knowledge Retrieval will find relevant papers, and a downstream\n\
-            \  extraction step will identify the authors. This is a content-based\
-            \ search, not metadata filtering.\n\n\"entity_lookup\" — User asks WHICH/WHAT\
-            \ specific entities: \"Which tRNAs were...?\", \"What methods...?\",\n\
-            \  \"Which organisms...?\". The answer is a list of named entities extracted\
-            \ from papers.\n  paper_list MUST be []. KR finds papers, extraction identifies\
-            \ entities.\n\n\n\n=== WHICH INTENT WHEN? ===\n\n- \"Who has experience\
-            \ with X?\" / \"Wer hat Erfahrung mit X?\" → \"author_lookup\"\n- \"Who\
-            \ has worked on X?\" / \"Wer hat an X gearbeitet?\" → \"author_lookup\"\
-            \n- \"Who synthesized Y?\" / \"Wer hat Y synthetisiert?\" → \"author_lookup\"\
-            \n- \"Which tRNAs / proteins / methods ...?\" → \"entity_lookup\"\n- Just\
-            \ an author name, no instruction → \"metadata_list\" (list their papers)\n\
-            - IMPORTANT: \"Find papers by <name>\" or \"Papers by <name>\" or \"Show\
-            \ papers by <name>\" → \"metadata_list\", paper_list: [{\"authors\": \"\
-            <name>\"}]. This is a metadata filter, NOT a content search.\n- \"Find\
-            \ all research papers\" / \"List all researchers\" → \"metadata_list\"\
-            , paper_list: [], list_mode: \"authors\" for researchers\n- Just a topic,\
-            \ no paper reference → \"knowledge_retrieval\"\n- Author + \"summarize\
-            \ their findings\" → \"content_summary\"\n- \"Compare the papers by X\
-            \ and Y\" → \"content_summary\"\n- \"Group/Sort/Filter/Categorize them\
-            \ by X\" (journal, topic, year, method) → \"content_summary\", paper_list:\
-            \ \"use_memory\"\n\n=== paper_list RULES ===\n\nFor \"knowledge_retrieval\"\
-            , \"author_lookup\", \"entity_lookup\": paper_list MUST be [].\nFor \"\
-            metadata_list\" and \"content_summary\": follow the same rules as before.\n\
-            \nFOR NEW QUERIES (conversation.memory is empty or irrelevant):\n  → paper_list\
-            \ = SEARCH CONSTRAINTS for the database lookup.\n  Examples:\n  - \"papers\
-            \ by Christoph Dieterich\" → [{\"authors\": \"Christoph Dieterich\"}]\n\
-            \  - \"papers about RNA from 2024\" → [{\"title\": \"RNA\", \"year\":\
-            \ \"2024\"}]\n\nFOR FOLLOW-UP QUERIES (conversation.memory has papers\
-            \ AND query references them):\n  → paper_list = the STRING \"use_memory\"\
-            . The downstream parser will fill in the actual papers.\n  The query contains\
-            \ pronouns or references to prior turns.\n\nFor \"metadata_list\": empty\
-            \ paper_list IS VALID (means all papers / all authors).\nFor \"content_summary\"\
-            : paper_list MUST NOT be empty. If you cannot determine which papers to\
-            \ summarize, use \"knowledge_retrieval\" instead.\n\n=== REWRITTEN QUERY\
-            \ RULES ===\n\n- Resolve pronouns: \"them\" → \"the papers from the previous\
-            \ turn\".\n- For author_lookup and entity_lookup: keep the original query\
-            \ as-is (it will be used for KR search).\n- Keep original language and\
-            \ intent.\n\nOutput ONLY the JSON. No <think> tags, no explanations, no\
-            \ markdown fences."
+          text: "You are the routing brain of an academic literature chatbot. Analyze the user query and decide the single correct intent and search constraints.\n\nAuthoritative resolved paper memory from prior turns:\n{{#conversation.memory#}}\n\nReturn valid JSON only via structured output:\n{\n  \"intent\": \"knowledge_retrieval\" | \"metadata_list\" | \"content_summary\" | \"author_lookup\" | \"entity_lookup\",\n  \"paper_list\": [{\"title\": \"\", \"authors\": \"\", \"year\": \"\", \"journal\": \"\"}],\n  \"list_mode\": \"papers\" | \"authors\",\n  \"rewritten_query\": \"standalone version of the user query\"\n}\n\n=== INTENT RULES ===\n\n\"knowledge_retrieval\" — General knowledge question about a topic, method, or concept.\n  paper_list MUST be [].\n\n\"metadata_list\" — User wants to COUNT, LIST, or FILTER papers by metadata (titles, authors, years, journals).\n  paper_list = search constraints (e.g. {\"authors\": \"Dieterich\"}).\n  If user wants ALL papers/authors with NO filter\
+            \ → paper_list = [] and list_mode = \"authors\" for author listing.\n  paper_list MAY be [] ONLY for EXPLICIT \"all papers / all researchers\" queries with NO filter.\nIf the query contains ANY author name, year, journal, or title constraint → paper_list MUST include it.\nExamples:\n  - \"Papers by Dieterich\" → paper_list: [{\"authors\": \"Christoph Dieterich\"}]  ← NOT empty!\n  - \"Find papers by Francesca Tuorto\" → metadata_list, paper_list: [{\"authors\": \"Francesca Tuorto\"}]  ← author filter, not content search!\n  - \"Find all research papers\" → paper_list: []  ← truly no constraints\n  - \"Papers from 2024\" → paper_list: [{\"year\": \"2024\"}]  ← has year filter\n\n\"content_summary\" — User wants to SUMMARIZE, COMPARE, or ANALYZE specific papers by their content.\n  paper_list MUST contain paper identities to fetch and summarize.\n\n\"author_lookup\" — User asks WHO: \"Who has experience with X?\", \"Who worked on Y?\", \"Which authors studied Z?\".\n  paper_list\
+            \ MUST be []. The Knowledge Retrieval will find relevant papers, and a downstream\n  extraction step will identify the authors. This is a content-based search, not metadata filtering.\n\n\"entity_lookup\" — User asks WHICH/WHAT specific entities: \"Which tRNAs were...?\", \"What methods...?\",\n  \"Which organisms...?\". The answer is a list of named entities extracted from papers.\n  paper_list MUST be []. KR finds papers, extraction identifies entities.\n\n\n\n=== WHICH INTENT WHEN? ===\n\n- \"Who has experience with X?\" / \"Wer hat Erfahrung mit X?\" → \"author_lookup\"\n- \"Who has worked on X?\" / \"Wer hat an X gearbeitet?\" → \"author_lookup\"\n- \"Who synthesized Y?\" / \"Wer hat Y synthetisiert?\" → \"author_lookup\"\n- \"Which tRNAs / proteins / methods ...?\" → \"entity_lookup\"\n- Just an author name, no instruction → \"metadata_list\" (list their papers)\n- IMPORTANT: \"Find papers by <name>\" or \"Papers by <name>\" or \"Show papers by <name>\" → \"metadata_list\"\
+            , paper_list: [{\"authors\": \"<name>\"}]. This is a metadata filter, NOT a content search.\n- \"Find all research papers\" / \"List all researchers\" → \"metadata_list\", paper_list: [], list_mode: \"authors\" for researchers\n- Just a topic, no paper reference → \"knowledge_retrieval\"\n- Author + \"summarize their findings\" → \"content_summary\"\n- \"Compare the papers by X and Y\" → \"content_summary\"\n- \"Group/Sort/Filter/Categorize them by X\" (journal, topic, year, method) → \"content_summary\", paper_list: \"use_memory\"\n\n=== paper_list RULES ===\n\nFor \"knowledge_retrieval\", \"author_lookup\", \"entity_lookup\": paper_list MUST be [].\nFor \"metadata_list\" and \"content_summary\": follow the same rules as before.\n\nFOR NEW QUERIES (conversation.memory is empty or irrelevant):\n  → paper_list = SEARCH CONSTRAINTS for the database lookup.\n  Examples:\n  - \"papers by Christoph Dieterich\" → [{\"authors\": \"Christoph Dieterich\"}]\n  - \"papers about RNA from\
+            \ 2024\" → [{\"title\": \"RNA\", \"year\": \"2024\"}]\n\nFOR FOLLOW-UP QUERIES (conversation.memory has papers AND query references them):\n  → paper_list = the STRING \"use_memory\". The downstream parser will fill in the actual papers.\n  The query contains pronouns or references to prior turns.\n\nFor \"metadata_list\": empty paper_list IS VALID (means all papers / all authors).\nFor \"content_summary\": paper_list MUST NOT be empty. If you cannot determine which papers to summarize, use \"knowledge_retrieval\" instead.\n\n=== REWRITTEN QUERY RULES ===\n\n- Resolve pronouns: \"them\" → \"the papers from the previous turn\".\n- For author_lookup and entity_lookup: keep the original query as-is (it will be used for KR search).\n- Keep original language and intent.\n\nOutput ONLY the JSON. No <think> tags, no explanations, no markdown fences."
         reasoning_format: separated
         selected: false
         structured_output:
@@ -1439,6 +1007,12 @@ workflow:
                 - content_summary
                 - author_lookup
                 - entity_lookup
+                type: string
+              list_mode:
+                description: 'List mode: papers or authors'
+                enum:
+                - papers
+                - authors
                 type: string
               paper_list:
                 description: Paper identities or "use_memory" for follow-up queries
@@ -1462,12 +1036,6 @@ workflow:
               rewritten_query:
                 description: Standalone rewritten query
                 type: string
-              list_mode:
-                description: 'List mode: papers or authors'
-                enum:
-                - papers
-                - authors
-                type: string
             required:
             - intent
             - paper_list
@@ -1478,7 +1046,7 @@ workflow:
         type: llm
         vision:
           enabled: false
-      height: 88
+      height: 87
       id: '1778800001031'
       position:
         x: -1479.2766666643752
@@ -1540,7 +1108,7 @@ workflow:
         selected: false
         title: Intent Dispatcher
         type: if-else
-      height: 364
+      height: 363
       id: '1778800001032'
       position:
         x: -1489.7142084055456
@@ -1554,58 +1122,10 @@ workflow:
       type: custom
       width: 242
     - data:
-        code: "import json\nimport re\n\n\ndef _clean_paper(item):\n    if not isinstance(item,\
-          \ dict):\n        return None\n    obj = {\n        \"title\": str(item.get(\"\
-          title\") or \"\").strip(),\n        \"authors\": str(item.get(\"authors\"\
-          ) or item.get(\"author\") or \"\").strip(),\n        \"year\": str(item.get(\"\
-          year\") or \"\").strip(),\n        \"journal\": str(item.get(\"journal\"\
-          ) or \"\").strip(),\n    }\n    doc_id = str(item.get(\"doc_id\") or \"\"\
-          ).strip()\n    if doc_id:\n        obj[\"doc_id\"] = doc_id\n    return\
-          \ obj if any(obj.values()) else None\n\n\ndef _fallback_result():\n    \"\
-          \"\"Fallback when router JSON is unparseable.\"\"\"\n    return {\n    \
-          \    \"intent\": \"knowledge_retrieval\",\n        \"paper_list\": [],\n\
-          \        \"paper_count\": 0,\n        \"rewritten_query\": \"\",\n     \
-          \   \"list_mode\": \"papers\",\n    }\n\n\ndef main(router_text=None, conversation_memory=None,\
-          \ sys_query=None):\n    text = str(router_text or \"\").strip()\n    # Strip\
-          \ <think> tags\n    text = re.sub(r\"<think>.*?</think>\", \"\", text, flags=re.DOTALL).strip()\n\
-          \    # Strip markdown fences\n    text = re.sub(r\"^```(?:json)?\\s*\",\
-          \ \"\", text)\n    text = re.sub(r\"\\s*```$\", \"\", text).strip()\n  \
-          \  # Find JSON object\n    m = re.search(r\"\\{.*\\}\", text, re.DOTALL)\n\
-          \    if not m:\n        return _fallback_result()\n    try:\n        obj\
-          \ = json.loads(m.group())\n    except Exception:\n        return _fallback_result()\n\
-          \n    intent = str(obj.get(\"intent\", \"\")).strip()\n    if intent not\
-          \ in (\n        \"metadata_list\",\n        \"content_summary\",\n     \
-          \   \"knowledge_retrieval\",\n        \"author_lookup\",\n        \"entity_lookup\"\
-          ,\n    ):\n        intent = \"knowledge_retrieval\"\n\n    # ── Read list_mode\
-          \ from router JSON (LLM-native, no regex) ──\n    list_mode = str(obj.get(\"\
-          list_mode\") or \"\").strip()\n    if list_mode not in (\"papers\", \"authors\"\
-          ):\n        list_mode = \"papers\"  # default\n\n    paper_list = obj.get(\"\
-          paper_list\")\n    mem = conversation_memory if isinstance(conversation_memory,\
-          \ list) else []\n\n    # If paper_list is the string \"use_memory\", populate\
-          \ from conversation.memory\n    if paper_list == \"use_memory\":\n     \
-          \   paper_list = []\n        for item in mem:\n            cleaned = _clean_paper(item)\n\
-          \            if cleaned:\n                paper_list.append(cleaned)\n \
-          \   elif not isinstance(paper_list, list):\n        paper_list = []\n  \
-          \  else:\n        # Clean paper_list items from LLM output\n        cleaned_list\
-          \ = []\n        for item in paper_list:\n            if isinstance(item,\
-          \ dict):\n                c = _clean_paper(item)\n                if c:\n\
-          \                    cleaned_list.append(c)\n        paper_list = cleaned_list\n\
-          \n    # Auto-fallback: if paper_list is empty but intent requires papers,\
-          \ use conversation.memory\n    # ONLY for content_summary (follow-up \"\
-          Summarize them\").\n    # For metadata_list, empty paper_list means \"all\
-          \ papers\" — do NOT override.\n    if not paper_list and intent == \"content_summary\"\
-          \ and mem:\n        paper_list = []\n        for item in mem:\n        \
-          \    cleaned = _clean_paper(item)\n            if cleaned:\n           \
-          \     paper_list.append(cleaned)\n\n    # ── Cap papers for content_summary\
-          \ to avoid context overflow ──\n    # Full paper texts average ~11K chars\
-          \ each; 15 papers ≈ 165K chars ≈ 41K tokens\n    # which fits in the Summary\
-          \ LLM's 65K context window (with room for prompt + output).\n    MAX_PAPERS_FOR_SUMMARY\
-          \ = 15\n    if intent == \"content_summary\" and len(paper_list) > MAX_PAPERS_FOR_SUMMARY:\n\
-          \        paper_list = paper_list[:MAX_PAPERS_FOR_SUMMARY]\n\n    rw = str(obj.get(\"\
-          rewritten_query\") or \"\").strip()\n    return {\n        \"intent\": intent,\n\
-          \        \"paper_list\": paper_list,\n        \"paper_count\": len(paper_list),\n\
-          \        \"rewritten_query\": rw,\n        \"list_mode\": list_mode,\n \
-          \   }\n"
+        code: "import json\nimport re\n\n\ndef _clean_paper(item):\n    if not isinstance(item, dict):\n        return None\n    obj = {\n        \"title\": str(item.get(\"title\") or \"\").strip(),\n        \"authors\": str(item.get(\"authors\") or item.get(\"author\") or \"\").strip(),\n        \"year\": str(item.get(\"year\") or \"\").strip(),\n        \"journal\": str(item.get(\"journal\") or \"\").strip(),\n    }\n    doc_id = str(item.get(\"doc_id\") or \"\").strip()\n    if doc_id:\n        obj[\"doc_id\"] = doc_id\n    return obj if any(obj.values()) else None\n\n\ndef _fallback_result():\n    \"\"\"Fallback when router JSON is unparseable.\"\"\"\n    return {\n        \"intent\": \"knowledge_retrieval\",\n        \"paper_list\": [],\n        \"paper_count\": 0,\n        \"rewritten_query\": \"\",\n        \"list_mode\": \"papers\",\n    }\n\n\ndef main(router_text=None, conversation_memory=None, sys_query=None):\n    text = str(router_text or \"\").strip()\n    # Strip <think> tags\n\
+          \    text = re.sub(r\"<think>.*?</think>\", \"\", text, flags=re.DOTALL).strip()\n    # Strip markdown fences\n    text = re.sub(r\"^```(?:json)?\\s*\", \"\", text)\n    text = re.sub(r\"\\s*```$\", \"\", text).strip()\n    # Find JSON object\n    m = re.search(r\"\\{.*\\}\", text, re.DOTALL)\n    if not m:\n        return _fallback_result()\n    try:\n        obj = json.loads(m.group())\n    except Exception:\n        return _fallback_result()\n\n    intent = str(obj.get(\"intent\", \"\")).strip()\n    if intent not in (\n        \"metadata_list\",\n        \"content_summary\",\n        \"knowledge_retrieval\",\n        \"author_lookup\",\n        \"entity_lookup\",\n    ):\n        intent = \"knowledge_retrieval\"\n\n    # ── Read list_mode from router JSON (LLM-native, no regex) ──\n    list_mode = str(obj.get(\"list_mode\") or \"\").strip()\n    if list_mode not in (\"papers\", \"authors\"):\n        list_mode = \"papers\"  # default\n\n    paper_list = obj.get(\"paper_list\"\
+          )\n    mem = conversation_memory if isinstance(conversation_memory, list) else []\n\n    # If paper_list is the string \"use_memory\", populate from conversation.memory\n    if paper_list == \"use_memory\":\n        paper_list = []\n        for item in mem:\n            cleaned = _clean_paper(item)\n            if cleaned:\n                paper_list.append(cleaned)\n    elif not isinstance(paper_list, list):\n        paper_list = []\n    else:\n        # Clean paper_list items from LLM output\n        cleaned_list = []\n        for item in paper_list:\n            if isinstance(item, dict):\n                c = _clean_paper(item)\n                if c:\n                    cleaned_list.append(c)\n        paper_list = cleaned_list\n\n    # Auto-fallback: if paper_list is empty but intent requires papers, use conversation.memory\n    # ONLY for content_summary (follow-up \"Summarize them\").\n    # For metadata_list, empty paper_list means \"all papers\" — do NOT override.\n   \
+          \ if not paper_list and intent == \"content_summary\" and mem:\n        paper_list = []\n        for item in mem:\n            cleaned = _clean_paper(item)\n            if cleaned:\n                paper_list.append(cleaned)\n\n    # ── Cap papers for content_summary to avoid context overflow ──\n    # Full paper texts average ~11K chars each; 15 papers ≈ 165K chars ≈ 41K tokens\n    # which fits in the Summary LLM's 65K context window (with room for prompt + output).\n    MAX_PAPERS_FOR_SUMMARY = 15\n    if intent == \"content_summary\" and len(paper_list) > MAX_PAPERS_FOR_SUMMARY:\n        paper_list = paper_list[:MAX_PAPERS_FOR_SUMMARY]\n\n    rw = str(obj.get(\"rewritten_query\") or \"\").strip()\n    return {\n        \"intent\": intent,\n        \"paper_list\": paper_list,\n        \"paper_count\": len(paper_list),\n        \"rewritten_query\": rw,\n        \"list_mode\": list_mode,\n    }\n"
         code_language: python3
         isInIteration: false
         isInLoop: false
@@ -1644,7 +1164,7 @@ workflow:
           - query
           value_type: string
           variable: sys_query
-      height: 52
+      height: 51
       id: '1778800001033'
       position:
         x: -1484.4326543241668
@@ -1658,112 +1178,14 @@ workflow:
       type: custom
       width: 242
     - data:
-        code: "import json\nimport re\n\nNL = chr(10)  # newline - avoids YAML escaping\
-          \ issues\n\n\ndef _extract_text(chunk):\n    if isinstance(chunk, dict):\n\
-          \        seg = chunk.get(\"segment\", {})\n        if isinstance(seg, dict)\
-          \ and seg.get(\"content\", \"\").strip():\n            return str(seg[\"\
-          content\"]).strip()\n        if chunk.get(\"content\", \"\").strip():\n\
-          \            return str(chunk[\"content\"]).strip()\n        ccs = chunk.get(\"\
-          child_chunks\", [])\n        if ccs:\n            parts = [\n          \
-          \      str(c.get(\"content\", \"\")).strip() for c in ccs if isinstance(c,\
-          \ dict)\n            ]\n            return NL.join(p for p in parts if p)\n\
-          \        return \"\"\n    text = str(chunk or \"\").strip()\n    if text.startswith(\"\
-          {\") or text.startswith(\"[\"):\n        try:\n            obj = json.loads(text)\n\
-          \            if isinstance(obj, dict):\n                return _extract_text(obj)\n\
-          \            if isinstance(obj, list):\n                parts = [_extract_text(i)\
-          \ for i in obj[:3]]\n                return NL.join(p for p in parts if\
-          \ p)\n        except Exception:\n            pass\n    return text\n\n\n\
-          def _is_reference_chunk(text):\n    t = str(text or \"\").strip()\n    if\
-          \ not t or len(t) < 20:\n        return False\n\n    doi_count = len(re.findall(r\"\
-          doi\\.org/\\S+|DOI:\\s*\\S+\", t, re.IGNORECASE))\n    numbered_refs = len(\n\
-          \        re.findall(r\"(?:^|\" + NL + r\")\\s*(?:\\d+\\.[ \\t]|\\[\\d+\\\
-          ][ \\t]|\\(\\d+\\)\\s)\", t)\n    )\n    # also catch parenthetical refs\
-          \ anywhere (e.g. \"...e99777. (83) de Crecy...\")\n    paren_refs_anywhere\
-          \ = len(re.findall(r\"\\(\\d+\\)\\s\", t))\n    etal_count = len(re.findall(r\"\
-          \\bet\\s+al\\b\", t, re.IGNORECASE))\n    year_parens = len(re.findall(r\"\
-          \\((?:19|20)\\d{2}[a-z]?\\)\", t))\n\n    score = (\n        doi_count *\
-          \ 3.0\n        + numbered_refs * 1.5\n        + paren_refs_anywhere * 1.0\n\
-          \        + etal_count * 0.5\n        + year_parens * 0.3\n    )\n    density\
-          \ = score / max(1.0, len(t) / 500.0)\n\n    if doi_count >= 4:\n       \
-          \ return True\n    if numbered_refs >= 8:\n        return True\n    if density\
-          \ > 1.8:\n        return True\n\n    first_line = t.split(NL)[0].strip()\n\
-          \    if re.match(r\"^\\d+[\\.,]\\s\", first_line) or re.match(r\"^\\[\\\
-          d+\\]\", first_line):\n        if density > 0.8:\n            return True\n\
-          \n    return False\n\n\ndef _metadata_looks_garbled(title, authors, year,\
-          \ journal):\n    \"\"\"Detect clearly broken metadata (book chapters, extraction\
-          \ failures).\"\"\"\n    t = str(title or \"\").strip()\n    a = str(authors\
-          \ or \"\").strip()\n    y = str(year or \"\").strip()\n    j = str(journal\
-          \ or \"\").strip()\n\n    # Title has no spaces → garbled concatenation\
-          \ (e.g. \"ComputationalEpigenomicsandEpitranscriptomics\")\n    if len(t)\
-          \ > 15 and \" \" not in t:\n        return True\n\n    # Authors contain\
-          \ structural text, not person names\n    a_lower = a.lower()\n    garbled_author_markers\
-          \ = [\n        \"editor\",\n        \"series\",\n        \"ethods in\",\n\
-          \        \"olecular biology\",\n    ]\n    if any(m in a_lower for m in\
-          \ garbled_author_markers):\n        return True\n\n    # Year is not a 4-digit\
-          \ year\n    if y and not re.fullmatch(r\"(19|20)\\d{2}\", y):\n        return\
-          \ True\n\n    # Journal is just numbers / page ranges (e.g. \"241-260\"\
-          )\n    if j and re.fullmatch(r\"\\d+[\\-–]\\d+\", j):\n        return True\n\
-          \n    return False\n\n\ndef _get_doc_info(chunk):\n    \"\"\"Extract rich\
-          \ document info from a Dify KR result item using real metadata.\"\"\"\n\
-          \    if not isinstance(chunk, dict):\n        return None\n    meta = chunk.get(\"\
-          metadata\", {})\n    if not isinstance(meta, dict):\n        return None\n\
-          \n    doc_meta = meta.get(\"doc_metadata\", {})\n    if isinstance(doc_meta,\
-          \ dict):\n        title = str(doc_meta.get(\"title\", \"\")).strip()\n \
-          \       authors = str(doc_meta.get(\"authors\", \"\")).strip()\n       \
-          \ journal = str(doc_meta.get(\"journal\", \"\")).strip()\n        year =\
-          \ str(doc_meta.get(\"year\", \"\")).strip()\n\n        # Detect garbled\
-          \ metadata (common with book chapters)\n        if title and not _metadata_looks_garbled(title,\
-          \ authors, year, journal):\n            header = f'\"{title}\"'\n      \
-          \      if authors:\n                header += f\" by {authors}\"\n     \
-          \       if journal or year:\n                header += \" (\"\n        \
-          \        if journal:\n                    header += journal\n          \
-          \      if year:\n                    if journal:\n                     \
-          \   header += \", \"\n                    header += year\n             \
-          \   header += \")\"\n            return header\n\n    # Fallback: use filename-based\
-          \ title field, parse structured info\n    title = str(chunk.get(\"title\"\
-          , \"\")).strip()\n    if title:\n        title = re.sub(r\"__[a-z_]+_\\\
-          d{10,}(?:\\.pdf)?$\", \"\", title, flags=re.IGNORECASE)\n        title =\
-          \ re.sub(r\"\\.pdf$\", \"\", title, flags=re.IGNORECASE)\n        title\
-          \ = title.strip()\n        if title:\n            # Try to parse structured\
-          \ filename: \"Authors, Year, Journal, ...\"\n            parts = [p.strip()\
-          \ for p in title.split(\",\")]\n            if len(parts) >= 3:\n      \
-          \          maybe_authors = parts[0]\n                maybe_year = parts[1].strip()\n\
-          \                maybe_journal = parts[2].strip()\n                if re.fullmatch(r\"\
-          (19|20)\\d{2}\", maybe_year):\n                    header = f'\"{title}\"\
-          '\n                    if maybe_authors:\n                        header\
-          \ += f\" by {maybe_authors}\"\n                    header += f\" ({maybe_journal},\
-          \ {maybe_year})\"\n                    return header\n            return\
-          \ title\n    return None\n\n\ndef main(kr_result=None):\n    if not isinstance(kr_result,\
-          \ list):\n        return {\"filtered_chunks\": [], \"chunk_count\": 0, \"\
-          chunks_removed\": 0}\n    kept = []\n    removed = 0\n    seen_docs = set()\n\
-          \    for c in kr_result:\n        text = _extract_text(c)\n        if not\
-          \ text or len(text) < 20:\n            continue\n        if _is_reference_chunk(text):\n\
-          \            removed += 1\n        else:\n            doc_name = _get_doc_info(c)\n\
-          \            if doc_name:\n                seen_docs.add(doc_name)\n   \
-          \             text = \"From paper: \" + doc_name + NL + text\n         \
-          \   kept.append(text)\n    # Safety: if too few chunks survived, pass all\
-          \ through unfiltered\n    if len(kept) < 3 and len(kr_result) >= 3:\n  \
-          \      kept = []\n        removed = 0\n        for c in kr_result:\n   \
-          \         text = _extract_text(c)\n            if not text or len(text)\
-          \ < 20:\n                continue\n            doc_name = _get_doc_info(c)\n\
-          \            if doc_name:\n                seen_docs.add(doc_name)\n   \
-          \             text = \"From paper: \" + doc_name + NL + text\n         \
-          \   kept.append(text)\n\n    # Deduplicate by paper: merge chunks from same\
-          \ document\n    by_doc = {}\n    for chunk in kept:\n        parts = chunk.split(NL,\
-          \ 1)\n        doc_key = parts[0] if parts[0].startswith(\"From paper:\"\
-          ) else \"_unknown\"\n        content = parts[1] if len(parts) > 1 else chunk\n\
-          \        if doc_key not in by_doc:\n            by_doc[doc_key] = []\n \
-          \       by_doc[doc_key].append(content)\n    deduped = []\n    for doc_key,\
-          \ contents in by_doc.items():\n        merged = NL.join(contents[:1])  #\
-          \ max 1 chunk per paper (recall-optimized)\n        deduped.append(doc_key\
-          \ + NL + merged)\n\n    if not deduped:\n        deduped.append(\n     \
-          \       \"ALL \"\n            + str(len(kr_result))\n            + \" RETRIEVED\
-          \ CHUNKS WERE REFERENCE LISTS AND FILTERED OUT. The query may match bibliography\
-          \ sections rather than paper body text. Try a more specific query or different\
-          \ search terms.\"\n        )\n    return {\n        \"filtered_chunks\"\
-          : deduped[:30],\n        \"chunk_count\": min(len(deduped), 30),\n     \
-          \   \"chunks_removed\": removed,\n        \"doc_names\": sorted(seen_docs)[:30],\n\
-          \    }\n"
+        code: "import json\nimport re\n\nNL = chr(10)  # newline - avoids YAML escaping issues\n\n\ndef _extract_text(chunk):\n    if isinstance(chunk, dict):\n        seg = chunk.get(\"segment\", {})\n        if isinstance(seg, dict) and seg.get(\"content\", \"\").strip():\n            return str(seg[\"content\"]).strip()\n        if chunk.get(\"content\", \"\").strip():\n            return str(chunk[\"content\"]).strip()\n        ccs = chunk.get(\"child_chunks\", [])\n        if ccs:\n            parts = [\n                str(c.get(\"content\", \"\")).strip() for c in ccs if isinstance(c, dict)\n            ]\n            return NL.join(p for p in parts if p)\n        return \"\"\n    text = str(chunk or \"\").strip()\n    if text.startswith(\"{\") or text.startswith(\"[\"):\n        try:\n            obj = json.loads(text)\n            if isinstance(obj, dict):\n                return _extract_text(obj)\n            if isinstance(obj, list):\n                parts = [_extract_text(i)\
+          \ for i in obj[:3]]\n                return NL.join(p for p in parts if p)\n        except Exception:\n            pass\n    return text\n\n\ndef _is_reference_chunk(text):\n    t = str(text or \"\").strip()\n    if not t or len(t) < 20:\n        return False\n\n    doi_count = len(re.findall(r\"doi\\.org/\\S+|DOI:\\s*\\S+\", t, re.IGNORECASE))\n    numbered_refs = len(\n        re.findall(r\"(?:^|\" + NL + r\")\\s*(?:\\d+\\.[ \\t]|\\[\\d+\\][ \\t]|\\(\\d+\\)\\s)\", t)\n    )\n    # also catch parenthetical refs anywhere (e.g. \"...e99777. (83) de Crecy...\")\n    paren_refs_anywhere = len(re.findall(r\"\\(\\d+\\)\\s\", t))\n    etal_count = len(re.findall(r\"\\bet\\s+al\\b\", t, re.IGNORECASE))\n    year_parens = len(re.findall(r\"\\((?:19|20)\\d{2}[a-z]?\\)\", t))\n\n    score = (\n        doi_count * 3.0\n        + numbered_refs * 1.5\n        + paren_refs_anywhere * 1.0\n        + etal_count * 0.5\n        + year_parens * 0.3\n    )\n    density = score / max(1.0, len(t) /\
+          \ 500.0)\n\n    if doi_count >= 4:\n        return True\n    if numbered_refs >= 8:\n        return True\n    if density > 1.8:\n        return True\n\n    first_line = t.split(NL)[0].strip()\n    if re.match(r\"^\\d+[\\.,]\\s\", first_line) or re.match(r\"^\\[\\d+\\]\", first_line):\n        if density > 0.8:\n            return True\n\n    return False\n\n\ndef _metadata_looks_garbled(title, authors, year, journal):\n    \"\"\"Detect clearly broken metadata (book chapters, extraction failures).\"\"\"\n    t = str(title or \"\").strip()\n    a = str(authors or \"\").strip()\n    y = str(year or \"\").strip()\n    j = str(journal or \"\").strip()\n\n    # Title has no spaces → garbled concatenation (e.g. \"ComputationalEpigenomicsandEpitranscriptomics\")\n    if len(t) > 15 and \" \" not in t:\n        return True\n\n    # Authors contain structural text, not person names\n    a_lower = a.lower()\n    garbled_author_markers = [\n        \"editor\",\n        \"series\",\n      \
+          \  \"ethods in\",\n        \"olecular biology\",\n    ]\n    if any(m in a_lower for m in garbled_author_markers):\n        return True\n\n    # Year is not a 4-digit year\n    if y and not re.fullmatch(r\"(19|20)\\d{2}\", y):\n        return True\n\n    # Journal is just numbers / page ranges (e.g. \"241-260\")\n    if j and re.fullmatch(r\"\\d+[\\-–]\\d+\", j):\n        return True\n\n    return False\n\n\ndef _get_doc_info(chunk):\n    \"\"\"Extract rich document info from a Dify KR result item using real metadata.\"\"\"\n    if not isinstance(chunk, dict):\n        return None\n    meta = chunk.get(\"metadata\", {})\n    if not isinstance(meta, dict):\n        return None\n\n    doc_meta = meta.get(\"doc_metadata\", {})\n    if isinstance(doc_meta, dict):\n        title = str(doc_meta.get(\"title\", \"\")).strip()\n        authors = str(doc_meta.get(\"authors\", \"\")).strip()\n        journal = str(doc_meta.get(\"journal\", \"\")).strip()\n        year = str(doc_meta.get(\"\
+          year\", \"\")).strip()\n\n        # Detect garbled metadata (common with book chapters)\n        if title and not _metadata_looks_garbled(title, authors, year, journal):\n            header = f'\"{title}\"'\n            if authors:\n                header += f\" by {authors}\"\n            if journal or year:\n                header += \" (\"\n                if journal:\n                    header += journal\n                if year:\n                    if journal:\n                        header += \", \"\n                    header += year\n                header += \")\"\n            return header\n\n    # Fallback: use filename-based title field, parse structured info\n    title = str(chunk.get(\"title\", \"\")).strip()\n    if title:\n        title = re.sub(r\"__[a-z_]+_\\d{10,}(?:\\.pdf)?$\", \"\", title, flags=re.IGNORECASE)\n        title = re.sub(r\"\\.pdf$\", \"\", title, flags=re.IGNORECASE)\n        title = title.strip()\n        if title:\n            # Try to parse\
+          \ structured filename: \"Authors, Year, Journal, ...\"\n            parts = [p.strip() for p in title.split(\",\")]\n            if len(parts) >= 3:\n                maybe_authors = parts[0]\n                maybe_year = parts[1].strip()\n                maybe_journal = parts[2].strip()\n                if re.fullmatch(r\"(19|20)\\d{2}\", maybe_year):\n                    header = f'\"{title}\"'\n                    if maybe_authors:\n                        header += f\" by {maybe_authors}\"\n                    header += f\" ({maybe_journal}, {maybe_year})\"\n                    return header\n            return title\n    return None\n\n\ndef main(kr_result=None):\n    if not isinstance(kr_result, list):\n        return {\"filtered_chunks\": [], \"chunk_count\": 0, \"chunks_removed\": 0}\n    kept = []\n    removed = 0\n    seen_docs = set()\n    for c in kr_result:\n        text = _extract_text(c)\n        if not text or len(text) < 20:\n            continue\n        if _is_reference_chunk(text):\n\
+          \            removed += 1\n        else:\n            doc_name = _get_doc_info(c)\n            if doc_name:\n                seen_docs.add(doc_name)\n                text = \"From paper: \" + doc_name + NL + text\n            kept.append(text)\n    # Safety: if too few chunks survived, pass all through unfiltered\n    if len(kept) < 3 and len(kr_result) >= 3:\n        kept = []\n        removed = 0\n        for c in kr_result:\n            text = _extract_text(c)\n            if not text or len(text) < 20:\n                continue\n            doc_name = _get_doc_info(c)\n            if doc_name:\n                seen_docs.add(doc_name)\n                text = \"From paper: \" + doc_name + NL + text\n            kept.append(text)\n\n    # Deduplicate by paper: merge chunks from same document\n    by_doc = {}\n    for chunk in kept:\n        parts = chunk.split(NL, 1)\n        doc_key = parts[0] if parts[0].startswith(\"From paper:\") else \"_unknown\"\n        content = parts[1]\
+          \ if len(parts) > 1 else chunk\n        if doc_key not in by_doc:\n            by_doc[doc_key] = []\n        by_doc[doc_key].append(content)\n    deduped = []\n    for doc_key, contents in by_doc.items():\n        merged = NL.join(contents[:1])  # max 1 chunk per paper (recall-optimized)\n        deduped.append(doc_key + NL + merged)\n\n    if not deduped:\n        deduped.append(\n            \"ALL \"\n            + str(len(kr_result))\n            + \" RETRIEVED CHUNKS WERE REFERENCE LISTS AND FILTERED OUT. The query may match bibliography sections rather than paper body text. Try a more specific query or different search terms.\"\n        )\n    return {\n        \"filtered_chunks\": deduped[:30],\n        \"chunk_count\": min(len(deduped), 30),\n        \"chunks_removed\": removed,\n        \"doc_names\": sorted(seen_docs)[:30],\n    }\n"
         code_language: python3
         isInIteration: false
         isInLoop: false
@@ -1789,7 +1211,7 @@ workflow:
           - result
           value_type: array[string]
           variable: kr_result
-      height: 52
+      height: 51
       id: '1778800001036'
       position:
         x: -595.5388103134578
@@ -1836,29 +1258,17 @@ workflow:
 
             === CRITICAL RULES ===
 
-            1. Headers look like: "From paper: \"Title\" by A, B, C, D, E (Journal,
-            Year)"
+            1. Headers look like: "From paper: \"Title\" by A, B, C, D, E (Journal, Year)"
 
-            2. COUNT the authors after "by". If the header has 5 authors, you MUST
-            output 5. If it has 3, output 3. NEVER output fewer authors than the header
-            contains. This is the most important rule.
+            2. COUNT the authors after "by". If the header has 5 authors, you MUST output 5. If it has 3, output 3. NEVER output fewer authors than the header contains. This is the most important rule.
 
-            3. Copy author names EXACTLY from the header — no initials expansion.
-            CRITICAL: Each paper entry gets its authors ONLY from its OWN header.
-            Do NOT copy authors from one header into another paper entry. If Paper
-            A has authors X,Y,Z and Paper B has authors P,Q,R, then Paper A lists
-            X,Y,Z and Paper B lists P,Q,R. NEVER mix them.
+            3. Copy author names EXACTLY from the header — no initials expansion. CRITICAL: Each paper entry gets its authors ONLY from its OWN header. Do NOT copy authors from one header into another paper entry. If Paper A has authors X,Y,Z and Paper B has authors P,Q,R, then Paper A lists X,Y,Z and Paper B lists P,Q,R. NEVER mix them.
 
             4. Copy title, journal, and year EXACTLY from the header.
 
-            5. Pick ONE verbatim quote from the chunk relevant to the user''s query.
-            The quote MUST appear verbatim in the provided context. If NO verbatim
-            quotable sentence about the query topic exists in the context, write EXACTLY:
-            "No verbatim quote available." NEVER fabricate, paraphrase, or invent
-            a quote.
+            5. Pick ONE verbatim quote from the chunk relevant to the user''s query. The quote MUST appear verbatim in the provided context. If NO verbatim quotable sentence about the query topic exists in the context, write EXACTLY: "No verbatim quote available." NEVER fabricate, paraphrase, or invent a quote.
 
-            6. Only include papers whose chunks contain information relevant to the
-            user''s query. Skip papers with no relevant content.
+            6. Only include papers whose chunks contain information relevant to the user''s query. Skip papers with no relevant content.
 
 
             Format (use EXACTLY this format):
@@ -1870,30 +1280,25 @@ workflow:
             Quote: "verbatim evidence"
 
 
-            EXAMPLE — if header is: "From paper: \"Detection of queuosine...\" by
-            Yu Sun, Michael Piechotta, Isabel Naarmann-de Vries, Christoph Dieterich,
-            Ann E. Ehrenhofer-Murray (Nucleic Acids Res, 2023)"
+            EXAMPLE — if header is: "From paper: \"Detection of queuosine...\" by Yu Sun, Michael Piechotta, Isabel Naarmann-de Vries, Christoph Dieterich, Ann E. Ehrenhofer-Murray (Nucleic Acids Res, 2023)"
 
             Then you MUST output:
 
-            **"Detection of queuosine and queuosine precursors in tRNAs by direct
-            RNA sequencing"** (Nucleic Acids Res, 2023)
+            **"Detection of queuosine and queuosine precursors in tRNAs by direct RNA sequencing"** (Nucleic Acids Res, 2023)
 
-            Authors: Yu Sun, Michael Piechotta, Isabel Naarmann-de Vries, Christoph
-            Dieterich, Ann E. Ehrenhofer-Murray
+            Authors: Yu Sun, Michael Piechotta, Isabel Naarmann-de Vries, Christoph Dieterich, Ann E. Ehrenhofer-Murray
 
             Quote: "Here, we have employed direct RNA sequencing..."
 
 
-            If no headers: "Insufficient context." NO fabricated content. NO <think>.
-            Keep under 500 words.'
+            If no headers: "Insufficient context." NO fabricated content. NO <think>. Keep under 500 words.'
         reasoning_format: separated
         selected: false
         title: Author Extraction LLM
         type: llm
         vision:
           enabled: false
-      height: 88
+      height: 87
       id: '1778800001034'
       position:
         x: 209.4752276329641
@@ -1938,15 +1343,7 @@ workflow:
             You are answering: "{{#sys.query#}}"
 
 
-            === CRITICAL RULES === 1. Scan ALL chunks. Be COMPREHENSIVE — list ALL
-            matching entities, not just the first few. 2. For the "Paper" column,
-            use ONLY the paper TITLE and YEAR from the "From paper:" header (e.g.
-            "Title (2024)"). Do NOT include authors or full header text. Do NOT copy
-            chunk body text into the Paper column. NEVER extract author names or paper
-            titles from the chunk body text. 3. Derive the Entity Type from the chunk
-            content — it should match the query intent. 4. Group identical entities
-            from different papers into ONE row with multiple papers, separated by
-            ";".
+            === CRITICAL RULES === 1. Scan ALL chunks. Be COMPREHENSIVE — list ALL matching entities, not just the first few. 2. For the "Paper" column, use ONLY the paper TITLE and YEAR from the "From paper:" header (e.g. "Title (2024)"). Do NOT include authors or full header text. Do NOT copy chunk body text into the Paper column. NEVER extract author names or paper titles from the chunk body text. 3. Derive the Entity Type from the chunk content — it should match the query intent. 4. Group identical entities from different papers into ONE row with multiple papers, separated by ";".
 
 
             Format:
@@ -1963,7 +1360,7 @@ workflow:
         type: llm
         vision:
           enabled: false
-      height: 88
+      height: 87
       id: '1778800001037'
       position:
         x: 209.4752276329641
@@ -2008,32 +1405,25 @@ workflow:
             You are answering: "{{#sys.query#}}"
 
 
-            Answer as a concise knowledge summary. For EVERY finding or method you
-            mention, you MUST cite the source paper in this format:
+            Answer as a concise knowledge summary. For EVERY finding or method you mention, you MUST cite the source paper in this format:
 
             "Paper Title" by ALL authors from the header (Journal, Year)
 
-            NEVER say "and colleagues" or "et al." — list EVERY author from the "From
-            paper:" header exactly as written. Copy the title exactly. Never extract
-            author names from the chunk body — use only the "From paper:" header.
+            NEVER say "and colleagues" or "et al." — list EVERY author from the "From paper:" header exactly as written. Copy the title exactly. Never extract author names from the chunk body — use only the "From paper:" header.
 
-            VERIFY each citation: the claim you cite MUST come from the SAME chunk
-            whose "From paper:" header you use. If a claim appears in one chunk but
-            you cite a different paper, that is WRONG. Match each claim to the correct
-            header carefully.
+            VERIFY each citation: the claim you cite MUST come from the SAME chunk whose "From paper:" header you use. If a claim appears in one chunk but you cite a different paper, that is WRONG. Match each claim to the correct header carefully.
 
 
             If context lacks information: "Insufficient context."
 
-            CRITICAL: NEVER fabricate. NO <think>. Keep under 500 words. Answer in
-            the same language as the user.'
+            CRITICAL: NEVER fabricate. NO <think>. Keep under 500 words. Answer in the same language as the user.'
         reasoning_format: separated
         selected: false
         title: KR Extraction LLM
         type: llm
         vision:
           enabled: false
-      height: 88
+      height: 87
       id: '1778800001038'
       position:
         x: 209.4752276329641
@@ -2073,7 +1463,7 @@ workflow:
         selected: false
         title: KR Intent Router
         type: if-else
-      height: 220
+      height: 219
       id: '1778800001039'
       position:
         x: -129.0488118411729
@@ -2102,7 +1492,7 @@ workflow:
         selected: false
         title: Metadata LLM Bypass
         type: if-else
-      height: 124
+      height: 123
       id: '1778800001040'
       position:
         x: -32.70849858176177
@@ -2116,7 +1506,7 @@ workflow:
       type: custom
       width: 242
     viewport:
-      x: -283.1642604130558
-      y: -2471.967568754721
-      zoom: 0.7748559309591706
+      x: -509.7187682480595
+      y: -2607.582696220249
+      zoom: 0.7970370808924945
   rag_pipeline_variables: []
