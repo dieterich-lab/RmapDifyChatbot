@@ -1,7 +1,7 @@
 # RMAP Chatbot – Test Cases
 
 > Living document: current behavior of all release test cases.
-> Last updated: 2026-07-22 (v0.4.11, #13 re-verified, #17-20 added)
+> Last updated: 2026-07-22 (v0.4.12, #19/#20 verified, multi-author deployed)
 
 ## Overview
 
@@ -347,5 +347,5 @@ Ends with: *"Insufficient context for other modifications."*
 - **App ID:** `16d50bee-bc86-4bda-bb56-a861743f3ddb`
 - **API endpoint:** `http://rmap-chatbot-demo-dify/v1/chat-messages`
 - **Model (metadata/extraction):** qwen2.5:14b (Ollama)
-- **Dataset:** RMAP Papers (UUID `<your-dataset-id>`, 82 documents)
+- **Dataset:** RMAP Papers (UUID `<your-dataset-id>`, 84 documents)
 - **Embedding:** nomic-embed-text-v2-moe

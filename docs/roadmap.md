@@ -1,6 +1,6 @@
 # RMAP Chatbot – Feature Roadmap & Analysis
 
-> Stand: 2026-07-22 · v0.4.10 · App `16d50bee-bc86-4bda-bb56-a861743f3ddb` · Model `qwen2.5:14b` · 16+ Test Cases
+> Stand: 2026-07-22 · v0.4.12 · App `16d50bee-bc86-4bda-bb56-a861743f3ddb` · Model `qwen2.5:14b` · 20 Test Cases
 
 ## Übersicht
 
@@ -12,7 +12,7 @@
 | `author_lookup` | ✅ stabil | ✅ Quotes + Autoren korrekt (v0.4.7) | ~27% (7/26) | ✅ stabil (v0.4.8) |
 | `entity_lookup` | ⚠️ Recall-Limit | ✅ sauber (keine Halluzination) | ⚠️ 5/38+ Modifikationen, m6A fehlt | ✅ stabil (v0.4.2) |
 
-### 16 Test Cases – Current Standings (2026-07-22)
+### 20 Test Cases – Current Standings (2026-07-22)
 
 | # | Intent | Query | Status | Fixed In |
 |---|--------|-------|--------|----------|
@@ -212,21 +212,24 @@ Context ("From paper:" headers with real metadata):
 
 ## Nächste Schritte
 
-### ✅ Erledigt (v0.4.6–v0.4.10)
+### ✅ Erledigt (v0.4.6–v0.4.12)
 
 | # | Fix | Version |
 |---|-----|---------|
 | 1 | Quote-Halluzination (#4) | v0.4.6 |
 | 2 | 7-vs-8 Miscount (#1/#14) | v0.4.6 |
 | 3 | Group-by Pronomen (#15) | v0.4.6 |
-| 4 | Find papers by \<name\> (#6) | v0.4.6 |
+| 4 | Find papers by <name> (#6) | v0.4.6 |
 | 5 | Citation-Attribution (#3) | v0.4.7 |
 | 6 | Autor-Cross-Contamination (#4) | v0.4.7 |
 | 7 | HEK cells speculative claims (#12) | v0.4.8 |
 | 8 | Science Journals AAAS metadata | v0.4.8 |
 | 9 | Author name format normalization | v0.4.9 |
 | 10 | **100% Metadata Coverage** (PubMed + CrossRef + LLM) | v0.4.10 |
-| 11 | **Author display in metadata_list** (`title, authors, year, journal`) | v0.4.11 |
+| 11 | **Author display in metadata_list** | v0.4.11 |
+| 12 | **100% Upload** (Höfer + Schaffrath) + Umlaut-Normalisierung | v0.4.12 |
+| 13 | **Multi-Author OR-Matching** + Router MULTI-NAME rule | v0.4.12 |
+| 14 | **DIFY_DATASET_ID single source of truth** | v0.4.12 |
 
 ### 🟡 Priorität 2 – Qualitätsverbesserungen
 
