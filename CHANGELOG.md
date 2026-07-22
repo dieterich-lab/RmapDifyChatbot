@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.4.11] - 2026-07-22
+
+### Fixed
+
+- **Author Display in metadata_list**: Metadata LLM prompt output format changed from `title, year, journal` to `title, authors, year, journal`. Each paper in `metadata_list` results now shows its full author list. Verified with "Papers by Christoph Dieterich" (HTTP 200, 102s, 2901 chars).
+
+### Added
+
+- **Test Cases #17–20**: Multi-author filter (#17), Lauren Saunders hardcoded info (#18), Tamer Butto name-matching bug (#19), Michaela Frye retrieval gap (#20). 2 bugs, 2 out-of-scope documented.
+
 ## [0.4.10] - 2026-07-22
 
 ### Added

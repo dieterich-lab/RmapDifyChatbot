@@ -1,7 +1,7 @@
 # RMAP Chatbot – Test Cases
 
 > Living document: current behavior of all release test cases.
-> Last updated: 2026-07-20 (v0.4.6, all 16 cases re-verified post prompt fixes)
+> Last updated: 2026-07-22 (v0.4.11, #13 re-verified, #17-20 added)
 
 ## Overview
 
@@ -19,10 +19,14 @@
 | 10 | "Find all research papers" | metadata_list | ✅ | ✅ none (81 papers) |
 | 11 | "List all researchers" | metadata_list | ✅ | ✅ none (776 authors) |
 | 12 | "Who is using HEK cells?" | author_lookup | ✅ | ✅ none (prompt de-tRNA-fied, speculative claims removed) |
-| 13 | "Find papers by Mark Helm" → "Summarize them" | content_summary | ⚠️ | ⚠️ hangs on 2nd turn (28 papers, ~15 fetched) |
+| 13 | "Find papers by Mark Helm" → "Summarize them" | content_summary | ✅ | ✅ none (v0.4.10: cap 15→8, 194s) |
 | 14 | "Find Papers by Dieterich" (last name only) | metadata_list | ✅ | ✅ none (8/8, count verified) |
 | 15 | "Papers by X" → "Group them by journal" | content_summary | ✅ | ✅ none (groups by journal) |
 | 16 | PI collaboration: Helm, Hengesbach, Höbartner, Jäschke, Ketting | N/A | ❌ | N/A (architectural gap – no fix planned) |
+| 17 | "Can you identify these Names: Helm, Hengesbach, ..." | metadata_list | ❌ | N/A (multi-author filter – out of scope) |
+| 18 | Hardcoded info for Lauren Saunders (no papers in DB) | N/A | ❌ | N/A (external knowledge base needed) |
+| 19 | "Find papers by Tamer Butto" | metadata_list | ✅ | ✅ 2 papers (v0.4.11 verified: 41s) |
+| 20 | "Find papers by Michaela Frye" | metadata_list | ✅ | ✅ 1 paper (v0.4.11 verified: 49s) |
 
 ---
 
@@ -228,12 +232,13 @@ Ends with: *"Insufficient context for other modifications."*
 ### 13. "Find papers by Mark Helm" → "Summarize them"
 
 - **Date tested:** 2026-07-16 (fixed), 2026-07-20 (re-verified), 2026-07-22 (improved)
-- **Status:** ✅ Improved (v0.4.10 – cap reduced from 15→8 papers)
+- **Intent:** `content_summary`
+- **Status:** ✅ Fixed (v0.4.10 – cap reduced from 15→8 papers)
 
 **Fix applied (v0.4.10):**
 - `MAX_PAPERS_FOR_SUMMARY` reduced from 15 to 8 in `parse_router_output.py`
 - Result: 8 papers × 6000 chars = 48K total context → fits in 65K window with room for prompt + output
-- Expected latency: ~30s (4s API calls + ~25s Summary LLM on A2) – well under the 5 min draft timeout
+- Tested at 194s for Mark Helm (28 papers → 8 summarized) – well under the 5 min draft timeout
 
 **Prior fixes:**
   1. Added `"paper_count": 0` to `_fallback_result()` in `parse_router_output.py`
@@ -274,6 +279,66 @@ Ends with: *"Insufficient context for other modifications."*
 **Decision (2026-07-20):** Marked as architectural gap beyond current scope. Requires new intent (`collaboration_analysis`) with dedicated code node for multi-author intersection computation. Low ROI: most PIs have only 1 paper in dataset → virtually all pairs would return 0 collaborations. Deferred indefinitely.
 
 **Original analysis:** Requires computational co-authorship analysis not supported by current 5-intent architecture.
+
+---
+
+### 17. "Can you identify these Names: Helm, Hengesbach, Höbartner, Jäschke, …"
+
+- **Date reported:** 2026-07-22
+- **Intent:** `metadata_list` (multi-author filter)
+- **Status:** ❌ Out of scope – architectural gap
+
+**Problem:** Works for 1–3 authors (each returns correct paper lists), but fails for >3 authors passed simultaneously. The Metadata Query code node (`metadata_query.py`) only handles single-author filters: it reads `paper_list[0].authors` – a single name string. There is no support for `authors: ["Helm", "Hengesbach", "Höbartner"]` array-style multi-author filtering or OR-logic.
+
+**What would be needed:**
+- `metadata_query.py`: accept array-style author input, iterate over multiple names
+- `parse_router_output.py`: pass multi-author array through to Metadata Query
+- Unified Router: recognize list-of-names intent and emit `paper_list: [{"authors": ["Helm", "Hengesbach", ...]}]`
+
+**Decision:** ❌ No fix planned. Single-author queries work correctly – users should query one author at a time. Multi-author AND/OR logic is an architectural gap beyond current scope.
+
+---
+
+### 18. Hardcoded Info for Lauren Saunders
+
+- **Date reported:** 2026-07-22
+- **Intent:** N/A – requires external knowledge base
+- **Status:** ❌ Out of scope
+
+**Problem:** Lauren Saunders has no papers in the RMB dataset. Current behavior (test case #9): returns "Keine Dokumente gefunden" + search tips. User requested hardcoded information about Lauren Saunders (background, role, research interests).
+
+**What would be needed:**
+- External knowledge base (author wiki, PI database, or hardcoded JSON with researcher profiles)
+- New code node or prompt that falls back to this KB when dataset returns 0 results
+- Ongoing maintenance: keep researcher profiles up to date
+
+**Decision:** ❌ No fix planned. This requires infrastructure (author wiki) beyond the chatbot's paper-centric architecture. Providing researcher background info is orthogonal to the chatbot's core purpose (answering questions about RMaP papers).
+
+---
+
+### 19. "Find papers by Tamer Butto"
+
+- **Date reported:** 2026-07-22
+- **Date verified:** 2026-07-22 (v0.4.11)
+- **Intent:** `metadata_list`
+- **Status:** ✅ Working
+
+**Result:** 2 papers (HTTP 200, 41s): "NanopoReaTA" (Bioinformatics, 2023) and a second Bioinformatics 2024 paper — Butto, Tamer as co-author on both.
+
+**Root cause:** Metadata stores "Butto, Tamer" (comma format). `_author_variants("Tamer Butto")` generates "Butto" (last-name-only fallback), which matches. Earlier report of "unfiltered list" was likely pre-v0.4.11.
+
+---
+
+### 20. "Find papers by Michaela Frye"
+
+- **Date reported:** 2026-07-22
+- **Date verified:** 2026-07-22 (v0.4.11)
+- **Intent:** `metadata_list`
+- **Status:** ✅ Working
+
+**Result:** 1 paper (HTTP 200, 49s): "RNA modifications in physiology and disease: towards clinical applications" (Nat Rev Genet, 2024) – Delaunay, Sylvain, Helm, Mark, Frye, Michaela.
+
+**Root cause:** Metadata stores "Frye, Michaela" (comma format). `_author_variants("Michaela Frye")` generates "Frye" (last-name-only fallback), which matches. Both "Find papers by" and "Papers by" work. Earlier report of "no results" was likely pre-v0.4.11.
 
 ---
 

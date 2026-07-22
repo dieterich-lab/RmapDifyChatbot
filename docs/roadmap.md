@@ -29,6 +29,10 @@
 | 14 | `metadata_list` | Papers by Dieterich (last name) | ✅ 8 papers | v0.4.6 |
 | 15 | `content_summary` | Papers by X → Group by journal | ✅ Groups by journal | v0.4.6 |
 | 16 | N/A | PI Collaboration Analysis | ❌ no-fix architectural gap | – |
+| 17 | `metadata_list` | Multi-author: "Identify Helm, Hengesbach, …" | ❌ single-author limit | – |
+| 18 | N/A | Hardcoded info for Lauren Saunders | ❌ external KB needed | – |
+| 19 | `metadata_list` | Find papers by Tamer Butto | ✅ 2 papers (v0.4.11) | – |
+| 20 | `metadata_list` | Find papers by Michaela Frye | ✅ 1 paper (v0.4.11) | – |
 
 ### Bonus Cases – Author Name Format Normalization (v0.4.9)
 
@@ -222,20 +226,23 @@ Context ("From paper:" headers with real metadata):
 | 8 | Science Journals AAAS metadata | v0.4.8 |
 | 9 | Author name format normalization | v0.4.9 |
 | 10 | **100% Metadata Coverage** (PubMed + CrossRef + LLM) | v0.4.10 |
+| 11 | **Author display in metadata_list** (`title, authors, year, journal`) | v0.4.11 |
 
 ### 🟡 Priorität 2 – Qualitätsverbesserungen
 
-11. **top_k**: Bereits 100 in GUI + DSL. Keine weiteren Erhöhungen möglich.
+12. **top_k**: Bereits 100 in GUI + DSL. Keine weiteren Erhöhungen möglich.
 
 ### ⬜ Priorität 3 – Erweiterungen
 
-12. **LLM-Upgrade**: qwen2.5:14b → 32b für bessere Comprehensiveness (`entity_lookup` m6A-Recall, #5).
-13. **Embedding-Model**: `nomic-embed-text-v2-moe` → biomedizinisches Model evaluieren.
-14. **#13 Timeout**: ✅ Gefixt (v0.4.10, cap 15→8). Parallelisierung/Caching als optionale Verbesserung.
+14. **LLM-Upgrade**: qwen2.5:14b → 32b für bessere Comprehensiveness (`entity_lookup` m6A-Recall, #5).
+15. **Embedding-Model**: `nomic-embed-text-v2-moe` → biomedizinisches Model evaluieren.
+16. **#13 Timeout**: ✅ Gefixt (v0.4.10, cap 15→8). Parallelisierung/Caching als optionale Verbesserung.
 
 ### ❌ No-Fix – Architektonische Limits
 
-15. **Collaboration Analysis** (#16): >2h Aufwand, fast alle Pairs 0 Collaborations.
+17. **Collaboration Analysis** (#16): >2h Aufwand, fast alle Pairs 0 Collaborations.
+18. **Multi-Author Filter** (#17): Metadata Query unterstützt nur Single-Author-Filter (`paper_list[0].authors`). Array-basierte Multi-Author-Suche bräuchte AND/OR-Logik – architektonischer Gap.
+19. **Externes Autor-Wiki** (#18): Lauren Saunders hat keine Papers im Datensatz. Hardcoded Researcher-Profiles bräuchten eigene Infrastruktur – orthogonal zum Paper-zentrierten Chatbot.
 
 ---
 
