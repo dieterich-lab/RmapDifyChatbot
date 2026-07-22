@@ -95,9 +95,10 @@ def main(router_text=None, conversation_memory=None, sys_query=None):
                 paper_list.append(cleaned)
 
     # ── Cap papers for content_summary to avoid context overflow ──
-    # Full paper texts average ~11K chars each; 15 papers ≈ 165K chars ≈ 41K tokens
-    # which fits in the Summary LLM's 65K context window (with room for prompt + output).
-    MAX_PAPERS_FOR_SUMMARY = 15
+    # Full paper texts average ~11K chars each; 8 papers ≈ 48K chars ≈ 12K tokens
+    # which fits comfortably in the Summary LLM's 65K context window and
+    # keeps A2 (qwen2.5:14b) response time under 2 minutes.
+    MAX_PAPERS_FOR_SUMMARY = 8
     if intent == "content_summary" and len(paper_list) > MAX_PAPERS_FOR_SUMMARY:
         paper_list = paper_list[:MAX_PAPERS_FOR_SUMMARY]
 

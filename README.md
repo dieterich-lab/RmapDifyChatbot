@@ -2,15 +2,15 @@
 
 RmapDifyChatbot is a Dify-based academic literature assistant for the RMaP project. It answers questions about 84 RNA-modification papers using hybrid retrieval (keyword + vector) and intent-based routing.
 
-## Status Snapshot (2026-07-20)
+## Status Snapshot (2026-07-22)
 
-**v0.4.8 — #12 HEK + Science Journals AAAS Fixes**
+**v0.4.10 — 100% Metadata Coverage**
 
 1. **5 Query-Intents**: ✅ `metadata_list`, `content_summary`, `knowledge_retrieval`, `author_lookup`, `entity_lookup`
-2. **#12 HEK cells gefixt**: Prompt de-tRNA-fied, speculative claims removed
-3. **Science Journals AAAS gefixt**: Metadata korrigiert via API
-4. **Alle v0.4.6/v0.4.7 Fixes**: Quote, Count, Group-by, Find-by-name, Citation, Cross-Contamination
-5. **top_k: 100**, Hybrid **0.7/0.3**, **qwen2.5:14b**, 23 Nodes, 28 Edges
+2. **100% Metadaten**: 84/84 Papers via PubMed (73) + CrossRef (1) + LLM/qwen3:32b (10)
+3. **Alle Prompt-Fixes** (v0.4.6–v0.4.9): Quote, Count, Group-by, Find-by-name, Citation, Cross-Contamination, HEK, Name-Format
+4. **top_k: 100**, Hybrid **0.7/0.3**, **qwen2.5:14b** (A2 16GB VRAM), 23 Nodes, 28 Edges
+5. **16 Test Cases**: ✅ 13 · ⚠️ 2 · ❌ 1
 
 ---
 
@@ -39,9 +39,9 @@ Du bekommst eine Einladung zur Dify-Account-Erstellung. Nach dem Login findest d
 | `metadata_list` | "Find all research papers" | 81 Papers (LLM-native, kein Regex) | – |
 | `metadata_list` | "List all researchers" | 776 Authors (LLM-native) | – |
 | `content_summary` | "Summarize them" (nach metadata_list) | Global Synthesis + 3 Bullet Points/Paper | Max 15 Papers (Context-Limit) |
-| `knowledge_retrieval` | "What is m6A?" | Methoden mit Inline-Citations | ⚠️ 1/5 Citations falsch zugeordnet |
-| `author_lookup` | "Who has worked on tRNA modifications?" | ~9 Papers mit Autoren + Quotes | ⚠️ Autor-Cross-Contamination (Richter), Quote-Fabrikation gefixt |
-| `entity_lookup` | "Which RNA modifications are most studied?" | ~5 Entity-Typen mit Paper-Zuordnung | ⚠️ m6A fehlt (LLM-Limit) |
+| `knowledge_retrieval` | "What is m6A?" | Methoden mit Inline-Citations | ✅ Citations verified (v0.4.7) |
+| `author_lookup` | "Who has worked on tRNA modifications?" | ~9 Papers mit Autoren + Quotes | ✅ Quotes + Authors verified (v0.4.7) |
+| `entity_lookup` | "Which RNA modifications are most studied?" | ~5 Entity-Typen mit Paper-Zuordnung | ⚠️ m6A fehlt (14B-Limit, braucht 32B) |
 
 → Detaillierte Test-Ergebnisse: [`docs/test-cases.md`](docs/test-cases.md)
 
@@ -122,8 +122,8 @@ flowchart TD
 - **KR Query Rewriter entfernt** (v0.4.0): HyDE-style Keyword-Expansion matchte überproportional Bibliography-Sections. Query geht jetzt unverändert an KR.
 - **qwen2.5:14b für alle LLMs** (v0.4.6): `gpt-oss` komplett ersetzt – weniger Halluzination, strikteres Grounding.
 - **1 Chunk/Paper** (v0.4.2): Maximiert Paper-Diversität im Context (bis 50 unique Papers).
-- **top_k=50** (v0.4.0): `TOP_K_MAX_VALUE=50` im Dify-Container gesetzt – GUI-Limit umgangen.
-- **PubMed-Metadaten** (v0.4.3): 83% Coverage via DOI→PMID→MEDLINE, keine LLM-Halluzination.
+- **top_k=100** (v0.4.7): `TOP_K_MAX_VALUE=100` im Dify-Container gesetzt – GUI-Limit umgangen.
+- **PubMed-Metadaten** (v0.4.3→v0.4.10): 100% Coverage via DOI→PMID→MEDLINE + CrossRef + LLM (qwen3:32b). Keine LLM-Halluzination.
 
 ### Model Configuration
 
@@ -148,10 +148,9 @@ flowchart TD
 
 | # | Intent | Problem | Schweregrad | Details |
 |---|--------|---------|-------------|---------|
-| 1 | `author_lookup` | Autor-Cross-Contamination | ⚠️ Mittel | Richter-Paper hat falsche Autoren (Corzilius/Furtig aus Paper #1).Quote-Halluzination in v0.4.6 gefixt. |
-| 2 | `entity_lookup` | Recall-Limit | ⚠️ Mittel | Nur 5 Entities (pseudouridine, queuosine, Nm, m1, 2-O-Me). m6A – die meistuntersuchte RNA-Modifikation – fehlt. qwen2.5:14b stoppt intrinsisch bei ~6 Entities. |
-| 3 | `knowledge_retrieval` | Citation-Attribution | ⚠️ Niedrig | 1 von 5 Citations falsch zugeordnet (Antikörper-Claim zitiert Chan et al. statt Helm et al.). |
-| 4 | `author_lookup` | "Science Journals — AAAS" | ⚠️ Kosmetisch | Paper #6 hat Garbled Metadata (bekannt seit v0.4.1). |
+| 1 | `entity_lookup` | Recall-Limit | ⚠️ Mittel | Nur 5 Entities. m6A fehlt. qwen2.5:14b stoppt intrinsisch bei ~6 Entities. Fix braucht 32B-Upgrade (P3). |
+| 2 | `content_summary` | Mark Helm Timeout | ⚠️ Mittel | "Summarize them" für 28 Papers >5 min. Fetch Full Paper + Summary LLM zu langsam auf A2. |
+| 3 | `knowledge_retrieval` | miCLIP/MeRIP-Lücke | ⚠️ Niedrig | Retrieval-Ranking liefert diese Methoden nicht in den Top-100 Chunks. |
 
 → Detaillierte Analyse: [`docs/test-cases.md`](docs/test-cases.md)
 

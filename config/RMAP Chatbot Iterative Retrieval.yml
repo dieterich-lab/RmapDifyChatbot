@@ -1215,9 +1215,11 @@ workflow:
           \   meta_line = (\n        f\"{title} ({year}, {journal}) — {authors}\"\n\
           \        if (year or journal or authors)\n        else title\n    )\n  \
           \  header = f\"=== {meta_line} ===\"\n    n = int(paper_count) if paper_count\
-          \ and int(paper_count) > 0 else 1\n    chars_per_paper = max(4000, 48000\
-          \ // n)\n    context = f\"{header}\\n\\n{text[:chars_per_paper]}\"\n   \
-          \ return {\"paper_context\": context, \"paper_fetch_error\": \"\"}\n"
+          \ and int(paper_count) > 0 else 1\n    # With MAX_PAPERS_FOR_SUMMARY=8:\
+          \ 8 papers × 6000 chars = 48K total\n    # Fits in 65K context window with\
+          \ room for prompt (~13K) + output (~4K)\n    chars_per_paper = max(4000,\
+          \ 48000 // n)\n    context = f\"{header}\\n\\n{text[:chars_per_paper]}\"\
+          \n    return {\"paper_context\": context, \"paper_fetch_error\": \"\"}\n"
         code_language: python3
         isInIteration: true
         isInLoop: false
@@ -1629,9 +1631,10 @@ workflow:
           \    cleaned = _clean_paper(item)\n            if cleaned:\n           \
           \     paper_list.append(cleaned)\n\n    # ── Cap papers for content_summary\
           \ to avoid context overflow ──\n    # Full paper texts average ~11K chars\
-          \ each; 15 papers ≈ 165K chars ≈ 41K tokens\n    # which fits in the Summary\
-          \ LLM's 65K context window (with room for prompt + output).\n    MAX_PAPERS_FOR_SUMMARY\
-          \ = 15\n    if intent == \"content_summary\" and len(paper_list) > MAX_PAPERS_FOR_SUMMARY:\n\
+          \ each; 8 papers ≈ 48K chars ≈ 12K tokens\n    # which fits comfortably\
+          \ in the Summary LLM's 65K context window and\n    # keeps A2 (qwen2.5:14b)\
+          \ response time under 2 minutes.\n    MAX_PAPERS_FOR_SUMMARY = 8\n    if\
+          \ intent == \"content_summary\" and len(paper_list) > MAX_PAPERS_FOR_SUMMARY:\n\
           \        paper_list = paper_list[:MAX_PAPERS_FOR_SUMMARY]\n\n    rw = str(obj.get(\"\
           rewritten_query\") or \"\").strip()\n\n    # ── Name-only query guard: if\
           \ the user typed what looks like just a person's\n    # name (e.g. \"Helm,\
@@ -1643,16 +1646,21 @@ workflow:
           \ = \",\" in q and len(q.split(\",\")) == 2\n        has_dot_initials =\
           \ bool(re.match(r\"^[A-ZÀ-ÖØ-Ý]\\.\\s+\\w{2,}$\", q))\n        one_or_two_words\
           \ = (\n            len(q.split()) in (1, 2)\n            and not re.search(r\"\
-          [.?!/]\", q)\n            and not any(w.lower() in q.lower() for w in (\n\
-          \                \"who\", \"what\", \"which\", \"how\", \"why\", \"where\"\
-          , \"when\",\n                \"summarize\", \"compare\", \"group\", \"find\"\
-          , \"list\", \"show\",\n                \"experience\", \"worked\", \"using\"\
-          , \"studied\"\n            ))\n        )\n        if has_comma or has_dot_initials\
-          \ or one_or_two_words:\n            intent = \"metadata_list\"\n       \
-          \     if not paper_list:\n                # Use the query text as author\
-          \ filter\n                paper_list = [{\"authors\": q, \"title\": \"\"\
-          , \"year\": \"\", \"journal\": \"\"}]\n\n    return {\n        \"intent\"\
-          : intent,\n        \"paper_list\": paper_list,\n        \"paper_count\"\
+          [.?!/]\", q)\n            and not any(\n                w.lower() in q.lower()\n\
+          \                for w in (\n                    \"who\",\n            \
+          \        \"what\",\n                    \"which\",\n                   \
+          \ \"how\",\n                    \"why\",\n                    \"where\"\
+          ,\n                    \"when\",\n                    \"summarize\",\n \
+          \                   \"compare\",\n                    \"group\",\n     \
+          \               \"find\",\n                    \"list\",\n             \
+          \       \"show\",\n                    \"experience\",\n               \
+          \     \"worked\",\n                    \"using\",\n                    \"\
+          studied\",\n                )\n            )\n        )\n        if has_comma\
+          \ or has_dot_initials or one_or_two_words:\n            intent = \"metadata_list\"\
+          \n            if not paper_list:\n                # Use the query text as\
+          \ author filter\n                paper_list = [{\"authors\": q, \"title\"\
+          : \"\", \"year\": \"\", \"journal\": \"\"}]\n\n    return {\n        \"\
+          intent\": intent,\n        \"paper_list\": paper_list,\n        \"paper_count\"\
           : len(paper_list),\n        \"rewritten_query\": rw,\n        \"list_mode\"\
           : list_mode,\n    }\n"
         code_language: python3

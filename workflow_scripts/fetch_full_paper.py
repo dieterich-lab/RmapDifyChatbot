@@ -166,6 +166,8 @@ def main(
     )
     header = f"=== {meta_line} ==="
     n = int(paper_count) if paper_count and int(paper_count) > 0 else 1
+    # With MAX_PAPERS_FOR_SUMMARY=8: 8 papers × 6000 chars = 48K total
+    # Fits in 65K context window with room for prompt (~13K) + output (~4K)
     chars_per_paper = max(4000, 48000 // n)
     context = f"{header}\n\n{text[:chars_per_paper]}"
     return {"paper_context": context, "paper_fetch_error": ""}

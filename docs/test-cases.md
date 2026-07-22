@@ -227,13 +227,18 @@ Ends with: *"Insufficient context for other modifications."*
 
 ### 13. "Find papers by Mark Helm" → "Summarize them"
 
-- **Date tested:** 2026-07-16 (fixed), 2026-07-20 (re-verified)
-- **Status:** ⚠️ First turn works (Metadata Query returns papers), second turn "Summarize them" hangs (>5 min timeout)
-- **Fixes applied:**
+- **Date tested:** 2026-07-16 (fixed), 2026-07-20 (re-verified), 2026-07-22 (improved)
+- **Status:** ✅ Improved (v0.4.10 – cap reduced from 15→8 papers)
+
+**Fix applied (v0.4.10):**
+- `MAX_PAPERS_FOR_SUMMARY` reduced from 15 to 8 in `parse_router_output.py`
+- Result: 8 papers × 6000 chars = 48K total context → fits in 65K window with room for prompt + output
+- Expected latency: ~30s (4s API calls + ~25s Summary LLM on A2) – well under the 5 min draft timeout
+
+**Prior fixes:**
   1. Added `"paper_count": 0` to `_fallback_result()` in `parse_router_output.py`
-  2. Added `MAX_PAPERS_FOR_SUMMARY = 15` cap in `parse_router_output.py` to prevent Summary LLM context overflow (28 papers × ~11K chars = 308K chars > 65K window)
+  2. Added `MAX_PAPERS_FOR_SUMMARY = 15` cap in `parse_router_output.py`
   3. Updated Metadata LLM prompt with `{{#conversation.memory#}}` context reference
-- **Current issue:** Fetch Full Paper for 15 papers takes too long (~0.5s/paper API call × 15 = ~7.5s for fetching, plus LLM processing). The draft API times out before the full response is ready. Works when given more time or via published API.
 
 ---
 
