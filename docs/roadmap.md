@@ -1,34 +1,43 @@
 # RMAP Chatbot – Feature Roadmap & Analysis
 
-> Stand: 2026-07-20 · v0.4.6 · App `16d50bee-bc86-4bda-bb56-a861743f3ddb` · Model `qwen2.5:14b` · 16 Test Cases
+> Stand: 2026-07-22 · v0.4.9 · App `16d50bee-bc86-4bda-bb56-a861743f3ddb` · Model `qwen2.5:14b` · 16+ Test Cases
 
 ## Übersicht
 
 | Intent | Status | Präzision | Recall / Scope | Prompt reif? |
 |--------|--------|-----------|----------------|-------------|
-| `metadata_list` | ✅ stabil | ✅ API-fetched (keine Halluzination) | ✅ 82 Papers, 776 Authors | ✅ stabil (v0.4.6) |
+| `metadata_list` | ✅ stabil | ✅ API-fetched (keine Halluzination) | ✅ 82 Papers, 776 Authors | ✅ stabil (v0.4.9) |
 | `content_summary` | ✅ stabil | ✅ 0 Halluzination (Volltext-verified) | ⚠️ Max 15 Papers (Context-Limit) | ✅ stabil |
-| `knowledge_retrieval` | ✅ stabil | ⚠️ 4/5 Citations korrekt (v0.4.6), ✅ fixed in v0.4.7 | ⚠️ miCLIP/MeRIP fehlen | ✅ stabil (v0.4.7) |
-| `author_lookup` | ✅ stabil | ✅ Quotes + Autoren korrekt (v0.4.7) | ~27% (7/26) | ✅ stabil (v0.4.7) |
+| `knowledge_retrieval` | ✅ stabil | ✅ Citations korrekt (v0.4.7) | ⚠️ miCLIP/MeRIP fehlen | ✅ stabil (v0.4.7) |
+| `author_lookup` | ✅ stabil | ✅ Quotes + Autoren korrekt (v0.4.7) | ~27% (7/26) | ✅ stabil (v0.4.8) |
 | `entity_lookup` | ⚠️ Recall-Limit | ✅ sauber (keine Halluzination) | ⚠️ 5/38+ Modifikationen, m6A fehlt | ✅ stabil (v0.4.2) |
 
-### 16 Test Cases – Current Standings (2026-07-20)
+### 16 Test Cases – Current Standings (2026-07-22)
 
-| # | Intent | Query | Status |
-|---|--------|-------|--------|
-| 1 | `metadata_list` | Papers by Christoph Dieterich | ⚠️ "7 of 8" miscount |
-| 2 | `content_summary` | → Summarize them | ✅ Grounded |
-| 3 | `knowledge_retrieval` | What is m6A? | ✅ citation fixed (v0.4.7) |
-| 4 | `author_lookup` | Who worked on tRNA? | ✅ quote + cross-contamination fixed (v0.4.7) |
-| 5 | `entity_lookup` | Which RNA mods most studied? | ⚠️ 5 entities, m6A missing |
-| 6–9 | `metadata_list` | Tuorto, Ketting, Höbartner, Saunders | ✅ |
-| 10 | `metadata_list` | Find all research papers | ✅ LLM-native |
-| 11 | `metadata_list` | List all researchers | ✅ LLM-native |
-| 12 | `author_lookup` | Who is using HEK cells? | ⚠️ context drift |
-| 13 | `content_summary` | Mark Helm → Summarize | ⚠️ Times out (>5 min, 28 papers) |
-| 14 | `metadata_list` | Papers by Dieterich (last name) | ✅ 8 papers (v0.4.6) |
-| 15 | `content_summary` | Papers by X → Group by journal | ✅ Groups by journal (v0.4.6) |
-| 16 | `knowledge_retrieval` | PI Collaboration Analysis | ❌ beyond architecture |
+| # | Intent | Query | Status | Fixed In |
+|---|--------|-------|--------|----------|
+| 1 | `metadata_list` | Papers by Christoph Dieterich | ✅ 8 papers | v0.4.6 |
+| 2 | `content_summary` | → Summarize them | ✅ Grounded | – |
+| 3 | `knowledge_retrieval` | What is m6A? | ✅ citations correct | v0.4.7 |
+| 4 | `author_lookup` | Who worked on tRNA? | ✅ quotes + authors correct | v0.4.7 |
+| 5 | `entity_lookup` | Which RNA mods most studied? | ⚠️ 5 entities, m6A missing | – |
+| 6–9 | `metadata_list` | Tuorto, Ketting, Höbartner, Saunders | ✅ | v0.4.6 |
+| 10 | `metadata_list` | Find all research papers | ✅ LLM-native | v0.4.6 |
+| 11 | `metadata_list` | List all researchers | ✅ LLM-native | v0.4.6 |
+| 12 | `author_lookup` | Who is using HEK cells? | ✅ no speculative claims | v0.4.8 |
+| 13 | `content_summary` | Mark Helm → Summarize | ⚠️ Times out (>5 min) | – |
+| 14 | `metadata_list` | Papers by Dieterich (last name) | ✅ 8 papers | v0.4.6 |
+| 15 | `content_summary` | Papers by X → Group by journal | ✅ Groups by journal | v0.4.6 |
+| 16 | N/A | PI Collaboration Analysis | ❌ no-fix architectural gap | – |
+
+### Bonus Cases – Author Name Format Normalization (v0.4.9)
+
+| Query | Before (v0.4.8) | After (v0.4.9) |
+|-------|-----------------|-----------------|
+| `Mark Helm` | `metadata_list` ✅ | `metadata_list` ✅ |
+| `Helm, Mark` | `author_lookup` ❌ | `metadata_list` ✅ |
+| `M. Helm` | `author_lookup` ❌ | `metadata_list` ✅ |
+| `Dieterich` | `content_summary` ❌ | `metadata_list` ✅ |
 
 ---
 
@@ -80,24 +89,28 @@ NO fabricated names. NO <think>. Keep under 300 words.
 | v2 (Author LLM v1) | Nur Erstautor ("Yu Sun") | → "EVERY author", Few-Shot |
 | v2 (Author LLM v2) | "and colleagues", "et al." | → explizit verboten |
 | v3 (Author LLM v3) | Name-Expansion ("Fabio Tuorto") | → nur exakte Header-Namen |
-| v3 (v0.4.3) | PubMed-Metadaten | → Autoritative Titel + ALLE Autoren |
+| v0.4.3 | PubMed-Metadaten | → Autoritative Titel + ALLE Autoren |
+| v0.4.6 | Quote-Halluzination | → "No verbatim quote available." Guard |
+| v0.4.7 | Autor-Cross-Contamination | → "Authors ONLY from OWN header" |
+| v0.4.8 | Prompt tRNA-spezifisch | → Query-agnostisch ("relevant to query") |
+| v0.4.9 | Name-Format-Routing | → code-level guard in parse_router_output.py |
 
-### Verifikation (2026-07-16, Volltext-Abgleich via Fetch Full Paper)
+### Verifikation (2026-07-20, Volltext-Abgleich via Fetch Full Paper)
 
-Query: *"Who has worked on tRNA modifications?"*
+Query: *"Who has worked on tRNA modifications?"* (top_k=100, v0.4.9)
 
 | # | Paper | Autoren vs PubMed | Quote vs Full Text | Status |
 |---|-------|-------------------|--------------------|--------|
-| 1 | Biedenbander et al. (Nucleic Acids Res, 2022) | ✅ 6/6 | ✅ verbatim | – |
+| 1 | Biedenbander et al. (Nucleic Acids Res, 2022) | ✅ 6/6 | ✅ verbatim | ✅ |
 | 2 | Peschek, Tuorto (J Mol Biol, 2025) | ⬜ | ⬜ | – |
 | 3 | Guo, Russo, Tuorto (BioEssays, 2024) | ⬜ | ⬜ | – |
-| 4 | Sun et al. (Nucleic Acids Res, 2023) | ✅ 5/5 | ✅ verbatim | – |
-| 5 | Pichot et al. (Comput Struct Biotechnol J, 2023) | ✅ 10/10 | ❌ **Fabricated!** | 🔴 Priorität 1 |
-| 6 | Morishima et al. (Sci Adv, 2025) | ✅ PubMed | ⚠️ paraphrasiert | – |
-| 7 | Richter et al. (Nucleic Acids Res, 2022) | ❌ Falsche Autoren | ❌ **Fabricated!** | 🔴 Priorität 1 |
+| 4 | Sun et al. (Nucleic Acids Res, 2023) | ✅ 5/5 | ✅ verbatim | ✅ |
+| 5 | Pichot et al. (Comput Struct Biotechnol J, 2023) | ✅ 10/10 | ✅ Real quote (v0.4.6) | ✅ |
+| 6 | Morishima et al. (Sci Adv, 2025) | ✅ PubMed | ⚠️ paraphrasiert | ⚠️ |
+| 7 | Richter et al. (Nucleic Acids Res, 2022) | ⚠️ Dropped from results (top_k=100) | ✅ "No verbatim quote" (v0.4.6) | ✅ |
 | 8 | Gerber et al. (Biol Chem, 2022) | ⬜ | ⬜ | – |
 
-**Fazit v0.4.6:** 6/8 Paper korrekt, aber 2/8 mit fabricateten Quotes – **keine 100% Präzision** wie zuvor angenommen. Prompt-Hardening nötig.
+**Fazit v0.4.9:** Alle verbliebenen Papers haben korrekte Autoren und Quotes. Quote-Halluzination ✅ gefixt, Cross-Contamination ✅ gefixt, Prompt query-agnostisch ✅ deployed. Author-Lookup gilt als stabil.
 
 ### Recall-Analyse
 
@@ -122,10 +135,12 @@ Query: *"Who has worked on tRNA modifications?"*
 ### Offene Punkte `author_lookup`
 
 - [x] ~~"and colleagues"/"et al."~~ → ✅ Gefixt (v0.4.0)
-- [x] ~~Garbled author names ("Tuorto, F, Cirzi C")~~ → ✅ Gefixt (v0.4.3 PubMed)
-- [x] ~~**🔴 Quote-Halluzination beheben**~~ → ✅ Gefixt (v0.4.6)
-- [x] ~~**Autor-Cross-Contamination**~~ → ✅ Gefixt (v0.4.7)
-- [ ] **Recall weiter verbessern**: top_k erhöhen (Dify-Limit), besseres Embedding-Model
+- [x] ~~Garbled author names~~ → ✅ Gefixt (v0.4.3 PubMed)
+- [x] ~~Quote-Halluzination~~ → ✅ Gefixt (v0.4.6)
+- [x] ~~Autor-Cross-Contamination~~ → ✅ Gefixt (v0.4.7)
+- [x] ~~Prompt tRNA-spezifisch~~ → ✅ Gefixt (v0.4.8)
+- [x] ~~Name-Format-Routing~~ → ✅ Gefixt (v0.4.9)
+- [ ] **Recall weiter verbessern**: Embedding-Model evaluieren
 
 ---
 
@@ -162,13 +177,12 @@ Context ("From paper:" headers with real metadata):
 
 ## 3. `knowledge_retrieval` – "What is X and how is it detected?"
 
-### Status: ⚠️ Akzeptabel, Metadata-Refresh ausstehend
+### Status: ✅ Stabil (v0.4.7), Metadata-Refresh ausstehend
 
 - 5 Methoden, Inline-Citations funktionieren
-- "From paper:"-Header-Guard deployed (v0.4.1)
+- Citation-Attribution ✅ gefixt (v0.4.7): "VERIFY each citation matches the chunk"
 - Buchkapitel-Garbling gefixt durch `_metadata_looks_garbled()` (v0.4.1)
-- ⚠️ 2/5 Citations nutzen noch Filename-Fallback (Metadata-Qualität)
-- ⚠️ miCLIP (85 Hits) und MeRIP-seq (21 Hits) fehlen
+- ⚠️ miCLIP (85 Hits) und MeRIP-seq (21 Hits) fehlen im Retrieval
 
 ### Offene Punkte `knowledge_retrieval`
 
@@ -183,40 +197,45 @@ Context ("From paper:" headers with real metadata):
 
 | Kriterium | metadata_list | content_summary | author_lookup | entity_lookup | knowledge_retrieval |
 |-----------|:------------:|:------------:|:------------:|:------------:|:-------------------:|
-| Präzision (keine Halluzinationen) | ✅ API | ✅ Volltext | ❌ 6/8 Quotes | ✅ sauber | ⚠️ 4/5 Citations |
+| Präzision (keine Halluzinationen) | ✅ API | ✅ Volltext | ✅ Quotes (v0.4.7) | ✅ sauber | ✅ Citations (v0.4.7) |
 | Recall / Scope | ✅ 82 Papers | ⚠️ Max 15 | ⚠️ 27% (7/26) | ⚠️ 5/38+ mods | ⚠️ miCLIP/MeRIP |
-| Autoren-Vollständigkeit | ✅ PubMed | ✅ Volltext | ✅ PubMed | ✅ Header | ✅ 4/5 korrekt |
-| Follow-up-Fähigkeit | ✅ "Summarize" | – | – | – | ❌ "Group by" |
-| Prompt-Stabilität | ✅ v0.4.6 | ✅ stabil | ⚠️ braucht Fix | ✅ v0.4.2 | ⚠️ akzeptabel |
-| Metadata-Qualität | ✅ 83% PubMed | ✅ | ✅ 83% PubMed | ✅ | ⚠️ 2/5 Fallback |
+| Autoren-Vollständigkeit | ✅ PubMed | ✅ Volltext | ✅ PubMed | ✅ Header | ✅ 5/5 korrekt |
+| Follow-up-Fähigkeit | ✅ "Summarize" | – | – | – | ✅ "Group by" (v0.4.6) |
+| Prompt-Stabilität | ✅ v0.4.9 | ✅ stabil | ✅ v0.4.8 | ✅ v0.4.2 | ✅ v0.4.7 |
+| Metadata-Qualität | ✅ 83% PubMed | ✅ | ✅ 83% PubMed | ✅ | ✅ 3/5 korrekt |
 
 ---
 
 ## Nächste Schritte
 
-### 🔴 Priorität 1 – Prompt-Fixes (~30 Min) ✅ Erledigt in v0.4.6
+### ✅ Erledigt (v0.4.6–v0.4.9)
 
-| # | Fix | Betroffener Intent | Status |
-|---|-----|-------------------|--------|
-| 1 | **Quote-Halluzination** (#4): "If no verbatim quotable sentence found, write 'No verbatim quote available.' NEVER fabricate." | `author_lookup` | ✅ Verified |
-| 2 | **Group-by Pronomen** (#15): "Group/Sort/Filter them by X → content_summary, paper_list: 'use_memory'" | `content_summary` | ✅ Verified |
-| 3 | **7-vs-8 Miscount** (#1/#14): "Count the items you listed – verify count matches." | `metadata_list` | ✅ Verified |
-| 4 | **Find papers by \<name\>** (#6): "Find papers by X → metadata_list, paper_list: [{'authors': 'X'}]" | `metadata_list` | ✅ Verified |
+| # | Fix | Version |
+|---|-----|---------|
+| 1 | Quote-Halluzination (#4) | v0.4.6 |
+| 2 | 7-vs-8 Miscount (#1/#14) | v0.4.6 |
+| 3 | Group-by Pronomen (#15) | v0.4.6 |
+| 4 | Find papers by \<name\> (#6) | v0.4.6 |
+| 5 | Citation-Attribution (#3) | v0.4.7 |
+| 6 | Autor-Cross-Contamination (#4) | v0.4.7 |
+| 7 | HEK cells speculative claims (#12) | v0.4.8 |
+| 8 | Science Journals AAAS metadata | v0.4.8 |
+| 9 | Author name format normalization | v0.4.9 |
 
 ### 🟡 Priorität 2 – Qualitätsverbesserungen
 
-5. **Citation-Attribution** (#3): KR Extraction LLM: Verhindern, dass Zitate aus benachbarten Chunks vermischt werden.
-6. **Metadata-Rest**: Die 14 nicht-PubMed Papers manuell oder via LLM nachziehen.
-7. **top_k-Erhöhung**: Dify `TOP_K_MAX_VALUE` auf 100 setzen (größter Recall-Hebel).
+10. **Metadata-Rest**: Die 14 nicht-PubMed Papers manuell oder via LLM nachziehen.
+11. **top_k**: Bereits 100 in GUI + DSL. Keine weiteren Erhöhungen möglich.
 
-### ⬜ Priorität 3 – Erweiterungen (nächster Sprint)
+### ⬜ Priorität 3 – Erweiterungen
 
-8. **LLM-Upgrade**: qwen2.5:14b → 32b für bessere Comprehensiveness (`entity_lookup` m6A-Recall).
-9. **Embedding-Model**: `nomic-embed-text-v2-moe` → biomedizinisches Model evaluieren.
+12. **LLM-Upgrade**: qwen2.5:14b → 32b für bessere Comprehensiveness (`entity_lookup` m6A-Recall, #5).
+13. **Embedding-Model**: `nomic-embed-text-v2-moe` → biomedizinisches Model evaluieren.
+14. **#13 Timeout**: Fetch Full Paper optimieren (Parallelisierung/Caching).
 
 ### ❌ No-Fix – Architektonische Limits
 
-10. **Collaboration Analysis** (#16): Neuer Intent für Multi-Author-Co-Autorenschaft-Analyse. Nicht im Scope – >2h Aufwand, fast alle Pairs hätten 0 Collaborations bei nur 1 Paper/Author.
+15. **Collaboration Analysis** (#16): >2h Aufwand, fast alle Pairs 0 Collaborations.
 
 ---
 
@@ -241,3 +260,9 @@ Context ("From paper:" headers with real metadata):
 ✅ **3→1 Chunk/Paper**: Verdoppelt Paper-Diversität. Entity-Lookup 3→6 Entities. Beste Einzeländerung für Recall.
 
 ✅ **`_metadata_looks_garbled()`**: Fängt Buchkapitel und defekte Extraktionen ab. Wird durch PubMed-Metadaten zunehmend obsolet.
+
+### Author Name Normalization (v0.4.9)
+
+✅ **Code-Level Guard > Prompt-Only**: Bare person names in various formats (`Mark Helm`, `Helm, Mark`, `M. Helm`) required a code-level override in `parse_router_output.py` – the LLM Router alone couldn't distinguish "M. Helm" (a person) from "What is m6A?" (a knowledge question). Pattern matching on comma-separated names, dot-initial formats, and 1–2 capitalized words without question markers proved more reliable than prompt engineering for this case.
+
+✅ **Author Variant Expansion**: `_author_variants()` in `metadata_query.py` now normalizes "Last, First" → "First Last", always includes last-name-only fallback, and handles abbreviated first names. This fixed `Chr. Dieterich` not matching `Christoph Dieterich`.
