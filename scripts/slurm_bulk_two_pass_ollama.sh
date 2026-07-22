@@ -14,7 +14,7 @@ ENV_FILE="${ENV_FILE:-$REPO_ROOT/.env}"
 SESSION_FILE="${SESSION_FILE:-$REPO_ROOT/.secrets/dify_console_session.env}"
 
 # Target dataset for the user-created test KB.
-DATASET_ID="${DATASET_ID:-<your-dataset-id>}"
+DIFY_DATASET_ID="${DIFY_DATASET_ID:-<your-dataset-id>}"
 
 # Force local Ollama runtime on the SLURM node for metadata/title extraction.
 OLLAMA_HOST="${OLLAMA_HOST:-127.0.0.1:11434}"
@@ -67,7 +67,7 @@ elif [[ -n "${DIFY_API_KEY:-}" ]]; then
   fi
 fi
 
-export DATASET_ID
+export DIFY_DATASET_ID
 export OLLAMA_HOST
 export BAML_OLLAMA_BASE_URL
 export BAML_OLLAMA_MODEL
@@ -114,7 +114,7 @@ fi
 echo "===== RMAP BULK TWO-PASS =====" | tee -a "$TRACE_LOG"
 echo "job_id=${SLURM_JOB_ID:-local} node=$(hostname)" | tee -a "$TRACE_LOG"
 echo "folder=$FOLDER" | tee -a "$TRACE_LOG"
-echo "dataset_id=$DATASET_ID" | tee -a "$TRACE_LOG"
+echo "dataset_id=$DIFY_DATASET_ID" | tee -a "$TRACE_LOG"
 echo "ollama_host=$OLLAMA_HOST" | tee -a "$TRACE_LOG"
 echo "ollama_log=$OLLAMA_LOG" | tee -a "$TRACE_LOG"
 echo "baml_base_url=$BAML_OLLAMA_BASE_URL" | tee -a "$TRACE_LOG"

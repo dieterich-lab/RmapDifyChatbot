@@ -8,13 +8,13 @@ set -euo pipefail
 
 REPO_ROOT="${REPO_ROOT:-/home/pwiesenbach/rmap-chatbot}"
 FOLDER="${FOLDER:-$REPO_ROOT/RMaP papers first funding period}"
-DATASET_ID="${DATASET_ID:-65b46261-2c5e-48e9-8de4-3ca0785281e3}"
+DIFY_DATASET_ID="${DIFY_DATASET_ID:-<your-dataset-id>}"
 SKIP_FILE="${SKIP_FILE:-Helm M, Motorin Y, 2021, WIREs RNA .pdf}"
 
 cd "$REPO_ROOT"
 
 echo "===== BULK UPLOAD TO PARENT-CHILD DATASET ====="
-echo "dataset_id=$DATASET_ID"
+echo "dataset_id=$DIFY_DATASET_ID"
 echo "start=$(date '+%Y-%m-%d %H:%M:%S')"
 
 count=0; total=0; errors=0
@@ -26,14 +26,14 @@ for pdf in "$FOLDER"/*.pdf; do
     echo "[$total] UPLOAD: $filename"
     count=$((count + 1))
 
-    DATASET_ID="$DATASET_ID" \
+    DIFY_DATASET_ID="$DIFY_DATASET_ID" \
     DIFY_API_URL="${DIFY_API_URL:-http://rmap-chatbot-demo-dify/v1}" \
     DIFY_DATASET_API_KEY="${DIFY_DATASET_API_KEY:-}" \
     "$REPO_ROOT/.venv/bin/python" -c "
 import os, sys, json, requests, time
 
 fp = sys.argv[1]; fn = sys.argv[2]
-ds = os.environ['DATASET_ID']
+ds = os.environ['DIFY_DATASET_ID']
 au = os.environ['DIFY_API_URL'].rstrip('/')
 ak = os.environ['DIFY_DATASET_API_KEY']
 url = f'{au}/datasets/{ds}/document/create-by-file'

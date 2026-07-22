@@ -20,18 +20,18 @@ set -euo pipefail
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 METADATA_FILE="${1:-$REPO_ROOT/reports/metadata_dump_$(date '+%Y-%m-%d').json}"
-DATASET_ID="${DATASET_ID:-65b46261-2c5e-48e9-8de4-3ca0785281e3}"
+DIFY_DATASET_ID="${DIFY_DATASET_ID:-<your-dataset-id>}"
 DIFY_BASE_URL="${DIFY_BASE_URL:-http://rmap-chatbot-demo-dify}"
 DIFY_DATASET_API_KEY="${DIFY_DATASET_API_KEY:-}"
 
 cd "$REPO_ROOT"
 
 echo "===== METADATA UPLOAD ====="
-echo "dataset=$DATASET_ID"
+echo "dataset=$DIFY_DATASET_ID"
 echo "api_base=$DIFY_BASE_URL"
 
 DIFY_BASE_URL="$DIFY_BASE_URL" \
-DATASET_ID="$DATASET_ID" \
+DIFY_DATASET_ID="$DIFY_DATASET_ID" \
 DIFY_DATASET_API_KEY="$DIFY_DATASET_API_KEY" \
 FOLDER="${FOLDER:-$REPO_ROOT/RMaP papers first funding period}" \
 METADATA_FILE="$METADATA_FILE" \
@@ -39,7 +39,7 @@ METADATA_FILE="$METADATA_FILE" \
 import json, os, sys, time, requests
 
 API_BASE = os.environ["DIFY_BASE_URL"].rstrip("/")
-DS_ID = os.environ["DATASET_ID"]
+DS_ID = os.environ["DIFY_DATASET_ID"]
 API_KEY = os.environ["DIFY_DATASET_API_KEY"]
 META_FILE = os.environ.get("METADATA_FILE", "")
 FOLDER = os.environ.get("FOLDER", "RMaP papers first funding period")
