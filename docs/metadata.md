@@ -60,5 +60,5 @@ Full details in `reports/metadata_dump_32b.json`. All 73 papers have verified ti
 - **PubMed**: DOI extracted from PDF pages 1–3 (longest match) → NCBI E-utilities → MEDLINE
 - **CrossRef**: `https://api.crossref.org/works/{doi}` → title, author (family+given), container-title, date-parts
 - **LLM**: PDF page 1 via `pdftotext` → BAML `ExtractTitleFromHeader` + `ExtractAuthorsFromHeader` → qwen3:32b (Ollama on H100/gpu-g5-1), temperature 0.0, max_tokens 2048
-- **Dify push**: `scripts/push_metadata.py` → Dify v1 API → 82/84 documents updated (2 unmatched due to special characters in filenames)
+- **Dify push**: `scripts/push_metadata.py` → Dify v1 API → 82/84 documents updated. 2 PDFs (Höfer 2023, Schaffrath 2025) sind nicht im Dataset – reines Upload-Gap, kein Metadata-Gap. Metadaten für alle 84 liegen in `reports/metadata_dump_32b.json` vor.
 - **SLURM job**: `scripts/slurm_extract_metadata_32b.sh` → `sbatch` on gpu-g5-1

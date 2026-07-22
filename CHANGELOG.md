@@ -24,7 +24,7 @@
 | LLM (qwen3:32b) | 10 | 12% |
 | **Total** | **84** | **100%** |
 
-82/84 documents updated in production dataset.
+82/84 documents updated in production dataset. 2 PDFs (Höfer 2023 Nature, Schaffrath 2025 NAR) were never uploaded to Dify – upload gap, not metadata gap. Full metadata for all 84 papers available in `reports/metadata_dump_32b.json`.
 
 ## [0.4.9] - 2026-07-21
 
