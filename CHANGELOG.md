@@ -1,5 +1,31 @@
 # Changelog
 
+## [0.4.10] - 2026-07-22
+
+### Added
+
+- **CrossRef Metadata Fallback**: `_fetch_crossref_metadata()` in `metadata.py` – queries `api.crossref.org` for papers with DOIs not indexed in PubMed.
+- **LLM Metadata Extraction**: `_extract_metadata_llm()` in `metadata.py` – BAML-based title/author extraction from PDF headers using qwen3:32b (Ollama on H100/gpu-g5-1).
+- **SLURM Extraction Script**: `scripts/slurm_extract_metadata_32b.sh` – reproducible metadata extraction pipeline with local Ollama on GPU node.
+- **Push Script**: `scripts/push_metadata.py` – standalone script for pushing metadata JSON dumps to Dify dataset API.
+- **Metadata Report**: `docs/metadata.md` – full coverage report with pipeline description, historical trend, and per-source breakdown.
+
+### Changed
+
+- **DOI Extraction**: `_extract_doi_from_text()` now returns the **longest** DOI match instead of the first – eliminates truncated DOIs from PDF line breaks. Result: 5 additional papers resolved via PubMed.
+- **Metadata Pipeline**: `extract_metadata()` now tries **PubMed → CrossRef → LLM → filename** in sequence, achieving 100% coverage.
+
+### Results
+
+| Source | Papers | % |
+|--------|--------|---|
+| PubMed | 73 | 87% |
+| CrossRef | 1 | 1% |
+| LLM (qwen3:32b) | 10 | 12% |
+| **Total** | **84** | **100%** |
+
+82/84 documents updated in production dataset.
+
 ## [0.4.9] - 2026-07-21
 
 ### Fixed
