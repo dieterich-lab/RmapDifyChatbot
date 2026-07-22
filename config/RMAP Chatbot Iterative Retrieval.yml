@@ -711,18 +711,29 @@ workflow:
           \            variants.append(last_word)\n\n    seen = set()\n    deduped\
           \ = []\n    for item in variants:\n        key = item.lower()\n        if\
           \ key in seen:\n            continue\n        seen.add(key)\n        deduped.append(item)\n\
-          \    return deduped\n\n\ndef _build_headers(api_key: str) -> dict:\n   \
-          \ return {\n        \"Authorization\": f\"Bearer {api_key}\",\n        \"\
-          Content-Type\": \"application/json\",\n    }\n\n\ndef _run_json_get(\n \
-          \   url: str, headers: dict, timeout: int = 30\n) -> tuple[dict, str | None]:\n\
-          \    request = Request(url=url, headers=headers, method=\"GET\")\n    try:\n\
-          \        with urlopen(request, timeout=timeout) as response:\n         \
-          \   body = response.read().decode(\"utf-8\", errors=\"replace\")\n     \
-          \       status = response.getcode()\n    except HTTPError as exc:\n    \
-          \    body = exc.read().decode(\"utf-8\", errors=\"replace\")\n        return\
-          \ {}, f\"Dify API Error {exc.code}: {body}\"\n    except URLError as exc:\n\
-          \        return {}, f\"Verbindungsfehler zur Dify API: {exc}\"\n    except\
-          \ Exception as exc:\n        return {}, f\"Unbekannter Dify API-Fehler:\
+          \n    # Umlaut normalization: add both ö→oe AND ö→o variants\n    # PubMed\
+          \ strips umlauts (ö→o), German expansion uses oe (ö→oe)\n    umlaut_expand\
+          \ = str.maketrans({\"ö\": \"oe\", \"ü\": \"ue\", \"ä\": \"ae\", \"ß\": \"\
+          ss\",\n                                    \"Ö\": \"Oe\", \"Ü\": \"Ue\"\
+          , \"Ä\": \"Ae\"})\n    umlaut_strip = str.maketrans({\"ö\": \"o\", \"ü\"\
+          : \"u\", \"ä\": \"a\", \"ß\": \"ss\",\n                                \
+          \   \"Ö\": \"O\", \"Ü\": \"U\", \"Ä\": \"A\"})\n    extra = []\n    for\
+          \ item in deduped:\n        expanded = item.translate(umlaut_expand)\n \
+          \       if expanded.lower() not in seen:\n            extra.append(expanded)\n\
+          \        stripped = item.translate(umlaut_strip)\n        if stripped.lower()\
+          \ not in seen and stripped.lower() != expanded.lower():\n            extra.append(stripped)\n\
+          \    deduped.extend(extra)\n\n    return deduped\n\n\ndef _build_headers(api_key:\
+          \ str) -> dict:\n    return {\n        \"Authorization\": f\"Bearer {api_key}\"\
+          ,\n        \"Content-Type\": \"application/json\",\n    }\n\n\ndef _run_json_get(\n\
+          \    url: str, headers: dict, timeout: int = 30\n) -> tuple[dict, str |\
+          \ None]:\n    request = Request(url=url, headers=headers, method=\"GET\"\
+          )\n    try:\n        with urlopen(request, timeout=timeout) as response:\n\
+          \            body = response.read().decode(\"utf-8\", errors=\"replace\"\
+          )\n            status = response.getcode()\n    except HTTPError as exc:\n\
+          \        body = exc.read().decode(\"utf-8\", errors=\"replace\")\n     \
+          \   return {}, f\"Dify API Error {exc.code}: {body}\"\n    except URLError\
+          \ as exc:\n        return {}, f\"Verbindungsfehler zur Dify API: {exc}\"\
+          \n    except Exception as exc:\n        return {}, f\"Unbekannter Dify API-Fehler:\
           \ {exc}\"\n\n    if status != 200:\n        return {}, f\"Dify API Error\
           \ {status}: {body}\"\n\n    try:\n        return json.loads(body), None\n\
           \    except ValueError:\n        return {}, f\"Ungueltige JSON-Antwort:\
