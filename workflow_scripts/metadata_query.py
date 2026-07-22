@@ -178,15 +178,37 @@ def _matches_filters(meta: dict[str, str], year, authors, journal, title) -> boo
         return False
 
     author_inputs = _to_string_list(authors)
-    for author in author_inputs:
-        variants = [v.lower() for v in _author_variants(author)]
-        if not any(v in meta_authors.lower() for v in variants):
-            # Last resort: extract just the last name and check again.
-            # Handles "Chr. Dieterich" vs "Christoph Dieterich" where
-            # the first name abbreviation doesn't match.
-            last_name = author.strip().split()[-1].strip(".,;").lower()
-            if not last_name or last_name not in meta_authors.lower():
-                return False
+
+    # Multi-author OR matching: if any input contains commas, split and OR-match
+    has_multi = any("," in a for a in author_inputs)
+    if has_multi:
+        all_names = []
+        for a in author_inputs:
+            for part in a.split(","):
+                part = part.strip()
+                if part:
+                    all_names.append(part)
+        # Paper matches if ANY of the comma-separated names match
+        for name in all_names:
+            variants = [v.lower() for v in _author_variants(name)]
+            if any(v in meta_authors.lower() for v in variants):
+                break  # matched this name
+            last_name = name.strip().split()[-1].strip(".,;").lower()
+            if last_name and last_name in meta_authors.lower():
+                break  # matched via last name
+        else:
+            return False  # no name matched
+    else:
+        # Single-author: all must match (AND logic, typically just one)
+        for author in author_inputs:
+            variants = [v.lower() for v in _author_variants(author)]
+            if not any(v in meta_authors.lower() for v in variants):
+                # Last resort: extract just the last name and check again.
+                # Handles "Chr. Dieterich" vs "Christoph Dieterich" where
+                # the first name abbreviation doesn't match.
+                last_name = author.strip().split()[-1].strip(".,;").lower()
+                if not last_name or last_name not in meta_authors.lower():
+                    return False
 
     return True
 

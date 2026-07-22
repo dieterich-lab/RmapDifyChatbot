@@ -746,14 +746,28 @@ workflow:
           \ _is_set(journal_text) and journal_text.lower() not in meta_journal.lower():\n\
           \        return False\n\n    if _is_set(title_text) and title_text.lower()\
           \ not in meta_title.lower():\n        return False\n\n    author_inputs\
-          \ = _to_string_list(authors)\n    for author in author_inputs:\n       \
-          \ variants = [v.lower() for v in _author_variants(author)]\n        if not\
-          \ any(v in meta_authors.lower() for v in variants):\n            # Last\
-          \ resort: extract just the last name and check again.\n            # Handles\
-          \ \"Chr. Dieterich\" vs \"Christoph Dieterich\" where\n            # the\
-          \ first name abbreviation doesn't match.\n            last_name = author.strip().split()[-1].strip(\"\
-          .,;\").lower()\n            if not last_name or last_name not in meta_authors.lower():\n\
-          \                return False\n\n    return True\n\n\ndef _sanitize_year_filter(value)\
+          \ = _to_string_list(authors)\n\n    # Multi-author OR matching: if any input\
+          \ contains commas, split and OR-match\n    has_multi = any(\",\" in a for\
+          \ a in author_inputs)\n    if has_multi:\n        all_names = []\n     \
+          \   for a in author_inputs:\n            for part in a.split(\",\"):\n \
+          \               part = part.strip()\n                if part:\n        \
+          \            all_names.append(part)\n        # Paper matches if ANY of the\
+          \ comma-separated names match\n        for name in all_names:\n        \
+          \    variants = [v.lower() for v in _author_variants(name)]\n          \
+          \  if any(v in meta_authors.lower() for v in variants):\n              \
+          \  break  # matched this name\n            last_name = name.strip().split()[-1].strip(\"\
+          .,;\").lower()\n            if last_name and last_name in meta_authors.lower():\n\
+          \                break  # matched via last name\n        else:\n       \
+          \     return False  # no name matched\n    else:\n        # Single-author:\
+          \ all must match (AND logic, typically just one)\n        for author in\
+          \ author_inputs:\n            variants = [v.lower() for v in _author_variants(author)]\n\
+          \            if not any(v in meta_authors.lower() for v in variants):\n\
+          \                # Last resort: extract just the last name and check again.\n\
+          \                # Handles \"Chr. Dieterich\" vs \"Christoph Dieterich\"\
+          \ where\n                # the first name abbreviation doesn't match.\n\
+          \                last_name = author.strip().split()[-1].strip(\".,;\").lower()\n\
+          \                if not last_name or last_name not in meta_authors.lower():\n\
+          \                    return False\n\n    return True\n\n\ndef _sanitize_year_filter(value)\
           \ -> str:\n    text = _normalize_text(value)\n    if not text:\n       \
           \ return \"\"\n    return text if re.fullmatch(r\"(19|20)\\d{2}\", text)\
           \ else \"\"\n\n\ndef _sanitize_free_text_filter(value, max_len: int = 120)\
@@ -1432,8 +1446,12 @@ workflow:
             \ dot (M. Helm) are still person names → list their papers.\n  - IMPORTANT:\
             \ \"Find papers by <name>\" or \"Papers by <name>\" or \"Show papers by\
             \ <name>\" → \"metadata_list\", paper_list: [{\"authors\": \"<name>\"\
-            }]. This is a metadata filter, NOT a content search.\n- \"Find all research\
-            \ papers\" / \"List all researchers\" → \"metadata_list\", paper_list:\
+            }]. This is a metadata filter, NOT a content search.\n  - MULTI-NAME:\
+            \ \"Identify <name1>, <name2>, ...\" or \"Can you identify these names:\
+            \ ...\" or \"Which papers are by X or Y?\" or \"Papers by X, Y, Z\" →\
+            \ \"metadata_list\", paper_list: [{\"authors\": \"<name1>, <name2>, ...\"\
+            }]. Put ALL names comma-separated in the authors field.\n- \"Find all\
+            \ research papers\" / \"List all researchers\" → \"metadata_list\", paper_list:\
             \ [], list_mode: \"authors\" for researchers\n- Just a topic, no paper\
             \ reference → \"knowledge_retrieval\"\n- Author + \"summarize their findings\"\
             \ → \"content_summary\"\n- \"Compare the papers by X and Y\" → \"content_summary\"\
