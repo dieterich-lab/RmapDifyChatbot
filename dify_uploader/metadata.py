@@ -12,20 +12,31 @@ except ImportError:
     PdfReader = None
 
 from dify_uploader.author_extraction import extract_authors_from_pdf
-from dify_uploader.baml_author_parser import parse_title_with_baml
+from dify_uploader.baml_author_parser import parse_authors_with_baml, parse_title_with_baml
 
 # ── PubMed / DOI-based metadata extraction ──────────────────────────
 
 
 def _extract_doi_from_text(text: str) -> str | None:
-    """Extract the first DOI from arbitrary text."""
+    """Extract the best DOI from arbitrary text.
+
+    Returns the longest match to avoid truncated DOIs (e.g. '10.1073/pnas.'
+    vs '10.1073/pnas.2312330121') that result from PDF line breaks.
+    """
     doi_pattern = r"\b10\.\d{4,}/[^\s]+\b"
-    match = re.search(doi_pattern, text)
-    if not match:
+    matches = re.findall(doi_pattern, text)
+    if not matches:
         return None
-    doi = match.group(0)
-    # Strip trailing punctuation
-    doi = doi.rstrip(".,;:)")
+    # Strip trailing punctuation from each match
+    cleaned = [m.rstrip(".,;:") for m in matches]
+    # Filter out likely truncated DOIs (too short, e.g. just '10.1073/pnas.')
+    # Valid DOIs have a suffix after the prefix
+    valid = [m for m in cleaned if len(m.split("/")[-1]) >= 3]
+    if not valid:
+        # Fall back to longest match if all look truncated
+        valid = cleaned
+    # Prefer the longest match (truncated DOIs are shorter)
+    doi = max(valid, key=len)
     return doi
 
 
@@ -155,6 +166,230 @@ def extract_metadata_pubmed(filepath: str) -> dict | None:
     return _fetch_pubmed_metadata(pmid)
 
 
+# ── CrossRef / DOI-based metadata extraction (fallback for non-PubMed DOIs) ──
+
+
+def _fetch_crossref_metadata(doi: str, timeout: int = 15) -> dict | None:
+    """Fetch metadata from CrossRef API when PubMed has no entry for this DOI."""
+    url = f"https://api.crossref.org/works/{quote(doi)}"
+    req = Request(url=url, headers={"User-Agent": "RmapDifyChatbot/0.4"})
+    try:
+        with urlopen(req, timeout=timeout) as resp:
+            data = json.loads(resp.read().decode("utf-8"))
+    except (HTTPError, URLError, json.JSONDecodeError, Exception):
+        return None
+
+    msg = data.get("message", {})
+    if not msg:
+        return None
+
+    # Title
+    title_list = msg.get("title") or []
+    title = str(title_list[0]).strip() if title_list else ""
+
+    # Authors: CrossRef gives "given" + "family"; format as "Family Given"
+    authors = []
+    for author in msg.get("author") or []:
+        family = str(author.get("family", "")).strip()
+        given = str(author.get("given", "")).strip()
+        if family and given:
+            authors.append(f"{family} {given}")
+        elif family:
+            authors.append(family)
+        elif given:
+            authors.append(given)
+
+    # Year: from created or published date-parts
+    year = ""
+    date_parts = (
+        msg.get("published-print", {}).get("date-parts")
+        or msg.get("published-online", {}).get("date-parts")
+        or msg.get("created", {}).get("date-parts")
+    )
+    if date_parts and date_parts[0]:
+        year = str(date_parts[0][0])
+
+    # Journal: container-title or short-container-title
+    journal_list = msg.get("container-title") or msg.get("short-container-title") or []
+    journal = str(journal_list[0]).strip() if journal_list else ""
+
+    if not title:
+        return None
+
+    return {
+        "title": title,
+        "authors": ", ".join(authors) if authors else "Unknown",
+        "year": year or "Unknown",
+        "journal": journal or "Unknown",
+        "pmid": "",
+        "doi": doi,
+    }
+
+
+def extract_metadata_crossref(filepath: str) -> dict | None:
+    """Extract metadata from a PDF via DOI → CrossRef lookup.
+
+    Returns a dict with title, authors, year, journal, doi
+    or None if no DOI was found or CrossRef has no entry.
+    """
+    doi = _extract_doi_from_pdf(filepath)
+    if not doi:
+        return None
+
+    # Rate-limit: be polite
+    time.sleep(0.2)
+
+    return _fetch_crossref_metadata(doi)
+
+
+# ── LLM-based metadata extraction from PDF header (fallback for no-DOI papers) ──
+
+
+def _extract_year_from_text(text: str) -> str:
+    """Extract a plausible publication year from header/footer text."""
+    years = re.findall(r"\b((?:19|20)\d{2})\b", text)
+    if not years:
+        return ""
+    # Take most common year in 2000-2026 range (publication year, not copyright spans)
+    from collections import Counter
+
+    counts = Counter(years)
+    for year, _ in counts.most_common():
+        y = int(year)
+        if 2000 <= y <= 2026:
+            return year
+    # Fallback: most recent year found
+    return str(max(int(y) for y in years))
+
+
+def _extract_journal_from_header(text: str) -> str:
+    """Try to identify journal name from PDF header text."""
+    # Common journal patterns in header text
+    journal_patterns = [
+        r"(?:Nucleic Acids Research|Nucleic Acids Res)",
+        r"(?:Nature Communications|Nat Commun|Nat\. Commun\.?)",
+        r"(?:Nature Structural)[\s&]+(?:Molecular Biology)",
+        r"(?:Molecular Cell|Mol Cell)",
+        r"(?:Cell Reports|Cell Rep)",
+        r"(?:Genome Biology|Genome Biol)",
+        r"(?:Genome Research|Genome Res)",
+        r"(?:PNAS|Proceedings of the National Academy)",
+        r"(?:EMBO Journal|EMBO J|The EMBO Journal)",
+        r"(?:EMBO Reports|EMBO Rep)",
+        r"(?:Science Advances|Sci Adv)",
+        r"(?:Nature Reviews)[\s.]+(?:Genetics|Molecular)",
+        r"(?:Nature)[\s.]+(?:Methods|Biotechnology)",
+        r"(?:Bioinformatics)",
+        r"(?:RNA|RNA Biology|RNA Biol)",
+        r"(?:Journal of Biological Chemistry|J Biol Chem)",
+        r"(?:Journal of Molecular Biology|J Mol Biol)",
+        r"(?:iScience)",
+        r"(?:eLife)",
+        r"(?:BioEssays)",
+        r"(?:Methods)",
+        r"(?:Angewandte Chemie|Angew Chem Int Ed)",
+        r"(?:ACS Chemical Biology|ACS Chem Biol)",
+        r"(?:ACS Medicinal Chemistry Letters|ACS Med Chem Lett)",
+        r"(?:Journal of Medicinal Chemistry|J Med Chem)",
+        r"(?:ACS Pharmacology)[\s&]+(?:Translational Science)",
+        r"(?:RSC Chemical Biology|RSC Chem Biol)",
+        r"(?:Chemical Science|Chem Sci)",
+        r"(?:ChemMedChem)",
+        r"(?:ChemBioChem)",
+        r"(?:Chemistry)[\s-]+(?:A European Journal)",
+        r"(?:Communications Chemistry|Commun Chem)",
+        r"(?:WIREs RNA|Wiley Interdisciplinary Reviews)[\s.:]+RNA",
+        r"(?:Accounts of Chemical Research|Acc Chem Res|Acc\. Chem\. Res\.?)",
+        r"(?:Current Opinion)[\s.]+(?:in[\s.]+)?(?:Genetics|Structural Biology)",
+        r"(?:Current Opinion in Genetics)[\s&]+Development",
+        r"(?:Signal Transduction)[\s&]+(?:Targeted Therapy)",
+        r"(?:Experimental)[\s&]+(?:Molecular Medicine)",
+        r"(?:Molecular Cancer|Mol Cancer)",
+        r"(?:Genetics in Medicine|Genet Med)",
+        r"(?:Frontiers)[\s.]+(?:in[\s.]+)?(?:Cell)[\s.]+(?:and[\s.]+)?(?:Developmental Biology)",
+        r"(?:Journal of Proteome Research|J Proteome Res)",
+        r"(?:Journal of Bacteriology|J Bacteriol)",
+        r"(?:BMC Bioinformatics)",
+        r"(?:International Journal of Molecular Sciences|Int J Mol Sci)",
+        r"(?:Journal of Cell Biology|J Cell Biol)",
+        r"(?:Computational and Structural Biotechnology Journal|Comput Struct Biotechnol J)",
+        r"(?:Drug Discovery Today|Drug Discov Today)",
+        r"(?:Rapid Communications in Mass Spectrometry|Rapid Comm Mass Spectrom)",
+        r"(?:HardwareX)",
+        r"(?:IEEE)[\s/]+(?:ACM)[\s/]+(?:Transactions)[\s.]+(?:on[\s.]+)?(?:Computational Biology)",
+        r"(?:Advanced Biology|Adv Biol)",
+        r"(?:Biological Chemistry|Biol Chem|BiolChem)",
+    ]
+    for pattern in journal_patterns:
+        match = re.search(pattern, text, re.IGNORECASE)
+        if match:
+            return match.group(0)
+    return ""
+
+
+def _extract_metadata_llm(filepath: str, filename: str) -> dict | None:
+    """Extract metadata using LLM from PDF header text.
+
+    Uses BAML for title + author extraction, regex for year/journal.
+    Returns None if no meaningful data could be extracted.
+    """
+    header_text = _extract_header_text(filepath)
+    if not header_text or len(header_text) < 50:
+        return None
+
+    # Title via BAML (uses qwen3:32b via Ollama)
+    llm_title = parse_title_with_baml(header_text)
+    if not llm_title:
+        return None
+
+    title = _normalize_title(llm_title)
+    if _title_quality_score(title) > 100:
+        return None
+
+    # Authors via BAML
+    author_list = parse_authors_with_baml(header_text)
+
+    # PDF-based author extraction as supplement
+    pdf_authors_str = extract_authors_from_pdf(filepath)
+    pdf_author_list = []
+    if pdf_authors_str:
+        pdf_author_list = [a.strip() for a in pdf_authors_str.split(",") if a.strip()]
+
+    # Merge: BAML authors take priority, PDF authors as supplement
+    all_authors = list(author_list) if author_list else []
+    seen_lower = {a.lower() for a in all_authors}
+    for a in pdf_author_list:
+        if a.lower() not in seen_lower:
+            all_authors.append(a)
+            seen_lower.add(a.lower())
+
+    authors = ", ".join(all_authors) if all_authors else "Unknown"
+
+    # Year from header text
+    year = _extract_year_from_text(header_text)
+
+    # Journal from header text first, then filename
+    journal = _extract_journal_from_header(header_text)
+    if not journal:
+        # Fallback: last comma-separated part of filename
+        clean_name = filename.replace(".pdf", "").replace(".PDF", "").strip()
+        parts = [p.strip() for p in clean_name.split(",")]
+        if len(parts) >= 3:
+            journal = parts[-1]
+
+    return {
+        "title": title,
+        "authors": authors,
+        "year": year or "Unknown",
+        "journal": journal or "Unknown",
+        "pmid": "",
+        "doi": "",
+    }
+
+
+# ── Title quality helpers ───────────────────────────────────────────
+
+
 def _normalize_title(text: str) -> str:
     value = str(text or "").strip()
     value = re.sub(r"\s+", " ", value)
@@ -266,7 +501,26 @@ def extract_metadata(
                 "doi": pubmed.get("doi", ""),
             }
 
-    # ── 2. Fallback: filename parsing + LLM ───────────────────────────
+    # ── 2. CrossRef via DOI (broader coverage than PubMed) ────────────
+    if filepath and filepath.lower().endswith(".pdf"):
+        crossref = extract_metadata_crossref(filepath)
+        if crossref and crossref.get("title"):
+            return {
+                "title": crossref["title"],
+                "authors": crossref["authors"] or "Unknown",
+                "year": crossref["year"] or "Unknown",
+                "journal": crossref["journal"] or "Unknown",
+                "pmid": crossref.get("pmid", ""),
+                "doi": crossref.get("doi", ""),
+            }
+
+    # ── 3. LLM-based extraction from PDF header (for no-DOI papers) ───
+    if filepath and filepath.lower().endswith(".pdf") and use_hybrid_pipeline:
+        llm_meta = _extract_metadata_llm(filepath, filename)
+        if llm_meta and llm_meta.get("title") and llm_meta.get("authors") != "Unknown":
+            return llm_meta
+
+    # ── 4. Fallback: filename parsing ─────────────────────────────────
     clean_name = filename.replace(".pdf", "").replace(".PDF", "").strip()
     parts = [p.strip() for p in clean_name.split(",")]
 
@@ -275,6 +529,8 @@ def extract_metadata(
         "authors": "Unknown",
         "year": "Unknown",
         "journal": "Unknown",
+        "pmid": "",
+        "doi": "",
     }
 
     if len(parts) >= 3:
