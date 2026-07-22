@@ -1341,7 +1341,7 @@ workflow:
             in your numbered list. Verify that the count you state matches the actual
             number of numbered items. If you list 8 papers, say "8 papers", not "7
             papers". Double-check before output. - Then output a clean numbered list:
-            title, year, journal.
+            title, authors, year, journal.
 
             Always: - Answer in the same language as the user. - Output final answer
             text only. No <think> tags or hidden reasoning. - If context includes
