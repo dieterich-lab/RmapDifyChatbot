@@ -1,6 +1,6 @@
 # RMAP Chatbot – Feature Roadmap & Analysis
 
-> Stand: 2026-07-22 · v0.4.9 · App `16d50bee-bc86-4bda-bb56-a861743f3ddb` · Model `qwen2.5:14b` · 16+ Test Cases
+> Stand: 2026-07-22 · v0.4.10 · App `16d50bee-bc86-4bda-bb56-a861743f3ddb` · Model `qwen2.5:14b` · 16+ Test Cases
 
 ## Übersicht
 
@@ -202,13 +202,13 @@ Context ("From paper:" headers with real metadata):
 | Autoren-Vollständigkeit | ✅ PubMed | ✅ Volltext | ✅ PubMed | ✅ Header | ✅ 5/5 korrekt |
 | Follow-up-Fähigkeit | ✅ "Summarize" | – | – | – | ✅ "Group by" (v0.4.6) |
 | Prompt-Stabilität | ✅ v0.4.9 | ✅ stabil | ✅ v0.4.8 | ✅ v0.4.2 | ✅ v0.4.7 |
-| Metadata-Qualität | ✅ 83% PubMed | ✅ | ✅ 83% PubMed | ✅ | ✅ 3/5 korrekt |
+| Metadata-Qualität | ✅ **100% (v0.4.10)** | ✅ 100% | ✅ **100%** | ✅ 100% | ✅ 100% |
 
 ---
 
 ## Nächste Schritte
 
-### ✅ Erledigt (v0.4.6–v0.4.9)
+### ✅ Erledigt (v0.4.6–v0.4.10)
 
 | # | Fix | Version |
 |---|-----|---------|
@@ -221,14 +221,10 @@ Context ("From paper:" headers with real metadata):
 | 7 | HEK cells speculative claims (#12) | v0.4.8 |
 | 8 | Science Journals AAAS metadata | v0.4.8 |
 | 9 | Author name format normalization | v0.4.9 |
+| 10 | **100% Metadata Coverage** (PubMed + CrossRef + LLM) | v0.4.10 |
 
 ### 🟡 Priorität 2 – Qualitätsverbesserungen
 
-10. **Metadata-Rest**: Die ~8 nicht-PubMed Papers via CrossRef + LLM nachziehen.
-   - ✅ CrossRef-Fallback implementiert (commit `2454049`)
-   - ✅ DOI-Extraktion verbessert (längstes Match, 5 zusätzliche Papers via PubMed)
-   - ⬜ LLM-Fallback getestet (braucht `baml-py==0.222.0` + Ollama qwen3:32b)
-   - ⬜ Metadaten ins Dify-Dataset pushen (`apply_metadata_two_pass`)
 11. **top_k**: Bereits 100 in GUI + DSL. Keine weiteren Erhöhungen möglich.
 
 ### ⬜ Priorität 3 – Erweiterungen
