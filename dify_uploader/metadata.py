@@ -12,7 +12,10 @@ except ImportError:
     PdfReader = None
 
 from dify_uploader.author_extraction import extract_authors_from_pdf
-from dify_uploader.baml_author_parser import parse_authors_with_baml, parse_title_with_baml
+from dify_uploader.baml_author_parser import (
+    parse_authors_with_baml,
+    parse_title_with_baml,
+)
 
 # ── PubMed / DOI-based metadata extraction ──────────────────────────
 

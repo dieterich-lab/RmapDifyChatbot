@@ -224,7 +224,11 @@ Context ("From paper:" headers with real metadata):
 
 ### 🟡 Priorität 2 – Qualitätsverbesserungen
 
-10. **Metadata-Rest**: Die 14 nicht-PubMed Papers manuell oder via LLM nachziehen.
+10. **Metadata-Rest**: Die ~8 nicht-PubMed Papers via CrossRef + LLM nachziehen.
+   - ✅ CrossRef-Fallback implementiert (commit `2454049`)
+   - ✅ DOI-Extraktion verbessert (längstes Match, 5 zusätzliche Papers via PubMed)
+   - ⬜ LLM-Fallback getestet (braucht `baml-py==0.222.0` + Ollama qwen3:32b)
+   - ⬜ Metadaten ins Dify-Dataset pushen (`apply_metadata_two_pass`)
 11. **top_k**: Bereits 100 in GUI + DSL. Keine weiteren Erhöhungen möglich.
 
 ### ⬜ Priorität 3 – Erweiterungen
