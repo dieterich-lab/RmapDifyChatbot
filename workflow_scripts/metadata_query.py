@@ -107,10 +107,12 @@ def _author_variants(author: str) -> list[str]:
 
     # Umlaut normalization: add both ö→oe AND ö→o variants
     # PubMed strips umlauts (ö→o), German expansion uses oe (ö→oe)
-    umlaut_expand = str.maketrans({"ö": "oe", "ü": "ue", "ä": "ae", "ß": "ss",
-                                    "Ö": "Oe", "Ü": "Ue", "Ä": "Ae"})
-    umlaut_strip = str.maketrans({"ö": "o", "ü": "u", "ä": "a", "ß": "ss",
-                                   "Ö": "O", "Ü": "U", "Ä": "A"})
+    umlaut_expand = str.maketrans(
+        {"ö": "oe", "ü": "ue", "ä": "ae", "ß": "ss", "Ö": "Oe", "Ü": "Ue", "Ä": "Ae"}
+    )
+    umlaut_strip = str.maketrans(
+        {"ö": "o", "ü": "u", "ä": "a", "ß": "ss", "Ö": "O", "Ü": "U", "Ä": "A"}
+    )
     extra = []
     for item in deduped:
         expanded = item.translate(umlaut_expand)
