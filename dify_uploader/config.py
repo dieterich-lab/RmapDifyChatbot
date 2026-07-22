@@ -10,7 +10,10 @@ DIFY_DATASET_API_KEY = os.getenv(
 
 # Backward-compatible alias kept for existing imports.
 DIFY_API_KEY = DIFY_DATASET_API_KEY
-DATASET_ID = os.getenv("DATASET_ID", "227cf97a-8e56-4cd6-808d-caf57bc0d2bf")
+DATASET_ID = os.getenv(
+    "DATASET_ID",
+    os.getenv("DIFY_DATASET_ID", "<your-dataset-id>"),
+)
 PDF_FOLDER = os.getenv("PDF_FOLDER", "./RMaP papers first funding period")
 
 
