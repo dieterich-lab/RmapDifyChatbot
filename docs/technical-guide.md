@@ -714,7 +714,7 @@ Before each release, verify:
 
 **Cause:** Author with many papers (e.g., Mark Helm: 28). Fetch Full Paper takes ~0.5s/paper.
 
-**Mitigation:** `MAX_PAPERS_FOR_SUMMARY = 15` in `parse_router_output.py`. Still slow for 15 papers + LLM processing.
+**Mitigation:** `MAX_PAPERS_FOR_SUMMARY = 8` in `parse_router_output.py` (v0.4.10). Tested at 194s for Mark Helm (28 papers → 8 summarized). Well under the 5 min draft timeout.
 
 ### 10.5 env vars Lost After Import
 

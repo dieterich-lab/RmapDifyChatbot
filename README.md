@@ -38,7 +38,7 @@ Du bekommst eine Einladung zur Dify-Account-Erstellung. Nach dem Login findest d
 | `metadata_list` | "Papers by Christoph Dieterich" | 8 Papers aufgelistet | – |
 | `metadata_list` | "Find all research papers" | 81 Papers (LLM-native, kein Regex) | – |
 | `metadata_list` | "List all researchers" | 776 Authors (LLM-native) | – |
-| `content_summary` | "Summarize them" (nach metadata_list) | Global Synthesis + 3 Bullet Points/Paper | Max 15 Papers (Context-Limit) |
+| `content_summary` | "Summarize them" (nach metadata_list) | Global Synthesis + 3 Bullet Points/Paper | Max 8 Papers (A2-Latenz-Limit, v0.4.10) |
 | `knowledge_retrieval` | "What is m6A?" | Methoden mit Inline-Citations | ✅ Citations verified (v0.4.7) |
 | `author_lookup` | "Who has worked on tRNA modifications?" | ~9 Papers mit Autoren + Quotes | ✅ Quotes + Authors verified (v0.4.7) |
 | `entity_lookup` | "Which RNA modifications are most studied?" | ~5 Entity-Typen mit Paper-Zuordnung | ⚠️ m6A fehlt (14B-Limit, braucht 32B) |
@@ -118,7 +118,7 @@ flowchart TD
 ### Key Design Decisions
 
 - **Regex-freies Broad-Query-Routing** (v0.4.6): Unified Router LLM steuert "Find all papers" und "List all researchers" nativ via `list_mode`-Feld. 24 Zeilen Regex-Patterns aus `parse_router_output.py` entfernt.
-- **MAX_PAPERS_FOR_SUMMARY = 15** (v0.4.6): Verhindert Context Overflow im Summary LLM bei Autoren mit vielen Papers (z.B. Mark Helm, 28 Papers).
+- **MAX_PAPERS_FOR_SUMMARY = 8** (v0.4.10): Verhindert Timeout (>5 min) auf A2 bei Autoren mit vielen Papers. 15→8 reduziert, getestet bei 194s für Mark Helm (28 Papers).
 - **KR Query Rewriter entfernt** (v0.4.0): HyDE-style Keyword-Expansion matchte überproportional Bibliography-Sections. Query geht jetzt unverändert an KR.
 - **qwen2.5:14b für alle LLMs** (v0.4.6): `gpt-oss` komplett ersetzt – weniger Halluzination, strikteres Grounding.
 - **1 Chunk/Paper** (v0.4.2): Maximiert Paper-Diversität im Context (bis 50 unique Papers).
@@ -140,7 +140,7 @@ flowchart TD
 
 - **Name**: RMAP Papers
 - **UUID**: `<your-dataset-id>`
-- **Dokumente**: 82 Papers (RMaP First Funding Period)
+- **Dokumente**: 82 Papers (RMaP First Funding Period), Metadaten für alle 84 via PubMed + CrossRef + LLM
 - **Embedding**: nomic-embed-text-v2-moe (Ollama)
 - **Chunking**: Dify Standard (automatic mode)
 
@@ -149,7 +149,7 @@ flowchart TD
 | # | Intent | Problem | Schweregrad | Details |
 |---|--------|---------|-------------|---------|
 | 1 | `entity_lookup` | Recall-Limit | ⚠️ Mittel | Nur 5 Entities. m6A fehlt. qwen2.5:14b stoppt intrinsisch bei ~6 Entities. Fix braucht 32B-Upgrade (P3). |
-| 2 | `content_summary` | Mark Helm Timeout | ⚠️ Mittel | "Summarize them" für 28 Papers >5 min. Fetch Full Paper + Summary LLM zu langsam auf A2. |
+| 2 | `content_summary` | Mark Helm Timeout | ✅ Gefixt (v0.4.10) | Cap 15→8: 194s statt >5 min Timeout. |
 | 3 | `knowledge_retrieval` | miCLIP/MeRIP-Lücke | ⚠️ Niedrig | Retrieval-Ranking liefert diese Methoden nicht in den Top-100 Chunks. |
 
 → Detaillierte Analyse: [`docs/test-cases.md`](docs/test-cases.md)

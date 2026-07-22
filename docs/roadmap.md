@@ -7,7 +7,7 @@
 | Intent | Status | Präzision | Recall / Scope | Prompt reif? |
 |--------|--------|-----------|----------------|-------------|
 | `metadata_list` | ✅ stabil | ✅ API-fetched (keine Halluzination) | ✅ 82 Papers, 776 Authors | ✅ stabil (v0.4.9) |
-| `content_summary` | ✅ stabil | ✅ 0 Halluzination (Volltext-verified) | ⚠️ Max 15 Papers (Context-Limit) | ✅ stabil |
+| `content_summary` | ✅ stabil | ✅ 0 Halluzination (Volltext-verified) | ⚠️ Max 8 Papers (A2-Latenz-Limit) | ✅ stabil |
 | `knowledge_retrieval` | ✅ stabil | ✅ Citations korrekt (v0.4.7) | ⚠️ miCLIP/MeRIP fehlen | ✅ stabil (v0.4.7) |
 | `author_lookup` | ✅ stabil | ✅ Quotes + Autoren korrekt (v0.4.7) | ~27% (7/26) | ✅ stabil (v0.4.8) |
 | `entity_lookup` | ⚠️ Recall-Limit | ✅ sauber (keine Halluzination) | ⚠️ 5/38+ Modifikationen, m6A fehlt | ✅ stabil (v0.4.2) |
@@ -25,7 +25,7 @@
 | 10 | `metadata_list` | Find all research papers | ✅ LLM-native | v0.4.6 |
 | 11 | `metadata_list` | List all researchers | ✅ LLM-native | v0.4.6 |
 | 12 | `author_lookup` | Who is using HEK cells? | ✅ no speculative claims | v0.4.8 |
-| 13 | `content_summary` | Mark Helm → Summarize | ⚠️ Times out (>5 min) | – |
+| 13 | `content_summary` | Mark Helm → Summarize | ✅ 194s (cap 8 papers) | v0.4.10 |
 | 14 | `metadata_list` | Papers by Dieterich (last name) | ✅ 8 papers | v0.4.6 |
 | 15 | `content_summary` | Papers by X → Group by journal | ✅ Groups by journal | v0.4.6 |
 | 16 | N/A | PI Collaboration Analysis | ❌ no-fix architectural gap | – |
@@ -198,7 +198,7 @@ Context ("From paper:" headers with real metadata):
 | Kriterium | metadata_list | content_summary | author_lookup | entity_lookup | knowledge_retrieval |
 |-----------|:------------:|:------------:|:------------:|:------------:|:-------------------:|
 | Präzision (keine Halluzinationen) | ✅ API | ✅ Volltext | ✅ Quotes (v0.4.7) | ✅ sauber | ✅ Citations (v0.4.7) |
-| Recall / Scope | ✅ 82 Papers | ⚠️ Max 15 | ⚠️ 27% (7/26) | ⚠️ 5/38+ mods | ⚠️ miCLIP/MeRIP |
+| Recall / Scope | ✅ 84 Papers | ⚠️ Max 8 (v0.4.10) | ⚠️ 27% (7/26) | ⚠️ 5/38+ mods | ⚠️ miCLIP/MeRIP |
 | Autoren-Vollständigkeit | ✅ PubMed | ✅ Volltext | ✅ PubMed | ✅ Header | ✅ 5/5 korrekt |
 | Follow-up-Fähigkeit | ✅ "Summarize" | – | – | – | ✅ "Group by" (v0.4.6) |
 | Prompt-Stabilität | ✅ v0.4.9 | ✅ stabil | ✅ v0.4.8 | ✅ v0.4.2 | ✅ v0.4.7 |
@@ -231,7 +231,7 @@ Context ("From paper:" headers with real metadata):
 
 12. **LLM-Upgrade**: qwen2.5:14b → 32b für bessere Comprehensiveness (`entity_lookup` m6A-Recall, #5).
 13. **Embedding-Model**: `nomic-embed-text-v2-moe` → biomedizinisches Model evaluieren.
-14. **#13 Timeout**: Fetch Full Paper optimieren (Parallelisierung/Caching).
+14. **#13 Timeout**: ✅ Gefixt (v0.4.10, cap 15→8). Parallelisierung/Caching als optionale Verbesserung.
 
 ### ❌ No-Fix – Architektonische Limits
 
