@@ -713,13 +713,12 @@ workflow:
           \ key in seen:\n            continue\n        seen.add(key)\n        deduped.append(item)\n\
           \n    # Umlaut normalization: add both ö→oe AND ö→o variants\n    # PubMed\
           \ strips umlauts (ö→o), German expansion uses oe (ö→oe)\n    umlaut_expand\
-          \ = str.maketrans({\"ö\": \"oe\", \"ü\": \"ue\", \"ä\": \"ae\", \"ß\": \"\
-          ss\",\n                                    \"Ö\": \"Oe\", \"Ü\": \"Ue\"\
-          , \"Ä\": \"Ae\"})\n    umlaut_strip = str.maketrans({\"ö\": \"o\", \"ü\"\
-          : \"u\", \"ä\": \"a\", \"ß\": \"ss\",\n                                \
-          \   \"Ö\": \"O\", \"Ü\": \"U\", \"Ä\": \"A\"})\n    extra = []\n    for\
-          \ item in deduped:\n        expanded = item.translate(umlaut_expand)\n \
-          \       if expanded.lower() not in seen:\n            extra.append(expanded)\n\
+          \ = str.maketrans(\n        {\"ö\": \"oe\", \"ü\": \"ue\", \"ä\": \"ae\"\
+          , \"ß\": \"ss\", \"Ö\": \"Oe\", \"Ü\": \"Ue\", \"Ä\": \"Ae\"}\n    )\n \
+          \   umlaut_strip = str.maketrans(\n        {\"ö\": \"o\", \"ü\": \"u\",\
+          \ \"ä\": \"a\", \"ß\": \"ss\", \"Ö\": \"O\", \"Ü\": \"U\", \"Ä\": \"A\"\
+          }\n    )\n    extra = []\n    for item in deduped:\n        expanded = item.translate(umlaut_expand)\n\
+          \        if expanded.lower() not in seen:\n            extra.append(expanded)\n\
           \        stripped = item.translate(umlaut_strip)\n        if stripped.lower()\
           \ not in seen and stripped.lower() != expanded.lower():\n            extra.append(stripped)\n\
           \    deduped.extend(extra)\n\n    return deduped\n\n\ndef _build_headers(api_key:\
@@ -1478,15 +1477,18 @@ workflow:
             \ QUERIES (conversation.memory has papers AND query references them):\n\
             \  → paper_list = the STRING \"use_memory\". The downstream parser will\
             \ fill in the actual papers.\n  The query contains pronouns or references\
-            \ to prior turns.\n\nFor \"metadata_list\": empty paper_list IS VALID\
-            \ (means all papers / all authors).\nFor \"content_summary\": paper_list\
-            \ MUST NOT be empty. If you cannot determine which papers to summarize,\
-            \ use \"knowledge_retrieval\" instead.\n\n=== REWRITTEN QUERY RULES ===\n\
-            \n- Resolve pronouns: \"them\" → \"the papers from the previous turn\"\
-            .\n- For author_lookup and entity_lookup: keep the original query as-is\
-            \ (it will be used for KR search).\n- Keep original language and intent.\n\
-            \nOutput ONLY the JSON. No <think> tags, no explanations, no markdown\
-            \ fences."
+            \ to prior turns.\n\nCRITICAL: \"Papers by <name>\" / \"Find papers by\
+            \ <name>\" is ALWAYS a NEW metadata_list query. Even if conversation.memory\
+            \ has papers, do NOT use \"use_memory\" for these. They are fresh author\
+            \ searches, NOT follow-up refinements.\n\nFor \"metadata_list\": empty\
+            \ paper_list IS VALID (means all papers / all authors).\nFor \"content_summary\"\
+            : paper_list MUST NOT be empty. If you cannot determine which papers to\
+            \ summarize, use \"knowledge_retrieval\" instead.\n\n=== REWRITTEN QUERY\
+            \ RULES ===\n\n- Resolve pronouns: \"them\" → \"the papers from the previous\
+            \ turn\".\n- For author_lookup and entity_lookup: keep the original query\
+            \ as-is (it will be used for KR search).\n- Keep original language and\
+            \ intent.\n\nOutput ONLY the JSON. No <think> tags, no explanations, no\
+            \ markdown fences."
         reasoning_format: separated
         selected: false
         structured_output:
