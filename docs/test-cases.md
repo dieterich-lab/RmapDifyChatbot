@@ -1,7 +1,7 @@
 # RMAP Chatbot – Test Cases
 
 > Living document: current behavior of all release test cases.
-> Last updated: 2026-07-22 (v0.4.12, #19/#20 verified, multi-author deployed)
+> Last updated: 2026-07-23 (v0.4.12+ regression test, all 20 re-verified)
 
 ## Overview
 
@@ -12,18 +12,18 @@
 | 3 | "What is m6A?" | knowledge_retrieval | ✅ | ✅ none (citation fix verified) |
 | 4 | "Who has worked on tRNA modifications?" | author_lookup | ✅ | ✅ none (quote + cross-contamination fixed) |
 | 5 | "Which RNA modifications are most studied?" | entity_lookup | ⚠️ | ✅ none (m6A missing) |
-| 6 | "Find papers by Francesca Tuorto" | metadata_list | ✅ | ✅ none (fixed: now routes to metadata_list) |
+| 6 | "Find papers by Francesca Tuorto" | metadata_list | ✅ | ✅ 6 papers (v0.4.12+ code guard, 85s) |
 | 7 | "Find papers by René Ketting" | metadata_list | ✅ | ✅ none |
 | 8 | "Find papers by Claudia Höbartner" | metadata_list | ✅ | ✅ none |
 | 9 | "Find papers by Lauren Saunders" | metadata_list | ✅ | ✅ 0 results (not in dataset) |
-| 10 | "Find all research papers" | metadata_list | ✅ | ✅ none (81 papers) |
-| 11 | "List all researchers" | metadata_list | ✅ | ✅ none (776 authors) |
+| 10 | "Find all research papers" | metadata_list | ✅ | ✅ none (84 papers) |
+| 11 | "List all researchers" | metadata_list | ✅ | ✅ none (821 authors) |
 | 12 | "Who is using HEK cells?" | author_lookup | ✅ | ✅ none (prompt de-tRNA-fied, speculative claims removed) |
-| 13 | "Find papers by Mark Helm" → "Summarize them" | content_summary | ✅ | ✅ none (v0.4.10: cap 15→8, 194s) |
+| 13 | "Find papers by Mark Helm" → "Summarize them" | content_summary | ✅ | ✅ none (v0.4.10: cap 15→8, 184s) |
 | 14 | "Find Papers by Dieterich" (last name only) | metadata_list | ✅ | ✅ none (8/8, count verified) |
 | 15 | "Papers by X" → "Group them by journal" | content_summary | ✅ | ✅ none (groups by journal) |
 | 16 | PI collaboration: Helm, Hengesbach, Höbartner, Jäschke, Ketting | N/A | ❌ | N/A (architectural gap – no fix planned) |
-| 17 | "Can you identify these Names: Helm, Hengesbach, ..." | metadata_list | ❌ | N/A (multi-author filter – out of scope) |
+| 17 | "Can you identify these Names: Helm, Hengesbach, ..." | metadata_list | 🔧 | N/A (OR-matching deployed, Router needs tuning) |
 | 18 | Hardcoded info for Lauren Saunders (no papers in DB) | N/A | ❌ | N/A (external knowledge base needed) |
 | 19 | "Find papers by Tamer Butto" | metadata_list | ✅ | ✅ 2 papers (v0.4.11 verified: 41s) |
 | 20 | "Find papers by Michaela Frye" | metadata_list | ✅ | ✅ 1 paper (v0.4.11 verified: 49s) |
@@ -349,3 +349,38 @@ Ends with: *"Insufficient context for other modifications."*
 - **Model (metadata/extraction):** qwen2.5:14b (Ollama)
 - **Dataset:** RMAP Papers (UUID `<your-dataset-id>`, 84 documents)
 - **Embedding:** nomic-embed-text-v2-moe
+
+---
+
+## Regression Test (2026-07-23)
+
+Full re-verification after v0.4.12 changes (multi-author, umlaut, two-turn fix).
+
+| # | Query | Status | Time | Notes |
+|---|-------|--------|------|-------|
+| 1 | Papers by Christoph Dieterich | ✅ | 116s | 8 papers, metadata_list format |
+| 2 | → Summarize them | ✅ | 168s | Grounded summaries, no hallucination |
+| 3 | What is m6A? | ✅ | 71s | Knowledge summary with inline citations |
+| 4 | Who worked on tRNA modifications? | ✅ | 174s | Authors + verbatim quotes |
+| 5 | Which RNA mods most studied? | ⚠️ | 66s | Entity table, m6A missing (known: 14B model limit) |
+| 6 | Find papers by Francesca Tuorto | ✅ | 85s | **FIXED** – code-level guard for "Find papers by X" |
+| 7 | Find papers by René Ketting | ✅ | 39s | 1 paper |
+| 8 | Find papers by Claudia Höbartner | ✅ | 55s | 1 paper |
+| 9 | Find papers by Lauren Saunders | ✅ | 45s | 0 + tips |
+| 10 | Find all research papers | ✅ | 11s | 84 papers |
+| 11 | List all researchers | ✅ | 24s | 821 authors |
+| 12 | Who is using HEK cells? | ✅ | 84s | Quotes + authors |
+| 13 | Mark Helm → Summarize them | ✅ | 184s | 2-turn works (10→8 cap) |
+| 14 | Find Papers by Dieterich | ✅ | 119s | 8 papers |
+| 15 | Papers by X → Group by journal | ✅ | 169s | Groups by journal correctly |
+| 16 | PI Collaboration | ❌ | – | Architectural limit |
+| 17 | Multi-author identify | 🔧 | – | OR-matching deployed, Router tuning needed |
+| 18 | Hardcoded Lauren Saunders | ❌ | – | Out of scope |
+| 19 | Find papers by Tamer Butto | ✅ | 49s | 2 papers |
+| 20 | Find papers by Michaela Frye | ✅ | 36s | 1 paper |
+
+**Tally: ✅ 16 · ⚠️ 1 · 🔧 1 · ❌ 2**
+
+### #6 Fix Details
+
+"Find papers by Francesca Tuorto" was routing to `content_summary` (Summary LLM format with Method/Key Finding) instead of `metadata_list`. Root cause: Router LLM misinterpreted the query. Fix: code-level guard in `parse_router_output.py` using `startswith("find papers by ")` – overrides Router intent to `metadata_list` with extracted author name. Regex-based approach failed due to YAML DSL escaping issues.
