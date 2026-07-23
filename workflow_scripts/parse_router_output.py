@@ -144,6 +144,24 @@ def main(router_text=None, conversation_memory=None, sys_query=None):
                 # Use the query text as author filter
                 paper_list = [{"authors": q, "title": "", "year": "", "journal": ""}]
 
+    # ── "Find/Show papers by <name>" guard ─────────────────────────
+    if sys_query:
+        q = str(sys_query).strip().lower()
+        # Check for "find papers by X", "show papers by X", "find publications by X"
+        is_find_by = (
+            q.startswith("find papers by ") or q.startswith("show papers by ")
+            or q.startswith("find publications by ") or q.startswith("show publications by ")
+            or q.startswith("find articles by ") or q.startswith("show articles by ")
+        )
+        if is_find_by:
+            # Extract name after "by "
+            parts = q.split(" by ", 1)
+            if len(parts) == 2:
+                name = parts[1].strip().rstrip(".,;")
+                if name and len(name) >= 2:
+                    intent = "metadata_list"
+                    paper_list = [{"authors": name, "title": "", "year": "", "journal": ""}]
+
     return {
         "intent": intent,
         "paper_list": paper_list,

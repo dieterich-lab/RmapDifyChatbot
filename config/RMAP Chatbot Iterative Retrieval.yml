@@ -1453,10 +1453,12 @@ workflow:
             \ a name (no question, no instruction) → \"metadata_list\". This includes\
             \ ALL name formats:\n    \"Mark Helm\", \"Helm, Mark\", \"M. Helm\", \"\
             Dieterich\", \"Chr. Dieterich\".\n    Names with comma (Last, First) or\
-            \ dot (M. Helm) are still person names → list their papers.\n  - IMPORTANT:\
+            \ dot (M. Helm) are still person names → list their papers.\n  - CRITICAL:\
             \ \"Find papers by <name>\" or \"Papers by <name>\" or \"Show papers by\
             \ <name>\" → \"metadata_list\", paper_list: [{\"authors\": \"<name>\"\
-            }]. This is a metadata filter, NOT a content search.\n  - MULTI-NAME:\
+            }]. This overrides ALL other rules. These are metadata queries, NOT content_summary\
+            \ and NOT author_lookup. Examples: \"Find papers by Francesca Tuorto\"\
+            \ → metadata_list. \"Papers by Dieterich\" → metadata_list.\n  - MULTI-NAME:\
             \ \"Identify <name1>, <name2>, ...\" or \"Can you identify these names:\
             \ ...\" or \"Which papers are by X or Y?\" or \"Papers by X, Y, Z\" →\
             \ \"metadata_list\", paper_list: [{\"authors\": \"<name1>, <name2>, ...\"\
@@ -1690,8 +1692,21 @@ workflow:
           \ or has_dot_initials or one_or_two_words:\n            intent = \"metadata_list\"\
           \n            if not paper_list:\n                # Use the query text as\
           \ author filter\n                paper_list = [{\"authors\": q, \"title\"\
-          : \"\", \"year\": \"\", \"journal\": \"\"}]\n\n    return {\n        \"\
-          intent\": intent,\n        \"paper_list\": paper_list,\n        \"paper_count\"\
+          : \"\", \"year\": \"\", \"journal\": \"\"}]\n\n    # ── \"Find/Show papers\
+          \ by <name>\" guard ─────────────────────────\n    if sys_query:\n     \
+          \   q = str(sys_query).strip().lower()\n        # Check for \"find papers\
+          \ by X\", \"show papers by X\", \"find publications by X\"\n        is_find_by\
+          \ = (\n            q.startswith(\"find papers by \") or q.startswith(\"\
+          show papers by \")\n            or q.startswith(\"find publications by \"\
+          ) or q.startswith(\"show publications by \")\n            or q.startswith(\"\
+          find articles by \") or q.startswith(\"show articles by \")\n        )\n\
+          \        if is_find_by:\n            # Extract name after \"by \"\n    \
+          \        parts = q.split(\" by \", 1)\n            if len(parts) == 2:\n\
+          \                name = parts[1].strip().rstrip(\".,;\")\n             \
+          \   if name and len(name) >= 2:\n                    intent = \"metadata_list\"\
+          \n                    paper_list = [{\"authors\": name, \"title\": \"\"\
+          , \"year\": \"\", \"journal\": \"\"}]\n\n    return {\n        \"intent\"\
+          : intent,\n        \"paper_list\": paper_list,\n        \"paper_count\"\
           : len(paper_list),\n        \"rewritten_query\": rw,\n        \"list_mode\"\
           : list_mode,\n    }\n"
         code_language: python3
