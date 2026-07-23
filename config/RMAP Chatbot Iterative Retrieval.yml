@@ -807,24 +807,41 @@ workflow:
           \ \"\"),\n                \"year\": meta.get(\"year\", \"\"),\n        \
           \        \"journal\": meta.get(\"journal\", \"\"),\n            }\n    \
           \    )\n\n    return docs, errors\n\n\ndef _render_result(matches: list[dict],\
-          \ total_docs: int) -> str:\n    MAX_RESULTS = 30  # Dify array output limit\n\
-          \    if not matches:\n        return (\n            \"Keine Dokumente gefunden.\\\
-          n\"\n            \"Tipps:\\n\"\n            \"- Autor:innen-Namen ausschreiben\
-          \ (z.B. 'Christoph Dieterich')\\n\"\n            \"- Nachname allein reicht\
-          \ oft (z.B. 'Dieterich')\\n\"\n            \"- Jahr als vierstellige Zahl\
-          \ angeben (z.B. '2024')\\n\"\n            f\"Code-Version: {CODE_VERSION};\
-          \ Dokumente geprueft: {total_docs}; Treffer: 0\"\n        )\n\n    truncated\
-          \ = len(matches) > MAX_RESULTS\n    display_docs = matches[:MAX_RESULTS]\
-          \ if truncated else matches\n\n    lines = []\n    for idx, doc in enumerate(display_docs,\
-          \ start=1):\n        lines.append(\n            f\"{idx}. {doc['title']}\
-          \ | {doc['authors']} | {doc['year']} | {doc['journal']} | {doc.get('id',\
-          \ '')}\"\n        )\n    header = (\n        f\"Code-Version: {CODE_VERSION};\
-          \ Dokumente geprueft: {total_docs}; \"\n        f\"Treffer: {len(matches)}\"\
-          \n    )\n    result = header + \"\\n\" + \"\\n\".join(lines)\n    if truncated:\n\
-          \        result += (\n            f\"\\n\\n(Es werden nur die ersten {MAX_RESULTS}\
-          \ von {len(matches)} Ergebnissen angezeigt. \"\n            \"Bitte die\
-          \ Suche mit einem Autor:innen-Namen, Jahr oder Journal einschränken.)\"\n\
-          \        )\n    return result\n\n\ndef main(\n    year=None,\n    authors=None,\n\
+          \ total_docs: int, is_multi_author: bool = False) -> str:\n    MAX_RESULTS\
+          \ = 30  # Dify array output limit\n    if not matches:\n        return (\n\
+          \            \"Keine Dokumente gefunden.\\n\"\n            \"Tipps:\\n\"\
+          \n            \"- Autor:innen-Namen ausschreiben (z.B. 'Christoph Dieterich')\\\
+          n\"\n            \"- Nachname allein reicht oft (z.B. 'Dieterich')\\n\"\n\
+          \            \"- Jahr als vierstellige Zahl angeben (z.B. '2024')\\n\"\n\
+          \            f\"Code-Version: {CODE_VERSION}; Dokumente geprueft: {total_docs};\
+          \ Treffer: 0\"\n        )\n\n    truncated = len(matches) > MAX_RESULTS\n\
+          \    display_docs = matches[:MAX_RESULTS] if truncated else matches\n\n\
+          \    # For multi-author queries: pre-format the output to look like LLM\
+          \ output,\n    # so the downstream Metadata LLM just passes it through verbatim.\n\
+          \    if is_multi_author:\n        lines = [f\"{len(matches)} papers\", \"\
+          \"]\n        for idx, doc in enumerate(matches, start=1):\n            lines.append(\n\
+          \                f\"{idx}. **{doc['title']}**\"\n            )\n       \
+          \     if doc.get(\"authors\"):\n                lines.append(f\"   - Authors:\
+          \ {doc['authors']}\")\n            if doc.get(\"year\"):\n             \
+          \   lines.append(f\"   - Year: {doc['year']}\")\n            if doc.get(\"\
+          journal\"):\n                lines.append(f\"   - Journal: {doc['journal']}\"\
+          )\n            lines.append(\"\")\n        # No cap for multi-author: the\
+          \ Metadata LLM is bypassed, so no context limit.\n        # Final Answer\
+          \ Sanitizer passes result_text through verbatim.\n        if len(matches)\
+          \ > MAX_RESULTS:\n            lines.append(\n                f\"(Showing\
+          \ all {len(matches)} results. \"\n                \"Refine your query with\
+          \ additional filters for a narrower list.)\"\n            )\n        return\
+          \ \"\\n\".join(lines)\n\n    # Standard format for single-author / non-multi\
+          \ queries\n    lines = []\n    for idx, doc in enumerate(display_docs, start=1):\n\
+          \        lines.append(\n            f\"{idx}. {doc['title']} | {doc['authors']}\
+          \ | {doc['year']} | {doc['journal']} | {doc.get('id', '')}\"\n        )\n\
+          \    header = (\n        f\"Code-Version: {CODE_VERSION}; Dokumente geprueft:\
+          \ {total_docs}; \"\n        f\"Treffer: {len(matches)}\"\n    )\n    result\
+          \ = header + \"\\n\" + \"\\n\".join(lines)\n    if truncated:\n        result\
+          \ += (\n            f\"\\n\\n(Es werden nur die ersten {MAX_RESULTS} von\
+          \ {len(matches)} Ergebnissen angezeigt. \"\n            \"Bitte die Suche\
+          \ mit einem Autor:innen-Namen, Jahr oder Journal einschränken.)\"\n    \
+          \    )\n    return result\n\n\ndef main(\n    year=None,\n    authors=None,\n\
           \    journal=None,\n    title=None,\n    paper_list=None,\n    list_mode=None,\n\
           \    api_key_input=None,\n    dataset_id_input=None,\n):\n    api_base =\
           \ (os.getenv(\"DIFY_API_URL\") or \"http://rmap-chatbot-demo-dify/v1\").rstrip(\n\
@@ -837,59 +854,66 @@ workflow:
           \          )\n        }\n\n    # Extract filter values from paper_list if\
           \ passed (Parse Router Output)\n    if isinstance(paper_list, list) and\
           \ len(paper_list) > 0:\n        first = paper_list[0]\n        if isinstance(first,\
-          \ dict):\n            if not _is_set(authors):\n                authors\
-          \ = first.get(\"authors\", \"\")\n            if not _is_set(year):\n  \
-          \              year = first.get(\"year\", \"\")\n            if not _is_set(journal):\n\
-          \                journal = first.get(\"journal\", \"\")\n            if\
-          \ not _is_set(title):\n                title = first.get(\"title\", \"\"\
-          )\n\n    headers = _build_headers(str(api_key).strip())\n    docs, errors\
-          \ = _collect_documents(str(api_base), str(dataset_id).strip(), headers)\n\
-          \n    year_filter = _sanitize_year_filter(year)\n    journal_filter = _sanitize_free_text_filter(journal,\
-          \ max_len=80)\n    title_filter = _sanitize_free_text_filter(title, max_len=160)\n\
-          \n    has_any_filter = any(\n        [\n            _is_set(year_filter),\n\
-          \            _is_set(journal_filter),\n            _is_set(title_filter),\n\
-          \            _is_set(authors),\n        ]\n    )\n\n    # No-filter query\
-          \ → return all documents or distinct authors\n    if not has_any_filter:\n\
-          \        if str(list_mode or \"\").strip().lower() == \"authors\":\n   \
-          \         # Extract distinct authors from all docs\n            author_set\
-          \ = set()\n            for d in docs:\n                for a in d.get(\"\
-          authors\", \"\").split(\",\"):\n                    a = a.strip()\n    \
-          \                if a and len(a) > 2:\n                        author_set.add(a)\n\
-          \            author_list = sorted(author_set)\n            total = len(author_list)\n\
-          \            display = author_list[:100]\n            lines = [f\"{i}. {a}\"\
-          \ for i, a in enumerate(display, 1)]\n            text = f\"Distinct authors\
-          \ in dataset: {total}\\n\\n\" + \"\\n\".join(lines)\n            if total\
-          \ > 100:\n                text += f\"\\n\\n(Showing first 100 of {total}\
-          \ authors. Use 'Papers by <name>' to find specific authors.)\"\n       \
-          \     return {\n                \"result\": text.split(\"\\n\")[:30],\n\
-          \                \"result_text\": text,\n            }\n        else:\n\
-          \            uniq = {}\n            for d in docs:\n                k =\
-          \ (\n                    d.get(\"title\", \"\").strip().lower(),\n     \
-          \               d.get(\"authors\", \"\").strip().lower(),\n            \
-          \        d.get(\"year\", \"\").strip(),\n                    d.get(\"journal\"\
-          , \"\").strip().lower(),\n                )\n                if k not in\
-          \ uniq:\n                    uniq[k] = d\n            all_docs = list(uniq.values())\n\
-          \            total = len(all_docs)\n            lines = [\n            \
-          \    f\"{i}. {d['title']}, {d['year']}, {d['journal']}\"\n             \
-          \   for i, d in enumerate(all_docs, 1)\n            ]\n            text\
-          \ = f\"Total papers in dataset: {total}\\n\\n\" + \"\\n\".join(lines)\n\
-          \            return {\n                \"result\": text.split(\"\\n\")[:30],\n\
-          \                \"result_text\": text,\n            }\n\n    matches =\
-          \ []\n    for doc in docs:\n        if _matches_filters(doc, year_filter,\
-          \ authors, journal_filter, title_filter):\n            matches.append(doc)\n\
+          \ dict):\n            if not _is_set(year):\n                year = first.get(\"\
+          year\", \"\")\n            if not _is_set(journal):\n                journal\
+          \ = first.get(\"journal\", \"\")\n            if not _is_set(title):\n \
+          \               title = first.get(\"title\", \"\")\n        # Collect authors\
+          \ from ALL entries (supports multi-name OR queries\n        # where parse_router_output\
+          \ splits \"X, Y\" into separate entries)\n        if not _is_set(authors):\n\
+          \            all_authors = []\n            for entry in paper_list:\n  \
+          \              if isinstance(entry, dict):\n                    a = (entry.get(\"\
+          authors\") or \"\").strip()\n                    if a:\n               \
+          \         all_authors.append(a)\n            if all_authors:\n         \
+          \       authors = \", \".join(all_authors)\n\n    headers = _build_headers(str(api_key).strip())\n\
+          \    docs, errors = _collect_documents(str(api_base), str(dataset_id).strip(),\
+          \ headers)\n\n    year_filter = _sanitize_year_filter(year)\n    journal_filter\
+          \ = _sanitize_free_text_filter(journal, max_len=80)\n    title_filter =\
+          \ _sanitize_free_text_filter(title, max_len=160)\n\n    has_any_filter =\
+          \ any(\n        [\n            _is_set(year_filter),\n            _is_set(journal_filter),\n\
+          \            _is_set(title_filter),\n            _is_set(authors),\n   \
+          \     ]\n    )\n\n    # No-filter query → return all documents or distinct\
+          \ authors\n    if not has_any_filter:\n        if str(list_mode or \"\"\
+          ).strip().lower() == \"authors\":\n            # Extract distinct authors\
+          \ from all docs\n            author_set = set()\n            for d in docs:\n\
+          \                for a in d.get(\"authors\", \"\").split(\",\"):\n     \
+          \               a = a.strip()\n                    if a and len(a) > 2:\n\
+          \                        author_set.add(a)\n            author_list = sorted(author_set)\n\
+          \            total = len(author_list)\n            display = author_list[:100]\n\
+          \            lines = [f\"{i}. {a}\" for i, a in enumerate(display, 1)]\n\
+          \            text = f\"Distinct authors in dataset: {total}\\n\\n\" + \"\
+          \\n\".join(lines)\n            if total > 100:\n                text +=\
+          \ f\"\\n\\n(Showing first 100 of {total} authors. Use 'Papers by <name>'\
+          \ to find specific authors.)\"\n            return {\n                \"\
+          result\": text.split(\"\\n\")[:30],\n                \"result_text\": text,\n\
+          \            }\n        else:\n            uniq = {}\n            for d\
+          \ in docs:\n                k = (\n                    d.get(\"title\",\
+          \ \"\").strip().lower(),\n                    d.get(\"authors\", \"\").strip().lower(),\n\
+          \                    d.get(\"year\", \"\").strip(),\n                  \
+          \  d.get(\"journal\", \"\").strip().lower(),\n                )\n      \
+          \          if k not in uniq:\n                    uniq[k] = d\n        \
+          \    all_docs = list(uniq.values())\n            total = len(all_docs)\n\
+          \            lines = [\n                f\"{i}. {d['title']}, {d['year']},\
+          \ {d['journal']}\"\n                for i, d in enumerate(all_docs, 1)\n\
+          \            ]\n            text = f\"Total papers in dataset: {total}\\\
+          n\\n\" + \"\\n\".join(lines)\n            return {\n                \"result\"\
+          : text.split(\"\\n\")[:30],\n                \"result_text\": text,\n  \
+          \          }\n\n    matches = []\n    for doc in docs:\n        if _matches_filters(doc,\
+          \ year_filter, authors, journal_filter, title_filter):\n            matches.append(doc)\n\
           \n    unique = {}\n    for doc in matches:\n        key = (\n          \
           \  (doc.get(\"title\") or \"\").strip().lower(),\n            (doc.get(\"\
           authors\") or \"\").strip().lower(),\n            (doc.get(\"year\") or\
           \ \"\").strip(),\n            (doc.get(\"journal\") or \"\").strip().lower(),\n\
           \        )\n        if key not in unique:\n            unique[key] = doc\n\
-          \    final_docs = list(unique.values())\n\n    result_text = _render_result(final_docs,\
-          \ total_docs=len(docs))\n    if errors:\n        result_text += \"\\nFehlerdetails:\\\
-          n\" + \"\\n\".join(f\"- {e}\" for e in errors[:8])\n    # Cap result array\
-          \ at 30 elements (Dify limit); split only display lines\n    result_lines\
-          \ = result_text.split(\"\\n\") if result_text else []\n    if len(result_lines)\
-          \ > 30:\n        result_lines = result_lines[:30]\n    return {\n      \
-          \  \"result\": result_lines,\n        \"result_text\": result_text,\n  \
-          \  }\n"
+          \    final_docs = list(unique.values())\n\n    # Detect multi-author OR\
+          \ query for result header hint\n    is_multi = \",\" in str(authors or \"\
+          \")\n\n    result_text = _render_result(final_docs, total_docs=len(docs),\
+          \ is_multi_author=is_multi)\n    if errors:\n        result_text += \"\\\
+          nFehlerdetails:\\n\" + \"\\n\".join(f\"- {e}\" for e in errors[:8])\n  \
+          \  # Cap result array at 30 elements (Dify limit); split only display lines\n\
+          \    result_lines = result_text.split(\"\\n\") if result_text else []\n\
+          \    if len(result_lines) > 30:\n        result_lines = result_lines[:30]\n\
+          \    return {\n        \"result\": result_lines,\n        \"result_text\"\
+          : result_text,\n    }\n"
         code_language: python3
         isInIteration: false
         isInLoop: false
@@ -1354,6 +1378,13 @@ workflow:
 
             === RESPONSE POLICY ===
 
+            PASSTHROUGH RULE: If the database query result already contains a pre-formatted
+            numbered list (starting with a paper count like "12 papers" followed by
+            "1. **Title**" entries), output that text EXACTLY AS-IS. Do not add, remove,
+            or change a single character. Do not verify or re-count. Example: if result_text
+            is "12 papers\n\n1. **X**\n   - Authors: ...", your entire response must
+            be that text and nothing else.
+
             If the context contains FULL PAPER TEXTS (with methods, findings, details):
             - Produce a SUMMARIZATION: 3-5 sentence global synthesis comparing themes
             across papers. - Then for each paper: **Title** → Method, Key finding,
@@ -1696,19 +1727,62 @@ workflow:
           \ by <name>\" guard ─────────────────────────\n    if sys_query:\n     \
           \   q = str(sys_query).strip().lower()\n        # Check for \"find papers\
           \ by X\", \"show papers by X\", \"find publications by X\"\n        is_find_by\
-          \ = (\n            q.startswith(\"find papers by \") or q.startswith(\"\
+          \ = (\n            q.startswith(\"find papers by \")\n            or q.startswith(\"\
           show papers by \")\n            or q.startswith(\"find publications by \"\
-          ) or q.startswith(\"show publications by \")\n            or q.startswith(\"\
-          find articles by \") or q.startswith(\"show articles by \")\n        )\n\
-          \        if is_find_by:\n            # Extract name after \"by \"\n    \
-          \        parts = q.split(\" by \", 1)\n            if len(parts) == 2:\n\
-          \                name = parts[1].strip().rstrip(\".,;\")\n             \
-          \   if name and len(name) >= 2:\n                    intent = \"metadata_list\"\
-          \n                    paper_list = [{\"authors\": name, \"title\": \"\"\
-          , \"year\": \"\", \"journal\": \"\"}]\n\n    return {\n        \"intent\"\
-          : intent,\n        \"paper_list\": paper_list,\n        \"paper_count\"\
-          : len(paper_list),\n        \"rewritten_query\": rw,\n        \"list_mode\"\
-          : list_mode,\n    }\n"
+          )\n            or q.startswith(\"show publications by \")\n            or\
+          \ q.startswith(\"find articles by \")\n            or q.startswith(\"show\
+          \ articles by \")\n        )\n        if is_find_by:\n            # Extract\
+          \ name after \"by \"\n            parts = q.split(\" by \", 1)\n       \
+          \     if len(parts) == 2:\n                name = parts[1].strip().rstrip(\"\
+          .,;\")\n                if name and len(name) >= 2:\n                  \
+          \  intent = \"metadata_list\"\n                    # Keep as single entry\
+          \ — metadata_query handles comma-separated\n                    # authors\
+          \ with OR matching, and the OR-hint in result_text tells\n             \
+          \       # the Metadata LLM to list all matches without AND filtering.\n\
+          \                    paper_list = [\n                        {\"authors\"\
+          : name, \"title\": \"\", \"year\": \"\", \"journal\": \"\"}\n          \
+          \          ]\n\n    # ── \"Identify: <name1>, <name2>, ...\" guard ───────────────────\n\
+          \    # Catches multi-name identification queries like:\n    #   \"Identify:\
+          \ Mark Helm, Martin Hengesbach\"\n    #   \"Identify Mark Helm, Martin Hengesbach\"\
+          \n    #   \"Can you identify Mark Helm, Martin Hengesbach?\"\n    # Forces\
+          \ metadata_list with comma-separated authors (OR logic).\n    if sys_query:\n\
+          \        q = str(sys_query).strip().lower()\n        is_identify = (\n \
+          \           q.startswith(\"identify:\")\n            or q.startswith(\"\
+          identify \")\n            or q.startswith(\"can you identify \")\n     \
+          \       or q.startswith(\"which papers are by \")\n        )\n        if\
+          \ is_identify:\n            # Extract the name portion: strip the prefix\n\
+          \            name_part = q\n            for prefix in (\n              \
+          \  \"identify:\",\n                \"identify \",\n                \"can\
+          \ you identify \",\n                \"which papers are by \",\n        \
+          \    ):\n                if name_part.startswith(prefix):\n            \
+          \        name_part = name_part[len(prefix) :]\n                    break\n\
+          \            name_part = name_part.strip().rstrip(\".,;?!\")\n         \
+          \   # Only override if it contains commas (multi-name) or looks like names\n\
+          \            if name_part and \",\" in name_part:\n                # Normalize:\
+          \ ensure comma-space separation\n                names = [n.strip() for\
+          \ n in name_part.split(\",\") if n.strip()]\n                if len(names)\
+          \ >= 2:\n                    intent = \"metadata_list\"\n              \
+          \      # Split into separate entries so Metadata LLM sees individual authors\n\
+          \                    paper_list = [\n                        {\"authors\"\
+          : n, \"title\": \"\", \"year\": \"\", \"journal\": \"\"}\n             \
+          \           for n in names\n                    ]\n\n    # ── Multi-author\
+          \ bypass: skip Metadata LLM ────────────────────\n    # For metadata_list\
+          \ queries with multiple distinct authors (comma-separated\n    # or split\
+          \ across paper_list entries), metadata_query produces pre-formatted\n  \
+          \  # output. The Metadata LLM (qwen2.5:14b) cannot reliably pass through\n\
+          \    # OR-matched results. Setting paper_count=0 routes through the Metadata\
+          \ LLM\n    # Bypass directly to Final Answer Sanitizer, which passes result_text\
+          \ through.\n    multi_author_bypass = False\n    if intent == \"metadata_list\"\
+          \ and paper_list:\n        all_authors = []\n        for entry in paper_list:\n\
+          \            if isinstance(entry, dict):\n                a = str(entry.get(\"\
+          authors\", \"\")).strip()\n                if a:\n                    all_authors.append(a)\n\
+          \        # Multi-author if: any entry has comma, OR multiple entries with\
+          \ authors\n        has_comma = any(\",\" in a for a in all_authors)\n  \
+          \      if has_comma or len(all_authors) >= 2:\n            multi_author_bypass\
+          \ = True\n\n    return {\n        \"intent\": intent,\n        \"paper_list\"\
+          : paper_list,\n        \"paper_count\": 0 if multi_author_bypass else len(paper_list),\n\
+          \        \"rewritten_query\": rw,\n        \"list_mode\": list_mode,\n \
+          \   }\n"
         code_language: python3
         isInIteration: false
         isInLoop: false

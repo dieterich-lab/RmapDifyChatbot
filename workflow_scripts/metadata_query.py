@@ -302,7 +302,9 @@ def _collect_documents(
     return docs, errors
 
 
-def _render_result(matches: list[dict], total_docs: int) -> str:
+def _render_result(
+    matches: list[dict], total_docs: int, is_multi_author: bool = False
+) -> str:
     MAX_RESULTS = 30  # Dify array output limit
     if not matches:
         return (
@@ -317,6 +319,29 @@ def _render_result(matches: list[dict], total_docs: int) -> str:
     truncated = len(matches) > MAX_RESULTS
     display_docs = matches[:MAX_RESULTS] if truncated else matches
 
+    # For multi-author queries: pre-format the output to look like LLM output,
+    # so the downstream Metadata LLM just passes it through verbatim.
+    if is_multi_author:
+        lines = [f"{len(matches)} papers", ""]
+        for idx, doc in enumerate(matches, start=1):
+            lines.append(f"{idx}. **{doc['title']}**")
+            if doc.get("authors"):
+                lines.append(f"   - Authors: {doc['authors']}")
+            if doc.get("year"):
+                lines.append(f"   - Year: {doc['year']}")
+            if doc.get("journal"):
+                lines.append(f"   - Journal: {doc['journal']}")
+            lines.append("")
+        # No cap for multi-author: the Metadata LLM is bypassed, so no context limit.
+        # Final Answer Sanitizer passes result_text through verbatim.
+        if len(matches) > MAX_RESULTS:
+            lines.append(
+                f"(Showing all {len(matches)} results. "
+                "Refine your query with additional filters for a narrower list.)"
+            )
+        return "\n".join(lines)
+
+    # Standard format for single-author / non-multi queries
     lines = []
     for idx, doc in enumerate(display_docs, start=1):
         lines.append(
@@ -363,14 +388,23 @@ def main(
     if isinstance(paper_list, list) and len(paper_list) > 0:
         first = paper_list[0]
         if isinstance(first, dict):
-            if not _is_set(authors):
-                authors = first.get("authors", "")
             if not _is_set(year):
                 year = first.get("year", "")
             if not _is_set(journal):
                 journal = first.get("journal", "")
             if not _is_set(title):
                 title = first.get("title", "")
+        # Collect authors from ALL entries (supports multi-name OR queries
+        # where parse_router_output splits "X, Y" into separate entries)
+        if not _is_set(authors):
+            all_authors = []
+            for entry in paper_list:
+                if isinstance(entry, dict):
+                    a = (entry.get("authors") or "").strip()
+                    if a:
+                        all_authors.append(a)
+            if all_authors:
+                authors = ", ".join(all_authors)
 
     headers = _build_headers(str(api_key).strip())
     docs, errors = _collect_documents(str(api_base), str(dataset_id).strip(), headers)
@@ -449,7 +483,12 @@ def main(
             unique[key] = doc
     final_docs = list(unique.values())
 
-    result_text = _render_result(final_docs, total_docs=len(docs))
+    # Detect multi-author OR query for result header hint
+    is_multi = "," in str(authors or "")
+
+    result_text = _render_result(
+        final_docs, total_docs=len(docs), is_multi_author=is_multi
+    )
     if errors:
         result_text += "\nFehlerdetails:\n" + "\n".join(f"- {e}" for e in errors[:8])
     # Cap result array at 30 elements (Dify limit); split only display lines
