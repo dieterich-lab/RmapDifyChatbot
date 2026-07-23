@@ -149,9 +149,12 @@ def main(router_text=None, conversation_memory=None, sys_query=None):
         q = str(sys_query).strip().lower()
         # Check for "find papers by X", "show papers by X", "find publications by X"
         is_find_by = (
-            q.startswith("find papers by ") or q.startswith("show papers by ")
-            or q.startswith("find publications by ") or q.startswith("show publications by ")
-            or q.startswith("find articles by ") or q.startswith("show articles by ")
+            q.startswith("find papers by ")
+            or q.startswith("show papers by ")
+            or q.startswith("find publications by ")
+            or q.startswith("show publications by ")
+            or q.startswith("find articles by ")
+            or q.startswith("show articles by ")
         )
         if is_find_by:
             # Extract name after "by "
@@ -160,7 +163,9 @@ def main(router_text=None, conversation_memory=None, sys_query=None):
                 name = parts[1].strip().rstrip(".,;")
                 if name and len(name) >= 2:
                     intent = "metadata_list"
-                    paper_list = [{"authors": name, "title": "", "year": "", "journal": ""}]
+                    paper_list = [
+                        {"authors": name, "title": "", "year": "", "journal": ""}
+                    ]
 
     return {
         "intent": intent,
