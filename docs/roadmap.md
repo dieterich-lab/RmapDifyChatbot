@@ -1,12 +1,12 @@
 # RMAP Chatbot – Feature Roadmap & Analysis
 
-> Stand: 2026-07-22 · v0.4.12 · App `16d50bee-bc86-4bda-bb56-a861743f3ddb` · Model `qwen2.5:14b` · 20 Test Cases
+> Stand: 2026-07-23 · v0.4.12+ (v0.4.13 deployed) · App `16d50bee-bc86-4bda-bb56-a861743f3ddb` · Model `qwen2.5:14b` · 20 Test Cases
 
 ## Übersicht
 
 | Intent | Status | Präzision | Recall / Scope | Prompt reif? |
 |--------|--------|-----------|----------------|-------------|
-| `metadata_list` | ✅ stabil | ✅ API-fetched (keine Halluzination) | ✅ 82 Papers, 776 Authors | ✅ stabil (v0.4.9) |
+| `metadata_list` | ✅ stabil | ✅ API-fetched (keine Halluzination) | ✅ 84 Papers, 821 Authors | ✅ stabil (v0.4.12+) |
 | `content_summary` | ✅ stabil | ✅ 0 Halluzination (Volltext-verified) | ⚠️ Max 8 Papers (A2-Latenz-Limit) | ✅ stabil |
 | `knowledge_retrieval` | ✅ stabil | ✅ Citations korrekt (v0.4.7) | ⚠️ miCLIP/MeRIP fehlen | ✅ stabil (v0.4.7) |
 | `author_lookup` | ✅ stabil | ✅ Quotes + Autoren korrekt (v0.4.7) | ~27% (7/26) | ✅ stabil (v0.4.8) |
@@ -212,7 +212,7 @@ Context ("From paper:" headers with real metadata):
 
 ## Nächste Schritte
 
-### ✅ Erledigt (v0.4.6–v0.4.12)
+### ✅ Erledigt (v0.4.6–v0.4.13)
 
 | # | Fix | Version |
 |---|-----|---------|
@@ -227,9 +227,11 @@ Context ("From paper:" headers with real metadata):
 | 9 | Author name format normalization | v0.4.9 |
 | 10 | **100% Metadata Coverage** (PubMed + CrossRef + LLM) | v0.4.10 |
 | 11 | **Author display in metadata_list** | v0.4.11 |
-| 12 | **100% Upload** (Höfer + Schaffrath) + Umlaut-Normalisierung | v0.4.12 |
-| 13 | **Multi-Author OR-Matching** + Router MULTI-NAME rule | v0.4.12 |
-| 14 | **DIFY_DATASET_ID single source of truth** | v0.4.12 |
+| 12 | **100% Upload** + Umlaut-Normalisierung | v0.4.12 |
+| 13 | **Multi-Author OR-Matching** + Router rule | v0.4.12 |
+| 14 | **DIFY_DATASET_ID** single source of truth | v0.4.12 |
+| 15 | **Two-turn memory fix** (route after broad query) | v0.4.13 |
+| 16 | **Code guard** for "Find papers by X" | v0.4.12+ |
 
 ### 🟡 Priorität 2 – Qualitätsverbesserungen
 
@@ -244,7 +246,7 @@ Context ("From paper:" headers with real metadata):
 ### ❌ No-Fix – Architektonische Limits
 
 17. **Collaboration Analysis** (#16): >2h Aufwand, fast alle Pairs 0 Collaborations.
-18. **Multi-Author Filter** (#17): Metadata Query unterstützt nur Single-Author-Filter (`paper_list[0].authors`). Array-basierte Multi-Author-Suche bräuchte AND/OR-Logik – architektonischer Gap.
+18. **Multi-Author Filter** (#17): OR-matching in `metadata_query.py` deployed (comma-split + OR logic). Router MULTI-NAME rule added. Still needs tuning for "Identify: A, B, C" → per-author breakdown format.
 19. **Externes Autor-Wiki** (#18): Lauren Saunders hat keine Papers im Datensatz. Hardcoded Researcher-Profiles bräuchten eigene Infrastruktur – orthogonal zum Paper-zentrierten Chatbot.
 
 ---

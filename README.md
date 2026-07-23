@@ -4,13 +4,13 @@ RmapDifyChatbot is a Dify-based academic literature assistant for the RMaP proje
 
 ## Status Snapshot (2026-07-22)
 
-**v0.4.12 — 100% Upload + Umlaut + Multi-Author**
+**v0.4.12+ — Regression Test ✅ 16/20**
 
 1. **5 Query-Intents**: ✅ `metadata_list`, `content_summary`, `knowledge_retrieval`, `author_lookup`, `entity_lookup`
-2. **100% Metadaten**: 84/84 Papers via PubMed (73) + CrossRef (1) + LLM/qwen3:32b (10)
-3. **Alle Prompt-Fixes** (v0.4.6–v0.4.12): Quote, Count, Group-by, Find-by-name, Citation, Cross-Contamination, HEK, Name-Format, Author-Display, Umlaut, Multi-Author-OR
+2. **84 Papers** im Dataset, alle mit PubMed/CrossRef-Metadaten
+3. **Alle Prompt-Fixes** (v0.4.6–v0.4.13): Quote, Count, Group-by, Find-by-name, Citation, Cross-Contamination, HEK, Name-Format, Author-Display, Umlaut, Multi-Author-OR, Two-Turn-Memory, Code-Guard
 4. **top_k: 100**, Hybrid **0.7/0.3**, **qwen2.5:14b** (A2 16GB VRAM), 23 Nodes, 28 Edges
-5. **20 Test Cases**: ✅ 16 · ⚠️ 1 · ❌ 3
+5. **20 Test Cases**: ✅ 16 · ⚠️ 1 · 🔧 1 · ❌ 2 (Regression 2026-07-23)
 
 ---
 
