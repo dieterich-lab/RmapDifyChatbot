@@ -8,7 +8,7 @@ set -euo pipefail
 
 REPO_ROOT="${REPO_ROOT:-/home/pwiesenbach/rmap-chatbot}"
 FOLDER="${FOLDER:-$REPO_ROOT/RMaP papers first funding period}"
-DIFY_DATASET_ID="${DIFY_DATASET_ID:-<your-dataset-id>}"
+DIFY_DATASET_ID="${DIFY_DATASET_ID:-5a231cec-21bf-40b9-86c8-87b9d01bca74}"
 SKIP_FILE="${SKIP_FILE:-Helm M, Motorin Y, 2021, WIREs RNA .pdf}"
 
 cd "$REPO_ROOT"

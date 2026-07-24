@@ -39,7 +39,7 @@ workflow:
     selector:
     - env
     - DIFY_DATASET_ID
-    value: <your-dataset-id>
+    value: 5a231cec-21bf-40b9-86c8-87b9d01bca74
     value_type: string
   features:
     file_upload:
@@ -395,7 +395,7 @@ workflow:
       width: 150
     - data:
         dataset_ids:
-        - <your-dataset-id>
+        - 5a231cec-21bf-40b9-86c8-87b9d01bca74
         isInIteration: false
         isInLoop: false
         metadata_filtering_conditions:
@@ -845,7 +845,7 @@ workflow:
           \    paper_list=None,\n    list_mode=None,\n    api_key_input=None,\n  \
           \  dataset_id_input=None,\n):\n    api_base = (os.getenv(\"DIFY_API_URL\"\
           ) or \"http://rmap-chatbot-demo-dify/v1\").rstrip(\n        \"/\"\n    )\n\
-          \    dataset_id = os.getenv(\"DIFY_DATASET_ID\") or \"<your-dataset-id>\"\
+          \    dataset_id = os.getenv(\"DIFY_DATASET_ID\") or \"5a231cec-21bf-40b9-86c8-87b9d01bca74\"\
           \n    api_key = os.getenv(\"DIFY_API_KEY\") or api_key_input or \"\"\n\n\
           \    if not _is_set(api_base) or not _is_set(dataset_id) or not _is_set(api_key):\n\
           \        return {\n            \"result\": (\n                \"Dify API\
@@ -1238,7 +1238,7 @@ workflow:
           \  api_key_input=None,\n):\n    api_base = (\n        _norm(os.getenv(\"\
           DIFY_API_URL\")) or \"http://rmap-chatbot-demo-dify/v1\"\n    ).rstrip(\"\
           /\")\n    dataset_id = (\n        _norm(os.getenv(\"DIFY_DATASET_ID\"))\
-          \ or \"<your-dataset-id>\"\n    )\n    api_key = _norm(os.getenv(\"\
+          \ or \"5a231cec-21bf-40b9-86c8-87b9d01bca74\"\n    )\n    api_key = _norm(os.getenv(\"\
           DIFY_API_KEY\")) or api_key_input or \"\"\n    headers = {\"Authorization\"\
           : f\"Bearer {api_key}\", \"Content-Type\": \"application/json\"}\n\n   \
           \ resolved = _norm(doc_id)\n    used_title_fallback = False\n    if not\

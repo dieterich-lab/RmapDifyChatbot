@@ -139,7 +139,7 @@ flowchart TD
 ### Dataset
 
 - **Name**: RMAP Papers
-- **UUID**: `<your-dataset-id>`
+- **UUID**: `5a231cec-21bf-40b9-86c8-87b9d01bca74`
 - **Dokumente**: 84 Papers (RMaP First Funding Period), alle mit PubMed/CrossRef-Metadaten
 - **Embedding**: nomic-embed-text-v2-moe (Ollama)
 - **Chunking**: Dify Standard (automatic mode)

@@ -102,7 +102,7 @@ for node in dsl["workflow"]["graph"]["nodes"]:
     if node.get("id") == "17785930638200":
         dids = node.get("data", {}).get("dataset_ids", [])
         if not dids or not dids[0] or "fiCgoIRC" in str(dids[0]):
-            new_id = os.environ.get("DIFY_DATASET_ID") or "<your-dataset-id>"
+            new_id = os.environ.get("DIFY_DATASET_ID") or "5a231cec-21bf-40b9-86c8-87b9d01bca74"
             node["data"]["dataset_ids"] = [new_id]
             kr_fixed = True
             print(f"KR dataset patched in export: {new_id}")

@@ -82,7 +82,7 @@ def main():
     dry_run = "--dry-run" in sys.argv
 
     base = os.getenv("DIFY_BASE_URL", "http://rmap-chatbot-demo-dify")
-    ds = os.getenv("DIFY_DATASET_ID", "<your-dataset-id>")
+    ds = os.getenv("DIFY_DATASET_ID", "5a231cec-21bf-40b9-86c8-87b9d01bca74")
     pdf_folder = os.getenv(
         "PDF_FOLDER", str(REPO_ROOT / "RMaP papers first funding period")
     )

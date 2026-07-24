@@ -83,7 +83,7 @@ Metadata LLM       Summary LLM         ┌───┼───┐              
 - 5 query intents, 6 LLM nodes (all qwen2.5:14b via Ollama)
 - 7 code nodes (Python, injected via build pipeline)
 - 1 knowledge-retrieval node (hybrid keyword 0.7 + vector 0.3, top_k=100)
-- Dataset: `<your-dataset-id>` (82 papers, nomic-embed-text-v2-moe)
+- Dataset: `5a231cec-21bf-40b9-86c8-87b9d01bca74` (82 papers, nomic-embed-text-v2-moe)
 
 ---
 
@@ -112,7 +112,7 @@ The most critical key flow is the dataset key → Metadata Query code node:
 │  Dify App Environment Variables (set via console API)            │
 │  ┌──────────────────────┬─────────────────────────────────────┐ │
 │  │ DIFY_API_KEY         │ dataset-<your-dataset-key>    │ │
-│  │ DIFY_DATASET_ID      │ <your-dataset-id>│ │
+│  │ DIFY_DATASET_ID      │ 5a231cec-21bf-40b9-86c8-87b9d01bca74│ │
 │  └──────────────────────┴─────────────────────────────────────┘ │
 └─────────────────────────────────────────────────────────────────┘
         │
@@ -151,7 +151,7 @@ variables:
         {"name": "DIFY_API_KEY", "value_type": "string",
          "value": "dataset-<your-dataset-key>", "description": "..."},
         {"name": "DIFY_DATASET_ID", "value_type": "string",
-         "value": "<your-dataset-id>", "description": "..."}
+         "value": "5a231cec-21bf-40b9-86c8-87b9d01bca74", "description": "..."}
     ],
     ...
 }

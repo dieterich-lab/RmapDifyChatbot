@@ -347,7 +347,7 @@ Ends with: *"Insufficient context for other modifications."*
 - **App ID:** `16d50bee-bc86-4bda-bb56-a861743f3ddb`
 - **API endpoint:** `http://rmap-chatbot-demo-dify/v1/chat-messages`
 - **Model (metadata/extraction):** qwen2.5:14b (Ollama)
-- **Dataset:** RMAP Papers (UUID `<your-dataset-id>`, 84 documents)
+- **Dataset:** RMAP Papers (UUID `5a231cec-21bf-40b9-86c8-87b9d01bca74`, 84 documents)
 - **Embedding:** nomic-embed-text-v2-moe
 
 ---

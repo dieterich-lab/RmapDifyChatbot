@@ -14,7 +14,7 @@ ENV_FILE="${ENV_FILE:-$REPO_ROOT/.env}"
 SESSION_FILE="${SESSION_FILE:-$REPO_ROOT/.secrets/dify_console_session.env}"
 
 # Target dataset for the user-created test KB.
-DIFY_DATASET_ID="${DIFY_DATASET_ID:-<your-dataset-id>}"
+DIFY_DATASET_ID="${DIFY_DATASET_ID:-5a231cec-21bf-40b9-86c8-87b9d01bca74}"
 
 # Force local Ollama runtime on the SLURM node for metadata/title extraction.
 OLLAMA_HOST="${OLLAMA_HOST:-127.0.0.1:11434}"

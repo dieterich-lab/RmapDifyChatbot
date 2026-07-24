@@ -24,7 +24,7 @@ set +a
 : "${DIFY_APP_ID:?DIFY_APP_ID is required}"
 
 # Use DIFY_DATASET_ID from .env (single source of truth)
-SAVED_ID="${DIFY_DATASET_ID:-<your-dataset-id>}"
+SAVED_ID="${DIFY_DATASET_ID:-5a231cec-21bf-40b9-86c8-87b9d01bca74}"
 echo "Using dataset ID from .env: ${SAVED_ID:0:40}..."
 
 PYTHON_BIN="${PYTHON_BIN:-$REPO_ROOT/.venv/bin/python}"
