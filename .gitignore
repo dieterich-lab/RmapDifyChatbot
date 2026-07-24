@@ -9,6 +9,9 @@ __pycache__/
 .env
 .vscode/
 
+# Personal runner scripts (SLURM Ollama launcher)
+scripts/start_ollama.sh
+
 # Type checker cache
 .mypy_cache/
 
