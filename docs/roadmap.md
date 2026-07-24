@@ -1,6 +1,6 @@
 # RMAP Chatbot – Feature Roadmap & Analysis
 
-> Stand: 2026-07-23 · v0.4.12+ (v0.4.13 deployed) · App `16d50bee-bc86-4bda-bb56-a861743f3ddb` · Model `qwen2.5:14b` · 20 Test Cases
+> Stand: 2026-07-24 · v0.4.14 · App `16d50bee-bc86-4bda-bb56-a861743f3ddb` · Model `qwen2.5:14b` · Embedding `nomic-embed-text-v2-moe` · 20 Test Cases
 
 ## Übersicht
 
@@ -12,7 +12,7 @@
 | `author_lookup` | ✅ stabil | ✅ Quotes + Autoren korrekt (v0.4.7) | ~27% (7/26) | ✅ stabil (v0.4.8) |
 | `entity_lookup` | ⚠️ Recall-Limit | ✅ sauber (keine Halluzination) | ⚠️ 5/38+ Modifikationen, m6A fehlt | ✅ stabil (v0.4.2) |
 
-### 20 Test Cases – Current Standings (2026-07-22)
+### 20 Test Cases – Current Standings (2026-07-24)
 
 | # | Intent | Query | Status | Fixed In |
 |---|--------|-------|--------|----------|
@@ -29,10 +29,12 @@
 | 14 | `metadata_list` | Papers by Dieterich (last name) | ✅ 8 papers | v0.4.6 |
 | 15 | `content_summary` | Papers by X → Group by journal | ✅ Groups by journal | v0.4.6 |
 | 16 | N/A | PI Collaboration Analysis | ❌ no-fix architectural gap | – |
-| 17 | `metadata_list` | Multi-author: "Identify Helm, Hengesbach, …" | ❌ single-author limit | – |
+| 17 | `metadata_list` | Multi-author OR: "Identify: Helm, Hengesbach" | ✅ 39 papers, 14–28s | v0.4.14 |
 | 18 | N/A | Hardcoded info for Lauren Saunders | ❌ external KB needed | – |
-| 19 | `metadata_list` | Find papers by Tamer Butto | ✅ 2 papers (v0.4.11) | – |
-| 20 | `metadata_list` | Find papers by Michaela Frye | ✅ 1 paper (v0.4.11) | – |
+| 19 | `metadata_list` | Find papers by Tamer Butto | ✅ 2 papers | v0.4.11 |
+| 20 | `metadata_list` | Find papers by Michaela Frye | ✅ 1 paper | v0.4.11 |
+
+**Tally: ✅ 18 · ⚠️ 1 · ❌ 2** (v0.4.14)
 
 ### Bonus Cases – Author Name Format Normalization (v0.4.9)
 
@@ -212,7 +214,7 @@ Context ("From paper:" headers with real metadata):
 
 ## Nächste Schritte
 
-### ✅ Erledigt (v0.4.6–v0.4.13)
+### ✅ Erledigt (v0.4.6–v0.4.14)
 
 | # | Fix | Version |
 |---|-----|---------|
@@ -228,26 +230,23 @@ Context ("From paper:" headers with real metadata):
 | 10 | **100% Metadata Coverage** (PubMed + CrossRef + LLM) | v0.4.10 |
 | 11 | **Author display in metadata_list** | v0.4.11 |
 | 12 | **100% Upload** + Umlaut-Normalisierung | v0.4.12 |
-| 13 | **Multi-Author OR-Matching** + Router rule | v0.4.12 |
+| 13 | **Multi-Author OR-Matching** (_metadata_query.py_) + Router rule | v0.4.12 |
 | 14 | **DIFY_DATASET_ID** single source of truth | v0.4.12 |
 | 15 | **Two-turn memory fix** (route after broad query) | v0.4.13 |
 | 16 | **Code guard** for "Find papers by X" | v0.4.12+ |
-
-### 🟡 Priorität 2 – Qualitätsverbesserungen
-
-12. **top_k**: Bereits 100 in GUI + DSL. Keine weiteren Erhöhungen möglich.
+| 17 | **Multi-Author OR + LLM Bypass (#17)** — "Identify: X, Y, Z" + "Papers by X, Y" → 39 papers via code-level guard + paper_count=0 Metadata LLM bypass + pre-formatted output | v0.4.14 |
+| 18 | **Embedding Model Evaluation** — bge-m3 tested: equivalent quality, 48% slower → nomic retained. See `docs/embeddings.md` | v0.4.14 |
 
 ### ⬜ Priorität 3 – Erweiterungen
 
 14. **LLM-Upgrade**: qwen2.5:14b → 32b für bessere Comprehensiveness (`entity_lookup` m6A-Recall, #5).
-15. **Embedding-Model**: `nomic-embed-text-v2-moe` → biomedizinisches Model evaluieren.
+15. ~~**Embedding-Model**: bge-m3 evaluiert — kein Qualitätsvorteil, 48% langsamer → nomic bleibt.~~ ✅ Abgeschlossen (v0.4.14, `docs/embeddings.md`)
 16. **#13 Timeout**: ✅ Gefixt (v0.4.10, cap 15→8). Parallelisierung/Caching als optionale Verbesserung.
 
 ### ❌ No-Fix – Architektonische Limits
 
 17. **Collaboration Analysis** (#16): >2h Aufwand, fast alle Pairs 0 Collaborations.
-18. **Multi-Author Filter** (#17): OR-matching in `metadata_query.py` deployed (comma-split + OR logic). Router MULTI-NAME rule added. Still needs tuning for "Identify: A, B, C" → per-author breakdown format.
-19. **Externes Autor-Wiki** (#18): Lauren Saunders hat keine Papers im Datensatz. Hardcoded Researcher-Profiles bräuchten eigene Infrastruktur – orthogonal zum Paper-zentrierten Chatbot.
+18. **Externes Autor-Wiki** (#18): Lauren Saunders hat keine Papers im Datensatz. Hardcoded Researcher-Profiles bräuchten eigene Infrastruktur – orthogonal zum Paper-zentrierten Chatbot.
 
 ---
 
@@ -278,3 +277,19 @@ Context ("From paper:" headers with real metadata):
 ✅ **Code-Level Guard > Prompt-Only**: Bare person names in various formats (`Mark Helm`, `Helm, Mark`, `M. Helm`) required a code-level override in `parse_router_output.py` – the LLM Router alone couldn't distinguish "M. Helm" (a person) from "What is m6A?" (a knowledge question). Pattern matching on comma-separated names, dot-initial formats, and 1–2 capitalized words without question markers proved more reliable than prompt engineering for this case.
 
 ✅ **Author Variant Expansion**: `_author_variants()` in `metadata_query.py` now normalizes "Last, First" → "First Last", always includes last-name-only fallback, and handles abbreviated first names. This fixed `Chr. Dieterich` not matching `Christoph Dieterich`.
+
+### LLM Bypass for Deterministic Formatting (v0.4.14)
+
+✅ **When the LLM can't follow instructions, bypass it.** For multi-author OR queries, qwen2.5:14b consistently interpreted comma-separated authors as AND logic — ignoring CRITICAL, PASSTHROUGH, VERBATIM, and explicit example instructions. Solution: `paper_count=0` routes through the Metadata LLM Bypass directly to Final Answer Sanitizer, which passes pre-formatted `result_text` from `metadata_query.py` through verbatim.
+
+✅ **Pre-formatted output as defense-in-depth.** Rather than hoping the LLM passes through correctly, `metadata_query.py` produces complete Markdown-formatted output (`39 papers\n\n1. **Title**\n   - Authors: ...`). The Final Answer Sanitizer's fallback logic picks this up when LLM outputs are empty (which they are when the LLM is bypassed).
+
+✅ **Pattern: code-level guard → workflow bypass → pre-formatted output.** This three-layer pattern (parse_router_output guard → paper_count=0 routing → metadata_query pre-formatting) proved reliable where prompt engineering alone failed repeatedly.
+
+### Embedding Model Evaluation (v0.4.14)
+
+✅ **Test before switching, not after.** A full regression test across all 5 intents with the candidate model (bge-m3) revealed that retrieval quality was equivalent but latency was 48% worse. Without the test, we would have switched blindly and only discovered the slowdown through user complaints.
+
+✅ **metadata_list as control group.** Queries that use the Dataset API (not knowledge retrieval) are unaffected by embedding model changes. They provide a natural control group to distinguish embedding-related issues from unrelated infrastructure problems.
+
+✅ **Document the negative result.** `docs/embeddings.md` serves as a reference for defending the model choice. It includes: executive summary, test methodology, per-case results, latency ratios, quality assessments, and reproduction steps. A documented negative result prevents redundant re-evaluation.

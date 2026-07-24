@@ -103,6 +103,9 @@ def main(router_text=None, conversation_memory=None, sys_query=None):
         paper_list = paper_list[:MAX_PAPERS_FOR_SUMMARY]
 
     rw = str(obj.get("rewritten_query") or "").strip()
+    # Fallback: if Router didn't set rewritten_query, use original query.
+    if not rw and sys_query:
+        rw = str(sys_query).strip()
 
     # ── Name-only query guard: if the user typed what looks like just a person's
     # name (e.g. "Helm, Mark", "M. Helm", "Dieterich") but the router misclassified

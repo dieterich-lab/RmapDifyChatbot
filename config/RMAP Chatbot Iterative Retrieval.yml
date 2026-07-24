@@ -806,62 +806,62 @@ workflow:
           ) or \"\").strip(),\n                \"authors\": meta.get(\"authors\",\
           \ \"\"),\n                \"year\": meta.get(\"year\", \"\"),\n        \
           \        \"journal\": meta.get(\"journal\", \"\"),\n            }\n    \
-          \    )\n\n    return docs, errors\n\n\ndef _render_result(matches: list[dict],\
-          \ total_docs: int, is_multi_author: bool = False) -> str:\n    MAX_RESULTS\
-          \ = 30  # Dify array output limit\n    if not matches:\n        return (\n\
-          \            \"Keine Dokumente gefunden.\\n\"\n            \"Tipps:\\n\"\
-          \n            \"- Autor:innen-Namen ausschreiben (z.B. 'Christoph Dieterich')\\\
-          n\"\n            \"- Nachname allein reicht oft (z.B. 'Dieterich')\\n\"\n\
-          \            \"- Jahr als vierstellige Zahl angeben (z.B. '2024')\\n\"\n\
-          \            f\"Code-Version: {CODE_VERSION}; Dokumente geprueft: {total_docs};\
-          \ Treffer: 0\"\n        )\n\n    truncated = len(matches) > MAX_RESULTS\n\
-          \    display_docs = matches[:MAX_RESULTS] if truncated else matches\n\n\
-          \    # For multi-author queries: pre-format the output to look like LLM\
-          \ output,\n    # so the downstream Metadata LLM just passes it through verbatim.\n\
-          \    if is_multi_author:\n        lines = [f\"{len(matches)} papers\", \"\
-          \"]\n        for idx, doc in enumerate(matches, start=1):\n            lines.append(\n\
-          \                f\"{idx}. **{doc['title']}**\"\n            )\n       \
-          \     if doc.get(\"authors\"):\n                lines.append(f\"   - Authors:\
-          \ {doc['authors']}\")\n            if doc.get(\"year\"):\n             \
-          \   lines.append(f\"   - Year: {doc['year']}\")\n            if doc.get(\"\
-          journal\"):\n                lines.append(f\"   - Journal: {doc['journal']}\"\
-          )\n            lines.append(\"\")\n        # No cap for multi-author: the\
-          \ Metadata LLM is bypassed, so no context limit.\n        # Final Answer\
-          \ Sanitizer passes result_text through verbatim.\n        if len(matches)\
-          \ > MAX_RESULTS:\n            lines.append(\n                f\"(Showing\
-          \ all {len(matches)} results. \"\n                \"Refine your query with\
-          \ additional filters for a narrower list.)\"\n            )\n        return\
-          \ \"\\n\".join(lines)\n\n    # Standard format for single-author / non-multi\
-          \ queries\n    lines = []\n    for idx, doc in enumerate(display_docs, start=1):\n\
-          \        lines.append(\n            f\"{idx}. {doc['title']} | {doc['authors']}\
-          \ | {doc['year']} | {doc['journal']} | {doc.get('id', '')}\"\n        )\n\
-          \    header = (\n        f\"Code-Version: {CODE_VERSION}; Dokumente geprueft:\
-          \ {total_docs}; \"\n        f\"Treffer: {len(matches)}\"\n    )\n    result\
-          \ = header + \"\\n\" + \"\\n\".join(lines)\n    if truncated:\n        result\
-          \ += (\n            f\"\\n\\n(Es werden nur die ersten {MAX_RESULTS} von\
-          \ {len(matches)} Ergebnissen angezeigt. \"\n            \"Bitte die Suche\
-          \ mit einem Autor:innen-Namen, Jahr oder Journal einschränken.)\"\n    \
-          \    )\n    return result\n\n\ndef main(\n    year=None,\n    authors=None,\n\
-          \    journal=None,\n    title=None,\n    paper_list=None,\n    list_mode=None,\n\
-          \    api_key_input=None,\n    dataset_id_input=None,\n):\n    api_base =\
-          \ (os.getenv(\"DIFY_API_URL\") or \"http://rmap-chatbot-demo-dify/v1\").rstrip(\n\
-          \        \"/\"\n    )\n    dataset_id = os.getenv(\"DIFY_DATASET_ID\") or\
-          \ \"<your-dataset-id>\"\n    api_key = os.getenv(\"DIFY_API_KEY\"\
-          ) or api_key_input or \"\"\n\n    if not _is_set(api_base) or not _is_set(dataset_id)\
-          \ or not _is_set(api_key):\n        return {\n            \"result\": (\n\
-          \                \"Dify API Konfiguration unvollstaendig. \"\n         \
-          \       \"Erwarte DIFY_API_URL, DIFY_DATASET_ID und DIFY_API_KEY.\"\n  \
-          \          )\n        }\n\n    # Extract filter values from paper_list if\
-          \ passed (Parse Router Output)\n    if isinstance(paper_list, list) and\
-          \ len(paper_list) > 0:\n        first = paper_list[0]\n        if isinstance(first,\
-          \ dict):\n            if not _is_set(year):\n                year = first.get(\"\
-          year\", \"\")\n            if not _is_set(journal):\n                journal\
-          \ = first.get(\"journal\", \"\")\n            if not _is_set(title):\n \
-          \               title = first.get(\"title\", \"\")\n        # Collect authors\
-          \ from ALL entries (supports multi-name OR queries\n        # where parse_router_output\
-          \ splits \"X, Y\" into separate entries)\n        if not _is_set(authors):\n\
-          \            all_authors = []\n            for entry in paper_list:\n  \
-          \              if isinstance(entry, dict):\n                    a = (entry.get(\"\
+          \    )\n\n    return docs, errors\n\n\ndef _render_result(\n    matches:\
+          \ list[dict], total_docs: int, is_multi_author: bool = False\n) -> str:\n\
+          \    MAX_RESULTS = 30  # Dify array output limit\n    if not matches:\n\
+          \        return (\n            \"Keine Dokumente gefunden.\\n\"\n      \
+          \      \"Tipps:\\n\"\n            \"- Autor:innen-Namen ausschreiben (z.B.\
+          \ 'Christoph Dieterich')\\n\"\n            \"- Nachname allein reicht oft\
+          \ (z.B. 'Dieterich')\\n\"\n            \"- Jahr als vierstellige Zahl angeben\
+          \ (z.B. '2024')\\n\"\n            f\"Code-Version: {CODE_VERSION}; Dokumente\
+          \ geprueft: {total_docs}; Treffer: 0\"\n        )\n\n    truncated = len(matches)\
+          \ > MAX_RESULTS\n    display_docs = matches[:MAX_RESULTS] if truncated else\
+          \ matches\n\n    # For multi-author queries: pre-format the output to look\
+          \ like LLM output,\n    # so the downstream Metadata LLM just passes it\
+          \ through verbatim.\n    if is_multi_author:\n        lines = [f\"{len(matches)}\
+          \ papers\", \"\"]\n        for idx, doc in enumerate(matches, start=1):\n\
+          \            lines.append(f\"{idx}. **{doc['title']}**\")\n            if\
+          \ doc.get(\"authors\"):\n                lines.append(f\"   - Authors: {doc['authors']}\"\
+          )\n            if doc.get(\"year\"):\n                lines.append(f\" \
+          \  - Year: {doc['year']}\")\n            if doc.get(\"journal\"):\n    \
+          \            lines.append(f\"   - Journal: {doc['journal']}\")\n       \
+          \     lines.append(\"\")\n        # No cap for multi-author: the Metadata\
+          \ LLM is bypassed, so no context limit.\n        # Final Answer Sanitizer\
+          \ passes result_text through verbatim.\n        if len(matches) > MAX_RESULTS:\n\
+          \            lines.append(\n                f\"(Showing all {len(matches)}\
+          \ results. \"\n                \"Refine your query with additional filters\
+          \ for a narrower list.)\"\n            )\n        return \"\\n\".join(lines)\n\
+          \n    # Standard format for single-author / non-multi queries\n    lines\
+          \ = []\n    for idx, doc in enumerate(display_docs, start=1):\n        lines.append(\n\
+          \            f\"{idx}. {doc['title']} | {doc['authors']} | {doc['year']}\
+          \ | {doc['journal']} | {doc.get('id', '')}\"\n        )\n    header = (\n\
+          \        f\"Code-Version: {CODE_VERSION}; Dokumente geprueft: {total_docs};\
+          \ \"\n        f\"Treffer: {len(matches)}\"\n    )\n    result = header +\
+          \ \"\\n\" + \"\\n\".join(lines)\n    if truncated:\n        result += (\n\
+          \            f\"\\n\\n(Es werden nur die ersten {MAX_RESULTS} von {len(matches)}\
+          \ Ergebnissen angezeigt. \"\n            \"Bitte die Suche mit einem Autor:innen-Namen,\
+          \ Jahr oder Journal einschränken.)\"\n        )\n    return result\n\n\n\
+          def main(\n    year=None,\n    authors=None,\n    journal=None,\n    title=None,\n\
+          \    paper_list=None,\n    list_mode=None,\n    api_key_input=None,\n  \
+          \  dataset_id_input=None,\n):\n    api_base = (os.getenv(\"DIFY_API_URL\"\
+          ) or \"http://rmap-chatbot-demo-dify/v1\").rstrip(\n        \"/\"\n    )\n\
+          \    dataset_id = os.getenv(\"DIFY_DATASET_ID\") or \"<your-dataset-id>\"\
+          \n    api_key = os.getenv(\"DIFY_API_KEY\") or api_key_input or \"\"\n\n\
+          \    if not _is_set(api_base) or not _is_set(dataset_id) or not _is_set(api_key):\n\
+          \        return {\n            \"result\": (\n                \"Dify API\
+          \ Konfiguration unvollstaendig. \"\n                \"Erwarte DIFY_API_URL,\
+          \ DIFY_DATASET_ID und DIFY_API_KEY.\"\n            )\n        }\n\n    #\
+          \ Extract filter values from paper_list if passed (Parse Router Output)\n\
+          \    if isinstance(paper_list, list) and len(paper_list) > 0:\n        first\
+          \ = paper_list[0]\n        if isinstance(first, dict):\n            if not\
+          \ _is_set(year):\n                year = first.get(\"year\", \"\")\n   \
+          \         if not _is_set(journal):\n                journal = first.get(\"\
+          journal\", \"\")\n            if not _is_set(title):\n                title\
+          \ = first.get(\"title\", \"\")\n        # Collect authors from ALL entries\
+          \ (supports multi-name OR queries\n        # where parse_router_output splits\
+          \ \"X, Y\" into separate entries)\n        if not _is_set(authors):\n  \
+          \          all_authors = []\n            for entry in paper_list:\n    \
+          \            if isinstance(entry, dict):\n                    a = (entry.get(\"\
           authors\") or \"\").strip()\n                    if a:\n               \
           \         all_authors.append(a)\n            if all_authors:\n         \
           \       authors = \", \".join(all_authors)\n\n    headers = _build_headers(str(api_key).strip())\n\
@@ -906,12 +906,12 @@ workflow:
           \        )\n        if key not in unique:\n            unique[key] = doc\n\
           \    final_docs = list(unique.values())\n\n    # Detect multi-author OR\
           \ query for result header hint\n    is_multi = \",\" in str(authors or \"\
-          \")\n\n    result_text = _render_result(final_docs, total_docs=len(docs),\
-          \ is_multi_author=is_multi)\n    if errors:\n        result_text += \"\\\
-          nFehlerdetails:\\n\" + \"\\n\".join(f\"- {e}\" for e in errors[:8])\n  \
-          \  # Cap result array at 30 elements (Dify limit); split only display lines\n\
-          \    result_lines = result_text.split(\"\\n\") if result_text else []\n\
-          \    if len(result_lines) > 30:\n        result_lines = result_lines[:30]\n\
+          \")\n\n    result_text = _render_result(\n        final_docs, total_docs=len(docs),\
+          \ is_multi_author=is_multi\n    )\n    if errors:\n        result_text +=\
+          \ \"\\nFehlerdetails:\\n\" + \"\\n\".join(f\"- {e}\" for e in errors[:8])\n\
+          \    # Cap result array at 30 elements (Dify limit); split only display\
+          \ lines\n    result_lines = result_text.split(\"\\n\") if result_text else\
+          \ []\n    if len(result_lines) > 30:\n        result_lines = result_lines[:30]\n\
           \    return {\n        \"result\": result_lines,\n        \"result_text\"\
           : result_text,\n    }\n"
         code_language: python3
@@ -1700,7 +1700,9 @@ workflow:
           \ response time under 2 minutes.\n    MAX_PAPERS_FOR_SUMMARY = 8\n    if\
           \ intent == \"content_summary\" and len(paper_list) > MAX_PAPERS_FOR_SUMMARY:\n\
           \        paper_list = paper_list[:MAX_PAPERS_FOR_SUMMARY]\n\n    rw = str(obj.get(\"\
-          rewritten_query\") or \"\").strip()\n\n    # ── Name-only query guard: if\
+          rewritten_query\") or \"\").strip()\n    # Fallback: if Router didn't set\
+          \ rewritten_query, use original query.\n    if not rw and sys_query:\n \
+          \       rw = str(sys_query).strip()\n\n    # ── Name-only query guard: if\
           \ the user typed what looks like just a person's\n    # name (e.g. \"Helm,\
           \ Mark\", \"M. Helm\", \"Dieterich\") but the router misclassified\n   \
           \ # it as author_lookup / knowledge_retrieval → override to metadata_list.\n\
