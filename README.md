@@ -2,15 +2,15 @@
 
 RmapDifyChatbot is a Dify-based academic literature assistant for the RMaP project. It answers questions about 84 RNA-modification papers using hybrid retrieval (keyword + vector) and intent-based routing.
 
-## Status Snapshot (2026-07-22)
+## Status Snapshot (2026-07-24)
 
-**v0.4.12+ — Regression Test ✅ 16/20**
+**v0.4.14 — Regression Test ✅ 18/20**
 
 1. **5 Query-Intents**: ✅ `metadata_list`, `content_summary`, `knowledge_retrieval`, `author_lookup`, `entity_lookup`
 2. **84 Papers** im Dataset, alle mit PubMed/CrossRef-Metadaten
-3. **Alle Prompt-Fixes** (v0.4.6–v0.4.13): Quote, Count, Group-by, Find-by-name, Citation, Cross-Contamination, HEK, Name-Format, Author-Display, Umlaut, Multi-Author-OR, Two-Turn-Memory, Code-Guard
+3. **Alle Prompt-Fixes** (v0.4.6–v0.4.14): Quote, Count, Group-by, Find-by-name, Citation, Cross-Contamination, HEK, Name-Format, Author-Display, Umlaut, Multi-Author-OR+LLM-Bypass, Two-Turn-Memory, Code-Guard
 4. **top_k: 100**, Hybrid **0.7/0.3**, **qwen2.5:14b** (A2 16GB VRAM), 23 Nodes, 28 Edges
-5. **20 Test Cases**: ✅ 16 · ⚠️ 1 · 🔧 1 · ❌ 2 (Regression 2026-07-23)
+5. **20 Test Cases**: ✅ 18 · ⚠️ 1 · ❌ 2 (Regression 2026-07-24)
 
 ---
 
@@ -150,7 +150,7 @@ flowchart TD
 |---|--------|---------|-------------|---------|
 | 1 | `entity_lookup` | Recall-Limit | ⚠️ Mittel | Nur 5 Entities. m6A fehlt. qwen2.5:14b stoppt intrinsisch bei ~6 Entities. Fix braucht 32B-Upgrade (P3). |
 | 2 | `content_summary` | Mark Helm Timeout | ✅ Gefixt (v0.4.10) | Cap 15→8: 194s statt >5 min Timeout. |
-| 3 | `knowledge_retrieval` | miCLIP/MeRIP-Lücke | ⚠️ Niedrig | Retrieval-Ranking liefert diese Methoden nicht in den Top-100 Chunks. |
+| 3 | `knowledge_retrieval` | miCLIP/MeRIP-Lücke | ⚠️ Niedrig | Embedding-Model-Limit: nomic mappt "detection methods" nicht auf miCLIP/MeRIP-Chunks. Hybrid weights getestet (0.1–0.9), kein Effekt. bge-m3 evaluiert (gleiche Qualität, 48% langsamer). |
 
 → Detaillierte Analyse: [`docs/test-cases.md`](docs/test-cases.md)
 
