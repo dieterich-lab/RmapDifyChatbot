@@ -237,9 +237,39 @@ Context ("From paper:" headers with real metadata):
 | 17 | **Multi-Author OR + LLM Bypass (#17)** — "Identify: X, Y, Z" + "Papers by X, Y" → 39 papers via code-level guard + paper_count=0 Metadata LLM bypass + pre-formatted output | v0.4.14 |
 | 18 | **Embedding Model Evaluation** — bge-m3 tested: equivalent quality, 48% slower → nomic retained. See `docs/embeddings.md` | v0.4.14 |
 
+### 🟡 Priorität 2 – H100 LLM-Upgrade (in progress, 2026-07-24)
+
+**Ziel**: qwen2.5:14b (A2, 16 GB) → qwen3.5 (H100, 94 GB) für bessere Comprehensiveness und Retrieval-Qualität.
+
+**Neue Ollama-Instanz**: H100 (Hopper, 94 GB VRAM) via `scripts/start_ollama.sh`, Port 21434.
+
+**Test-Stufen**:
+
+| Stufe | Modell | Größe | VRAM | Context | Fokus |
+|-------|--------|-------|------|---------|-------|
+| 1 | `qwen3.5:35b` | 24 GB | ~30 GB mit 32K ctx | 32K–65K | Baseline: 2.5× größer als 14B. Testet `entity_lookup` m6A-Recall (#5), `author_lookup` Recall, Comprehensiveness |
+| 2 | `qwen3.5:122b` | 81 GB | ~90 GB mit 8K ctx | 4K–32K | Maximale Modell-Qualität. Braucht vorsichtiges Context-Tuning um OOM zu vermeiden |
+| 3 | `qwen3-embedding` | TBD | TBD | – | Embedding-Upgrade: testen ob bessere Retrieval-Rankings als nomic |
+
+**Benchmarks (Ollama/qwen3.5)**:
+
+| Metrik | 14B (qwen2.5) | 35B (qwen3.5) | 122B (qwen3.5) |
+|--------|:---:|:---:|:---:|
+| MMLU-Pro | – | 89.5 | 89.8 |
+| GPQA | – | 87.0 | 91.9 |
+| IFEval | – | 90.9 | 93.5 |
+| SuperGPQA | – | 70.6 | 74.0 |
+
+**Nächste Schritte**:
+- [ ] qwen3.5:35b pullen, Ollama-Server auf H100 starten
+- [ ] Dify LLM-Provider auf H100-Ollama umstellen (neue Base URL)
+- [ ] Regression-Test mit 35B: alle 20 Cases, Fokus auf #5 (m6A-Recall)
+- [ ] Bei Erfolg: 122B testen (mit reduziertem Context)
+- [ ] Embedding-Modell separat evaluieren
+
 ### ⬜ Priorität 3 – Erweiterungen
 
-14. **LLM-Upgrade**: qwen2.5:14b → 32b für bessere Comprehensiveness (`entity_lookup` m6A-Recall, #5).
+14. ~~**LLM-Upgrade**: qwen2.5:14b → 32b~~ → **Aktiv**: qwen3.5:35b auf H100 in Test (s.o.)
 15. ~~**Embedding-Model**: bge-m3 evaluiert — kein Qualitätsvorteil, 48% langsamer → nomic bleibt.~~ ✅ Abgeschlossen (v0.4.14, `docs/embeddings.md`)
 16. **#13 Timeout**: ✅ Gefixt (v0.4.10, cap 15→8). Parallelisierung/Caching als optionale Verbesserung.
 
