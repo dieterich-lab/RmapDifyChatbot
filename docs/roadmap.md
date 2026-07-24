@@ -28,13 +28,13 @@
 | 13 | `content_summary` | Mark Helm → Summarize | ✅ 194s (cap 8 papers) | v0.4.10 |
 | 14 | `metadata_list` | Papers by Dieterich (last name) | ✅ 8 papers | v0.4.6 |
 | 15 | `content_summary` | Papers by X → Group by journal | ✅ Groups by journal | v0.4.6 |
-| 16 | N/A | PI Collaboration Analysis | ❌ no-fix architectural gap | – |
+| 16 | N/A | PI Collaboration Analysis | 🟡 planned: multi-author intersection via OR-matching | – |
 | 17 | `metadata_list` | Multi-author OR: "Identify: Helm, Hengesbach" | ✅ 39 papers, 14–28s | v0.4.14 |
 | 18 | N/A | Hardcoded info for Lauren Saunders | ❌ external KB needed | – |
 | 19 | `metadata_list` | Find papers by Tamer Butto | ✅ 2 papers | v0.4.11 |
 | 20 | `metadata_list` | Find papers by Michaela Frye | ✅ 1 paper | v0.4.11 |
 
-**Tally: ✅ 18 · ⚠️ 1 · ❌ 2** (v0.4.14)
+**Tally: ✅ 18 · ⚠️ 1 · 🟡 1 · ❌ 1** (v0.4.14)
 
 ### Bonus Cases – Author Name Format Normalization (v0.4.9)
 
@@ -262,21 +262,23 @@ Context ("From paper:" headers with real metadata):
 
 **Nächste Schritte**:
 - [ ] qwen3.5:35b pullen, Ollama-Server auf H100 starten
-- [ ] Dify LLM-Provider auf H100-Ollama umstellen (neue Base URL)
+- [x] qwen3.5:35b, qwen3.5:122b, qwen3-embedding gepullt und in Dify eingepflegt
+- [ ] H100-Provider im YAML korrekt referenzieren (benötigt zweiten Ollama-Provider oder Endpoint-Override)
 - [ ] Regression-Test mit 35B: alle 20 Cases, Fokus auf #5 (m6A-Recall)
 - [ ] Bei Erfolg: 122B testen (mit reduziertem Context)
 - [ ] Embedding-Modell separat evaluieren
 
-### ⬜ Priorität 3 – Erweiterungen
+### 🟡 Priorität 3 – Erweiterungen
 
 14. ~~**LLM-Upgrade**: qwen2.5:14b → 32b~~ → **Aktiv**: qwen3.5:35b auf H100 in Test (s.o.)
 15. ~~**Embedding-Model**: bge-m3 evaluiert — kein Qualitätsvorteil, 48% langsamer → nomic bleibt.~~ ✅ Abgeschlossen (v0.4.14, `docs/embeddings.md`)
 16. **#13 Timeout**: ✅ Gefixt (v0.4.10, cap 15→8). Parallelisierung/Caching als optionale Verbesserung.
+17. **#16 Collaboration Analysis** 🟡 Planned: Multi-Author-Schnittmengen ("Wer hat mit wem publiziert?") via Joint-Query über `metadata_query.py` — mehrere Autoren per OR-Matching abfragen und Schnittmenge bilden. Technisch machbar seit v0.4.14 Multi-Author-OR.
+18. **Conversation Memory Expansion** 🟡 Planned: Memory aktuell nur für Papers (`memory`-Variable). Evaluieren, ob Authors und Entities ebenfalls gemerkt werden sollten für stabilere Multi-Turn-Konversationen (z.B. "What else did she publish?", "Any other methods?").
 
 ### ❌ No-Fix – Architektonische Limits
 
-17. **Collaboration Analysis** (#16): >2h Aufwand, fast alle Pairs 0 Collaborations.
-18. **Externes Autor-Wiki** (#18): Lauren Saunders hat keine Papers im Datensatz. Hardcoded Researcher-Profiles bräuchten eigene Infrastruktur – orthogonal zum Paper-zentrierten Chatbot.
+19. **Externes Autor-Wiki** (#18): Lauren Saunders hat keine Papers im Datensatz. Hardcoded Researcher-Profiles bräuchten eigene Infrastruktur – orthogonal zum Paper-zentrierten Chatbot.
 
 ---
 
