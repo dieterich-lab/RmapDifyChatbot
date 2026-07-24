@@ -69,3 +69,15 @@ for q in ['Find Papers by Dieterich', 'What is m6A?', 'Who has worked on tRNA mo
     print(f'{q}: {round(time.time()-t0,1)}s')
 "
 ```
+
+### A2 vs H100 Timing Benchmarks
+
+Identical model (`qwen2.5:14b`) across hardware, per `docs/timing.md`:
+
+| Intent | A2 (16 GB) | H100 (94 GB) | Speedup |
+|--------|-----------|-------------|---------|
+| `metadata_list` | 55.5s | 24.5s | **2.3×** |
+| `knowledge_retrieval` | 90.3s | 32.0s | **2.8×** |
+| `author_lookup` | 134.8s | 37.3s | **3.6×** |
+
+LLM inference is the dominant bottleneck; H100 eliminates the A2's memory bandwidth limit. Heavier prompts benefit disproportionately.

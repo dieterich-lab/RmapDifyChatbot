@@ -249,7 +249,7 @@ Context ("From paper:" headers with real metadata):
 |-------|--------|-------|------|---------|-------|
 | 1 | `qwen3.5:35b` | 24 GB | ~30 GB mit 32K ctx | 32K–65K | Baseline: 2.5× größer als 14B. Testet `entity_lookup` m6A-Recall (#5), `author_lookup` Recall, Comprehensiveness |
 | 2 | `qwen3.5:122b` | 81 GB | ~90 GB mit 8K ctx | 4K–32K | Maximale Modell-Qualität. Braucht vorsichtiges Context-Tuning um OOM zu vermeiden |
-| 3 | `qwen3-embedding` | TBD | TBD | – | Embedding-Upgrade: testen ob bessere Retrieval-Rankings als nomic |
+| 3 | `qwen3-embedding` | ~8 GB | – | – | Embedding-Upgrade: ~4× größer als nomic (1.8→8 GB). Testen ob bessere Retrieval-Rankings als nomic — besonders für Methoden-Level-Konzepte (miCLIP, MeRIP) wo nomic aktuell unterperformt |
 
 **Benchmarks (Ollama/qwen3.5)**:
 
@@ -271,7 +271,8 @@ Context ("From paper:" headers with real metadata):
 ### 🟡 Priorität 3 – Erweiterungen
 
 14. ~~**LLM-Upgrade**: qwen2.5:14b → 32b~~ → **Aktiv**: qwen3.5:35b auf H100 in Test (s.o.)
-15. ~~**Embedding-Model**: bge-m3 evaluiert — kein Qualitätsvorteil, 48% langsamer → nomic bleibt.~~ ✅ Abgeschlossen (v0.4.14, `docs/embeddings.md`)
+15. ~~**Embedding-Model (bge-m3)**: evaluiert — kein Qualitätsvorteil, 48% langsamer → nomic bleibt.~~ ✅ Abgeschlossen (v0.4.14, `docs/embeddings.md`)
+15b. **Embedding-Model (qwen3-embedding)** 🟡 Planned: ~4× größer als nomic (1.8 GB → ~8 GB). Größeres Modell verspricht bessere Retrieval-Rankings, besonders für Methoden-Level-Konzepte (miCLIP/MeRIP) wo nomic aktuell unterperformt. Evaluation analog zu bge-m3 mit voller Regression über alle 5 Intents.
 16. **#13 Timeout**: ✅ Gefixt (v0.4.10, cap 15→8). Parallelisierung/Caching als optionale Verbesserung.
 17. **#16 Collaboration Analysis** 🟡 Planned: Multi-Author-Schnittmengen ("Wer hat mit wem publiziert?") via Joint-Query über `metadata_query.py` — mehrere Autoren per OR-Matching abfragen und Schnittmenge bilden. Technisch machbar seit v0.4.14 Multi-Author-OR.
 18. **Conversation Memory Expansion** 🟡 Planned: Memory aktuell nur für Papers (`memory`-Variable). Evaluieren, ob Authors und Entities ebenfalls gemerkt werden sollten für stabilere Multi-Turn-Konversationen (z.B. "What else did she publish?", "Any other methods?").
