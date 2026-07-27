@@ -80,10 +80,10 @@ Metadata LLM       Summary LLM         ┌───┼───┐              
 
 **Key stats:**
 - 23 nodes, 28 edges
-- 5 query intents, 6 LLM nodes (all qwen2.5:14b via Ollama)
+- 5 query intents + collaboration analysis, 6 LLM nodes (all qwen2.5:14b via Ollama)
 - 7 code nodes (Python, injected via build pipeline)
 - 1 knowledge-retrieval node (hybrid keyword 0.7 + vector 0.3, top_k=100)
-- Dataset: `<your-dataset-id>` (84 papers, 821 authors, nomic-embed-text-v2-moe)
+- Dataset: `5a231cec-21bf-40b9-86c8-87b9d01bca74` (84 papers, 821 authors, nomic-embed-text-v2-moe)
 
 ---
 
@@ -699,7 +699,27 @@ if has_multi:
 
 The router recognizes queries like "Identify: Helm, Hengesbach" or "Papers by Helm, Hengesbach" as `metadata_list` with comma-separated author constraints.
 
-### 8.9 Embedding Model Evaluation Pattern (v0.4.14)
+### 8.9 Collaboration Analysis (v0.4.15)
+
+Co-author pair computation via `metadata_query.py::_compute_collaborations()`. Triggered when `parse_router_output.py` detects collaboration keywords and sets `collaboration_mode`.
+
+**Router patterns:**
+- "Who has collaborated the most?" → `metadata_list`, `collaboration_mode: "all"`
+- "Who has collaborated with X?" → `metadata_list`, `collaboration_mode: "X"`
+- "Which co-authors has X published with?" → same as above
+
+**Code guard** (in `parse_router_output.py`):
+```python
+collab_markers = ("collaborat", "co-author", "published together", "published with", ...)
+if any(m in query for m in collab_markers):
+    intent = "metadata_list"
+    # Extract target author from "co-authors of X" / "collaborated with X"
+    collaboration_mode = target if target else "all"
+```
+
+**Output:** Top 20 co-author pairs with paper titles. 3,253 unique pairs across 84 papers. Helm+Motorin: 10 papers (most frequent).
+
+### 8.10 Embedding Model Evaluation Pattern (v0.4.14)
 
 **Test before switching, not after.** When evaluating `bge-m3` as a replacement for `nomic-embed-text-v2-moe`:
 
@@ -720,9 +740,8 @@ Result: bge-m3 showed equivalent quality but 48% worse latency → nomic retaine
 
 | Status | Count | Cases |
 |--------|-------|-------|
-| ✅ Passing | 18 | #1, #2, #3, #4, #6, #7, #8, #9, #10, #11, #12, #13, #14, #15, #17, #19, #20, Bonus |
+| ✅ Passing | 19 | #1, #2, #3, #4, #6, #7, #8, #9, #10, #11, #12, #13, #14, #15, #16, #17, #19, #20, Bonus |
 | ⚠️ Known Issue | 1 | #5 (entity recall, LLM model limit) |
-| 🟡 Planned | 1 | #16 (PI collaboration, via multi-author OR) |
 | ❌ Known Limitation | 1 | #18 (external KB needed) |
 
 ### 9.2 Running Regression Tests
@@ -819,6 +838,28 @@ bash scripts/debug_route_draft.sh --app-id 16d50bee-... \
 bash scripts/fix_kr_dataset.sh --app-id 16d50bee-... --auto-login
 ```
 
+### 10.7 Start Node Appears as White Bar / All Nodes "Not Connected"
+
+**Cause:** YAML serializer truncated `type: "custom"` → `type: "custo"` on the start node. Dify fails to render the node and all downstream nodes appear disconnected. Publish returns HTTP 500.
+
+**Fix:** Ensure the start node's top-level `type` field is `"custom"` (not `"custo"`):
+```bash
+grep -n "custo" config/RMAP\ Chatbot\ Iterative\ Retrieval.yml
+# Should only match 'custom-iteration-start', NOT bare 'custo'
+```
+
+### 10.8 HTTP 400 / UnboundLocalError on Collaboration Queries
+
+**Cause:** `import re` placed inside a function body that already uses `re` from module scope. Python treats `re` as local → `UnboundLocalError`.
+
+**Fix:** Remove redundant `import re` inside function bodies. Use the module-level import.
+
+### 10.9 "No papers found" After API Key Rotation
+
+**Cause:** Code nodes use `os.getenv("DIFY_API_KEY")` before `api_key_input` (Dify-injected env var). Container still has old key.
+
+**Fix:** Prioritize Dify-injected parameter (see §2.4).
+
 ---
 
 ## 11. H100 LLM Upgrade Plan (2026-07-24)
@@ -881,7 +922,7 @@ provider: langgenius/ollama/ollama  # oder custom H100 provider
 | `scripts/update_dify_metadata.py` | Bulk metadata update via PubMed |
 | `.env` | DIFY_API_KEY, DIFY_BASE_URL, DIFY_DATASET_ID, credentials – **single source of truth** for all config |
 | `.secrets/dify_console_session.env` | Console auth tokens (cookie, csrf) |
-| `docs/test-cases.md` | Living document: 20 test cases with status |
+| `docs/test-cases.md` | Living document: 20 test cases with status (✅ 19 · ⚠️ 1 · ❌ 0) |
 | `docs/roadmap.md` | Feature roadmap & intent analysis |
 | `docs/technical-guide.md` | This document |
 

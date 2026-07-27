@@ -2,15 +2,15 @@
 
 RmapDifyChatbot is a Dify-based academic literature assistant for the RMaP project. It answers questions about 84 RNA-modification papers using hybrid retrieval (keyword + vector) and intent-based routing.
 
-## Status Snapshot (2026-07-24)
+## Status Snapshot (2026-07-27)
 
-**v0.4.14 — Regression Test ✅ 18/20**
+**v0.4.15 — Regression Test ✅ 19/20**
 
-1. **5 Query-Intents**: ✅ `metadata_list`, `content_summary`, `knowledge_retrieval`, `author_lookup`, `entity_lookup`
+1. **5 Query-Intents + Collaboration**: ✅ `metadata_list`, `content_summary`, `knowledge_retrieval`, `author_lookup`, `entity_lookup` + 🆕 Co-Author Analysis
 2. **84 Papers** im Dataset, alle mit PubMed/CrossRef-Metadaten
-3. **Alle Prompt-Fixes** (v0.4.6–v0.4.14): Quote, Count, Group-by, Find-by-name, Citation, Cross-Contamination, HEK, Name-Format, Author-Display, Umlaut, Multi-Author-OR+LLM-Bypass, Two-Turn-Memory, Code-Guard
+3. **Alle Prompt-Fixes** (v0.4.6–v0.4.15): Quote, Count, Group-by, Find-by-name, Citation, Cross-Contamination, HEK, Name-Format, Author-Display, Umlaut, Multi-Author-OR+LLM-Bypass, Two-Turn-Memory, Code-Guard, Collaboration
 4. **top_k: 100**, Hybrid **0.7/0.3**, **qwen2.5:14b** (A2 16GB VRAM), 23 Nodes, 28 Edges
-5. **20 Test Cases**: ✅ 18 · ⚠️ 1 · ❌ 2 (Regression 2026-07-24)
+5. **20 Test Cases**: ✅ 19 · ⚠️ 1 · ❌ 0 (Regression 2026-07-27)
 
 ---
 
@@ -38,6 +38,7 @@ Du bekommst eine Einladung zur Dify-Account-Erstellung. Nach dem Login findest d
 | `metadata_list` | "Papers by Christoph Dieterich" | 8 Papers aufgelistet | – |
 | `metadata_list` | "Find all research papers" | 81 Papers (LLM-native, kein Regex) | – |
 | `metadata_list` | "List all researchers" | 776 Authors (LLM-native) | – |
+| `metadata_list` | "Who has collaborated with X?" | Co-author pairs for X | – |
 | `content_summary` | "Summarize them" (nach metadata_list) | Global Synthesis + 3 Bullet Points/Paper | Max 8 Papers (A2-Latenz-Limit, v0.4.10) |
 | `knowledge_retrieval` | "What is m6A?" | Methoden mit Inline-Citations | ✅ Citations verified (v0.4.7) |
 | `author_lookup` | "Who has worked on tRNA modifications?" | ~9 Papers mit Autoren + Quotes | ✅ Quotes + Authors verified (v0.4.7) |
@@ -139,7 +140,7 @@ flowchart TD
 ### Dataset
 
 - **Name**: RMAP Papers
-- **UUID**: `<your-dataset-id>`
+- **UUID**: `5a231cec-21bf-40b9-86c8-87b9d01bca74`
 - **Dokumente**: 84 Papers (RMaP First Funding Period), alle mit PubMed/CrossRef-Metadaten
 - **Embedding**: nomic-embed-text-v2-moe (Ollama)
 - **Chunking**: Dify Standard (automatic mode)

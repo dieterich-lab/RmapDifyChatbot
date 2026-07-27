@@ -12,7 +12,7 @@
 | `author_lookup` | ✅ stabil | ✅ Quotes + Autoren korrekt (v0.4.7) | ~27% (7/26) | ✅ stabil (v0.4.8) |
 | `entity_lookup` | ⚠️ Recall-Limit | ✅ sauber (keine Halluzination) | ⚠️ 5/38+ Modifikationen, m6A fehlt | ✅ stabil (v0.4.2) |
 
-### 20 Test Cases – Current Standings (2026-07-24)
+### 20 Test Cases – Current Standings (2026-07-27)
 
 | # | Intent | Query | Status | Fixed In |
 |---|--------|-------|--------|----------|
@@ -34,7 +34,7 @@
 | 19 | `metadata_list` | Find papers by Tamer Butto | ✅ 2 papers | v0.4.11 |
 | 20 | `metadata_list` | Find papers by Michaela Frye | ✅ 1 paper | v0.4.11 |
 
-**Tally: ✅ 18 · ⚠️ 1 · 🟡 1 · ❌ 1** (v0.4.14)
+**Tally: ✅ 19 · ⚠️ 1 · ❌ 1** (v0.4.15)
 
 ### Bonus Cases – Author Name Format Normalization (v0.4.9)
 
@@ -78,7 +78,6 @@
 
 - **qwen3-embedding**: ~4× larger than nomic. Test methodology: bge-m3 approach (v0.4.14), full 5-intent regression.
 - **#13 Timeout**: ✅ Fixed (v0.4.10, cap 15→8). Caching as optional improvement.
-- **#16 Collaboration Analysis**: Multi-author intersection ("Who published with whom?") via OR-matching from v0.4.14.
 
 ### 🔵 Research — Abstract Parent-Child Chunking
 
