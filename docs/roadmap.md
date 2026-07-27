@@ -1,6 +1,6 @@
 # RMAP Chatbot – Feature Roadmap & Analysis
 
-> Stand: 2026-07-24 · v0.4.14 · App `16d50bee-bc86-4bda-bb56-a861743f3ddb` · Model `qwen2.5:14b` · Embedding `nomic-embed-text-v2-moe` · 20 Test Cases
+> Stand: 2026-07-27 · v0.4.14+ · App `16d50bee-bc86-4bda-bb56-a861743f3ddb` · Model `qwen2.5:14b` · Embedding `nomic-embed-text-v2-moe` · 20 Test Cases
 
 ## Übersicht
 
@@ -47,283 +47,42 @@
 
 ---
 
-## 1. `author_lookup` – "Who has worked on X?"
+## Priorities & Planned Work
 
-### Architektur
+> Historical fixes → `CHANGELOG.md` · Intent deep-dives → [`intent-architecture.md`](intent-architecture.md) · Lessons learned → [`lessons-learned.md`](lessons-learned.md)
 
-```
-User Query → Unified Router (intent=author_lookup)
-  → Knowledge Retrieval (top_k=50, hybrid vector+keyword 0.3/0.7)
-  → KR Chunk Filter (ref-filter, dedup max 3/paper, safety-net)
-  → KR Intent Router (IF/ELSE auf {{#intent#}})
-  → Author Extraction LLM (qwen2.5:14b)
-  → Final Answer Sanitizer (author enrichment from chunk metadata)
-  → Answer
-```
+| # | Target | Prio | Impact | Effort | Status |
+|---|--------|:---:|--------|--------|--------|
+| 1 | **H100 Provider Config + 35B Regression** | 🔴 | Behebt #5 (m6A-Recall), verbessert `author_lookup` Recall | 2h | Models gepullt, YAML fehlt |
+| 2 | **qwen3-embedding Evaluation** | 🟡 | Bessere Retrieval-Rankings (miCLIP/MeRIP) | 3h | Analog zu bge-m3 Test (v0.4.14) |
+| 3 | **#16 Collaboration Analysis** | 🟢 | Multi-Author-Schnittmengen | 1–2d | OR-Matching seit v0.4.14 |
+| 4 | **Conversation Memory Expansion** | 🟢 | Stabilere Multi-Turn ("What else did she publish?") | 4h | Memory aktuell nur Papers |
+| 5 | **🔬 Abstract Parent-Child Chunking** | 🔵 | Bessere Retrieval-Rankings durch semantisches Chunking | >2d | Preprocessing-Pipeline nötig |
 
-### Prompt (Final, v3)
+### 🔴 Priority 1 — H100 LLM Upgrade
 
-```
-Context (each chunk starts with "From paper:" followed by paper info):
-{{#context#}}
+**Goal**: qwen2.5:14b (A2, 16 GB) → qwen3.5:35b (H100, 94 GB) for better comprehensiveness and retrieval quality.
 
-You are answering: "{{#sys.query#}}"
+| Stage | Model | Size | VRAM | Focus |
+|-------|-------|------|------|-------|
+| 1 | `qwen3.5:35b` | 24 GB | ~30 GB (32K ctx) | Baseline: `entity_lookup` m6A-Recall (#5), `author_lookup` Recall |
+| 2 | `qwen3.5:122b` | 81 GB | ~90 GB (8K ctx) | Max quality, needs careful context-tuning |
+| 3 | `qwen3-embedding` | ~8 GB | – | ~4× nomic. Method-level concepts (miCLIP, MeRIP) |
 
-=== CRITICAL RULES ===
-1. ONLY extract authors from the "From paper:" headers.
-   Header format: "From paper: LastName1 Initials1, LastName2 Initials2, Year, Journal"
-2. ONLY list papers whose "From paper:" header appears in the context above.
-3. For each header, list EVERY author name found in it.
-4. Use the header's journal as the paper's journal.
-5. Derive a short paper topic from the chunk content as the title.
-6. Use a verbatim quote from the chunk as evidence of what they did.
+**Infrastructure**: Ollama on H100 (gpu-g5-1), port 21434. Models already pulled and registered in Dify.
 
-Format:
-**Paper Topic** (Journal)
-- FirstName LastName: "verbatim evidence quote from chunk"
+**Next**: Configure H100 provider in DSL YAML → full 20-case regression with 35B.
 
-If no "From paper:" headers found: "Insufficient context."
-CRITICAL: NEVER list a paper or author NOT found in a "From paper:" header.
-NO fabricated names. NO <think>. Keep under 300 words.
-```
+### 🟡 Priority 2 — Planned Extensions
 
-### Prompt-Evolution
+- **qwen3-embedding**: ~4× larger than nomic. Test methodology: bge-m3 approach (v0.4.14), full 5-intent regression.
+- **#13 Timeout**: ✅ Fixed (v0.4.10, cap 15→8). Caching as optional improvement.
+- **#16 Collaboration Analysis**: Multi-author intersection ("Who published with whom?") via OR-matching from v0.4.14.
 
-| Version | Problem | Fix |
-|---------|---------|-----|
-| v1 (Single-LLM) | Mixed Output (alle 3 Sektionen) | → 3-LLM Split |
-| v2 (Author LLM v1) | Nur Erstautor ("Yu Sun") | → "EVERY author", Few-Shot |
-| v2 (Author LLM v2) | "and colleagues", "et al." | → explizit verboten |
-| v3 (Author LLM v3) | Name-Expansion ("Fabio Tuorto") | → nur exakte Header-Namen |
-| v0.4.3 | PubMed-Metadaten | → Autoritative Titel + ALLE Autoren |
-| v0.4.6 | Quote-Halluzination | → "No verbatim quote available." Guard |
-| v0.4.7 | Autor-Cross-Contamination | → "Authors ONLY from OWN header" |
-| v0.4.8 | Prompt tRNA-spezifisch | → Query-agnostisch ("relevant to query") |
-| v0.4.9 | Name-Format-Routing | → code-level guard in parse_router_output.py |
+### 🔵 Research — Abstract Parent-Child Chunking
 
-### Verifikation (2026-07-20, Volltext-Abgleich via Fetch Full Paper)
+Parent-child indexing with abstract as parent, body paragraphs (`\n\n`) as children. Hypothesis: abstract vector is more precise than full-doc or mechanical split-parent → better retrieval rankings. Challenge: Dify has no semantic parent-splitting — needs preprocessing pipeline (abstract extraction, separate dataset, dual-KR-node architecture). Effort: multiple days. Success probability: medium (embedding upgrade likely higher leverage).
 
-Query: *"Who has worked on tRNA modifications?"* (top_k=100, v0.4.9)
+### ❌ No-Fix
 
-| # | Paper | Autoren vs PubMed | Quote vs Full Text | Status |
-|---|-------|-------------------|--------------------|--------|
-| 1 | Biedenbander et al. (Nucleic Acids Res, 2022) | ✅ 6/6 | ✅ verbatim | ✅ |
-| 2 | Peschek, Tuorto (J Mol Biol, 2025) | ⬜ | ⬜ | – |
-| 3 | Guo, Russo, Tuorto (BioEssays, 2024) | ⬜ | ⬜ | – |
-| 4 | Sun et al. (Nucleic Acids Res, 2023) | ✅ 5/5 | ✅ verbatim | ✅ |
-| 5 | Pichot et al. (Comput Struct Biotechnol J, 2023) | ✅ 10/10 | ✅ Real quote (v0.4.6) | ✅ |
-| 6 | Morishima et al. (Sci Adv, 2025) | ✅ PubMed | ⚠️ paraphrasiert | ⚠️ |
-| 7 | Richter et al. (Nucleic Acids Res, 2022) | ⚠️ Dropped from results (top_k=100) | ✅ "No verbatim quote" (v0.4.6) | ✅ |
-| 8 | Gerber et al. (Biol Chem, 2022) | ⬜ | ⬜ | – |
-
-**Fazit v0.4.9:** Alle verbliebenen Papers haben korrekte Autoren und Quotes. Quote-Halluzination ✅ gefixt, Cross-Contamination ✅ gefixt, Prompt query-agnostisch ✅ deployed. Author-Lookup gilt als stabil.
-
-### Recall-Analyse
-
-| Metrik | Wert |
-|--------|------|
-| PDFs mit "queuosine" | 12 |
-| PDFs mit "tRNA modification" | 24 |
-| Kombiniert unique | **26** |
-| Gefunden (v0.4.3) | **7** |
-| Recall (quantitativ) | **27%** (19% in v0.4.0) |
-
-**Verbesserung:** +2 Papers durch PubMed-Metadaten (Motorin/Helm 2024,). +1 durch Chunk-Filter 3→1 (Peschek/Tuorto).
-
-**Noch nicht gefunden (5 hochrelevant):**
-
-- Stafforst/Helm 2023 ACS Chem Biol (Q=5, T=7)
-- Frye/Delaunay 2023 Nat Rev Genet (Q=8, T=18)
-- Helm/Richter 2022 Nucleic Acids Res (Q=1, T=14)
-- Helm/Motorin 2021 WIREs RNA (Q=2, T=20)
-- Tuorto/Peschek 2025 J Mol Biol (Q=2, T=20) – teilweise gefunden
-
-### Offene Punkte `author_lookup`
-
-- [x] ~~"and colleagues"/"et al."~~ → ✅ Gefixt (v0.4.0)
-- [x] ~~Garbled author names~~ → ✅ Gefixt (v0.4.3 PubMed)
-- [x] ~~Quote-Halluzination~~ → ✅ Gefixt (v0.4.6)
-- [x] ~~Autor-Cross-Contamination~~ → ✅ Gefixt (v0.4.7)
-- [x] ~~Prompt tRNA-spezifisch~~ → ✅ Gefixt (v0.4.8)
-- [x] ~~Name-Format-Routing~~ → ✅ Gefixt (v0.4.9)
-- [ ] **Recall weiter verbessern**: Embedding-Model evaluieren
-
----
-
-## 2. `entity_lookup` – "Which X are most studied in Y?"
-
-### Status: ✅ Stabil (v0.4.2 Prompt)
-
-- **6 Entities** (m6A, pseudouridylation, RNA editing, tRNA modifications, RNA methylation, epitranscriptome)
-- **Entity-Gruppierung** funktioniert
-- **"Critical Reviews"-Bug** gefixt (v0.4.1)
-- ⚠️ LLM stoppt bei 6 ("Insufficient context") – Modell-Limit, nicht Prompt
-
-### Prompt (v0.4.2, stabil)
-
-```
-Context ("From paper:" headers with real metadata):
-{{#context#}}
-
-=== CRITICAL RULES ===
-1. Scan ALL chunks. Be COMPREHENSIVE.
-2. For "Paper" column, use EXACT "From paper:" header.
-3. Group identical entities from different papers into ONE row.
-4. NO word limit – be complete.
-```
-
-### Offene Punkte `entity_lookup`
-
-- [x] ~~Prompt-Redesign~~ → ✅ Deployed (v0.4.1)
-- [x] ~~"Critical Reviews"-Bug~~ → ✅ Gefixt
-- [ ] **Mehr Entities**: LLM-Modell-Wechsel (qwen2.5:14b→32b?) für bessere Comprehensiveness
-- [ ] **Entity-Typ-Qualität**: "Epitranscriptome" als "General term" ist grenzwertig
-
----
-
-## 3. `knowledge_retrieval` – "What is X and how is it detected?"
-
-### Status: ✅ Stabil (v0.4.7), Metadata-Refresh ausstehend
-
-- 5 Methoden, Inline-Citations funktionieren
-- Citation-Attribution ✅ gefixt (v0.4.7): "VERIFY each citation matches the chunk"
-- Buchkapitel-Garbling gefixt durch `_metadata_looks_garbled()` (v0.4.1)
-- ⚠️ miCLIP (85 Hits) und MeRIP-seq (21 Hits) fehlen im Retrieval
-
-### Offene Punkte `knowledge_retrieval`
-
-- [x] ~~"From paper:"-Header-Guard~~ → ✅ Deployed
-- [x] ~~Buchkapitel-Metadaten~~ → ✅ Gefixt (Chunk-Filter)
-- [ ] **miCLIP/MeRIP-seq-Recall**: Retrieval-Ranking untersuchen
-- [ ] **Metadata-Refresh**: Die verbliebenen 20 Docs (non-PubMed) neu extrahieren
-
----
-
-## Metriken & Qualitätskriterien
-
-| Kriterium | metadata_list | content_summary | author_lookup | entity_lookup | knowledge_retrieval |
-|-----------|:------------:|:------------:|:------------:|:------------:|:-------------------:|
-| Präzision (keine Halluzinationen) | ✅ API | ✅ Volltext | ✅ Quotes (v0.4.7) | ✅ sauber | ✅ Citations (v0.4.7) |
-| Recall / Scope | ✅ 84 Papers | ⚠️ Max 8 (v0.4.10) | ⚠️ 27% (7/26) | ⚠️ 5/38+ mods | ⚠️ miCLIP/MeRIP |
-| Autoren-Vollständigkeit | ✅ PubMed | ✅ Volltext | ✅ PubMed | ✅ Header | ✅ 5/5 korrekt |
-| Follow-up-Fähigkeit | ✅ "Summarize" | – | – | – | ✅ "Group by" (v0.4.6) |
-| Prompt-Stabilität | ✅ v0.4.9 | ✅ stabil | ✅ v0.4.8 | ✅ v0.4.2 | ✅ v0.4.7 |
-| Metadata-Qualität | ✅ **100% (v0.4.10)** | ✅ 100% | ✅ **100%** | ✅ 100% | ✅ 100% |
-
----
-
-## Nächste Schritte
-
-### ✅ Erledigt (v0.4.6–v0.4.14)
-
-| # | Fix | Version |
-|---|-----|---------|
-| 1 | Quote-Halluzination (#4) | v0.4.6 |
-| 2 | 7-vs-8 Miscount (#1/#14) | v0.4.6 |
-| 3 | Group-by Pronomen (#15) | v0.4.6 |
-| 4 | Find papers by <name> (#6) | v0.4.6 |
-| 5 | Citation-Attribution (#3) | v0.4.7 |
-| 6 | Autor-Cross-Contamination (#4) | v0.4.7 |
-| 7 | HEK cells speculative claims (#12) | v0.4.8 |
-| 8 | Science Journals AAAS metadata | v0.4.8 |
-| 9 | Author name format normalization | v0.4.9 |
-| 10 | **100% Metadata Coverage** (PubMed + CrossRef + LLM) | v0.4.10 |
-| 11 | **Author display in metadata_list** | v0.4.11 |
-| 12 | **100% Upload** + Umlaut-Normalisierung | v0.4.12 |
-| 13 | **Multi-Author OR-Matching** (_metadata_query.py_) + Router rule | v0.4.12 |
-| 14 | **DIFY_DATASET_ID** single source of truth | v0.4.12 |
-| 15 | **Two-turn memory fix** (route after broad query) | v0.4.13 |
-| 16 | **Code guard** for "Find papers by X" | v0.4.12+ |
-| 17 | **Multi-Author OR + LLM Bypass (#17)** — "Identify: X, Y, Z" + "Papers by X, Y" → 39 papers via code-level guard + paper_count=0 Metadata LLM bypass + pre-formatted output | v0.4.14 |
-| 18 | **Embedding Model Evaluation** — bge-m3 tested: equivalent quality, 48% slower → nomic retained. See `docs/embeddings.md` | v0.4.14 |
-
-### 🟡 Priorität 2 – H100 LLM-Upgrade (in progress, 2026-07-24)
-
-**Ziel**: qwen2.5:14b (A2, 16 GB) → qwen3.5 (H100, 94 GB) für bessere Comprehensiveness und Retrieval-Qualität.
-
-**Neue Ollama-Instanz**: H100 (Hopper, 94 GB VRAM) via `scripts/start_ollama.sh`, Port 21434.
-
-**Test-Stufen**:
-
-| Stufe | Modell | Größe | VRAM | Context | Fokus |
-|-------|--------|-------|------|---------|-------|
-| 1 | `qwen3.5:35b` | 24 GB | ~30 GB mit 32K ctx | 32K–65K | Baseline: 2.5× größer als 14B. Testet `entity_lookup` m6A-Recall (#5), `author_lookup` Recall, Comprehensiveness |
-| 2 | `qwen3.5:122b` | 81 GB | ~90 GB mit 8K ctx | 4K–32K | Maximale Modell-Qualität. Braucht vorsichtiges Context-Tuning um OOM zu vermeiden |
-| 3 | `qwen3-embedding` | ~8 GB | – | – | Embedding-Upgrade: ~4× größer als nomic (1.8→8 GB). Testen ob bessere Retrieval-Rankings als nomic — besonders für Methoden-Level-Konzepte (miCLIP, MeRIP) wo nomic aktuell unterperformt |
-
-**Benchmarks (Ollama/qwen3.5)**:
-
-| Metrik | 14B (qwen2.5) | 35B (qwen3.5) | 122B (qwen3.5) |
-|--------|:---:|:---:|:---:|
-| MMLU-Pro | – | 89.5 | 89.8 |
-| GPQA | – | 87.0 | 91.9 |
-| IFEval | – | 90.9 | 93.5 |
-| SuperGPQA | – | 70.6 | 74.0 |
-
-**Nächste Schritte**:
-- [ ] qwen3.5:35b pullen, Ollama-Server auf H100 starten
-- [x] qwen3.5:35b, qwen3.5:122b, qwen3-embedding gepullt und in Dify eingepflegt
-- [ ] H100-Provider im YAML korrekt referenzieren (benötigt zweiten Ollama-Provider oder Endpoint-Override)
-- [ ] Regression-Test mit 35B: alle 20 Cases, Fokus auf #5 (m6A-Recall)
-- [ ] Bei Erfolg: 122B testen (mit reduziertem Context)
-- [ ] Embedding-Modell separat evaluieren
-
-### 🟡 Priorität 3 – Erweiterungen
-
-14. ~~**LLM-Upgrade**: qwen2.5:14b → 32b~~ → **Aktiv**: qwen3.5:35b auf H100 in Test (s.o.)
-15. ~~**Embedding-Model (bge-m3)**: evaluiert — kein Qualitätsvorteil, 48% langsamer → nomic bleibt.~~ ✅ Abgeschlossen (v0.4.14, `docs/embeddings.md`)
-15b. **Embedding-Model (qwen3-embedding)** 🟡 Planned: ~4× größer als nomic (1.8 GB → ~8 GB). Größeres Modell verspricht bessere Retrieval-Rankings, besonders für Methoden-Level-Konzepte (miCLIP/MeRIP) wo nomic aktuell unterperformt. Evaluation analog zu bge-m3 mit voller Regression über alle 5 Intents.
-16. **#13 Timeout**: ✅ Gefixt (v0.4.10, cap 15→8). Parallelisierung/Caching als optionale Verbesserung.
-17. **#16 Collaboration Analysis** 🟡 Planned: Multi-Author-Schnittmengen ("Wer hat mit wem publiziert?") via Joint-Query über `metadata_query.py` — mehrere Autoren per OR-Matching abfragen und Schnittmenge bilden. Technisch machbar seit v0.4.14 Multi-Author-OR.
-18. **Conversation Memory Expansion** 🟡 Planned: Memory aktuell nur für Papers (`memory`-Variable). Evaluieren, ob Authors und Entities ebenfalls gemerkt werden sollten für stabilere Multi-Turn-Konversationen (z.B. "What else did she publish?", "Any other methods?").
-19. **🔬 Abstract Parent-Child Chunking** 🔵 Research: Parent-Child-Indexierung mit Abstract als Parent, Body-Paragraphen (`\n\n`) als Children. Hypothese: Abstract-Vektor ist präziser als Full-Doc- oder mechanischer Split-Parent → bessere Retrieval-Rankings. Herausforderung: Dify-Bordmittel unterstützen kein semantisches Parent-Splitting — Preprocessing-Pipeline nötig (Abstract-Extraktion via `pdftotext` + Segments-API, separates Dataset, Dual-KR-Node-Architektur). Aufwand: mehrere Tage. Erfolgswahrscheinlichkeit: mittel (Embedding-Upgrade ist wahrscheinlich höherer Hebel).
-
-### ❌ No-Fix – Architektonische Limits
-
-19. **Externes Autor-Wiki** (#18): Lauren Saunders hat keine Papers im Datensatz. Hardcoded Researcher-Profiles bräuchten eigene Infrastruktur – orthogonal zum Paper-zentrierten Chatbot.
-
----
-
-## Lessons Learned
-
-### Query Expansion
-
-❌ **Regelbasiert**: Hardcodierte Lookup-Tabellen ("tRNA modification" → Synonyme). Nicht generalisierbar, biased auf Test-Queries.
-
-❌ **LLM Keyword-Expander**: qwen2.5:14b produzierte unberechenbare Expansions, zerstörte entity_lookup (6→1 Entity).
-
-✅ **Fazit**: Query Expansion ist für unseren Use-Case zu fragil. Die Retrieval-Qualität hängt zu stark von exakter Wortwahl ab. Besser: Metadata-Qualität + top_k erhöhen.
-
-### Metadata-Qualität
-
-✅ **PubMed via DOI**: 83% Coverage, autoritativ, kein LLM-Halluzinieren. Der größte Einzelgewinn an Antwortqualität.
-
-✅ **In-Place Update**: Console-API Batch-Update spart Delete+Reupload (kein Re-Chunking, keine Downtime).
-
-### Chunk-Filter Tuning
-
-✅ **3→1 Chunk/Paper**: Verdoppelt Paper-Diversität. Entity-Lookup 3→6 Entities. Beste Einzeländerung für Recall.
-
-✅ **`_metadata_looks_garbled()`**: Fängt Buchkapitel und defekte Extraktionen ab. Wird durch PubMed-Metadaten zunehmend obsolet.
-
-### Author Name Normalization (v0.4.9)
-
-✅ **Code-Level Guard > Prompt-Only**: Bare person names in various formats (`Mark Helm`, `Helm, Mark`, `M. Helm`) required a code-level override in `parse_router_output.py` – the LLM Router alone couldn't distinguish "M. Helm" (a person) from "What is m6A?" (a knowledge question). Pattern matching on comma-separated names, dot-initial formats, and 1–2 capitalized words without question markers proved more reliable than prompt engineering for this case.
-
-✅ **Author Variant Expansion**: `_author_variants()` in `metadata_query.py` now normalizes "Last, First" → "First Last", always includes last-name-only fallback, and handles abbreviated first names. This fixed `Chr. Dieterich` not matching `Christoph Dieterich`.
-
-### LLM Bypass for Deterministic Formatting (v0.4.14)
-
-✅ **When the LLM can't follow instructions, bypass it.** For multi-author OR queries, qwen2.5:14b consistently interpreted comma-separated authors as AND logic — ignoring CRITICAL, PASSTHROUGH, VERBATIM, and explicit example instructions. Solution: `paper_count=0` routes through the Metadata LLM Bypass directly to Final Answer Sanitizer, which passes pre-formatted `result_text` from `metadata_query.py` through verbatim.
-
-✅ **Pre-formatted output as defense-in-depth.** Rather than hoping the LLM passes through correctly, `metadata_query.py` produces complete Markdown-formatted output (`39 papers\n\n1. **Title**\n   - Authors: ...`). The Final Answer Sanitizer's fallback logic picks this up when LLM outputs are empty (which they are when the LLM is bypassed).
-
-✅ **Pattern: code-level guard → workflow bypass → pre-formatted output.** This three-layer pattern (parse_router_output guard → paper_count=0 routing → metadata_query pre-formatting) proved reliable where prompt engineering alone failed repeatedly.
-
-### Embedding Model Evaluation (v0.4.14)
-
-✅ **Test before switching, not after.** A full regression test across all 5 intents with the candidate model (bge-m3) revealed that retrieval quality was equivalent but latency was 48% worse. Without the test, we would have switched blindly and only discovered the slowdown through user complaints.
-
-✅ **metadata_list as control group.** Queries that use the Dataset API (not knowledge retrieval) are unaffected by embedding model changes. They provide a natural control group to distinguish embedding-related issues from unrelated infrastructure problems.
-
-✅ **Document the negative result.** `docs/embeddings.md` serves as a reference for defending the model choice. It includes: executive summary, test methodology, per-case results, latency ratios, quality assessments, and reproduction steps. A documented negative result prevents redundant re-evaluation.
+- **Externes Author-Wiki** (#18): Lauren Saunders has no papers in dataset. Requires separate infrastructure — orthogonal to paper-centric chatbot.
