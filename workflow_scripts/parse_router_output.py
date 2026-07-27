@@ -253,13 +253,22 @@ def main(router_text=None, conversation_memory=None, sys_query=None):
             intent = "metadata_list"
             # Extract target author if specified: "co-authors of Mark Helm"
             target = ""
-            for sep in ("co-authors of ", "collaborators of ", "coauthors of ",
-                        "collaborations of ", "collaboration of "):
+            for sep in (
+                "co-authors of ",
+                "collaborators of ",
+                "coauthors of ",
+                "collaborations of ",
+                "collaboration of ",
+            ):
                 if sep in q:
                     target = q.split(sep, 1)[1].strip().rstrip(".,;?!")
                     break
             if not target:
-                for sep in ("co-authors with ", "collaborated with ", "collaborations with "):
+                for sep in (
+                    "co-authors with ",
+                    "collaborated with ",
+                    "collaborations with ",
+                ):
                     if sep in q:
                         target = q.split(sep, 1)[1].strip().rstrip(".,;?!")
                         break

@@ -452,7 +452,9 @@ def _compute_collaborations(
         paper_list = "; ".join(sorted(papers)[:3])
         if len(papers) > 3:
             paper_list += f" (+{len(papers) - 3} more)"
-        lines.append(f"{idx}. **{a}** + **{b}** — {count} paper{'s' if count > 1 else ''}")
+        lines.append(
+            f"{idx}. **{a}** + **{b}** — {count} paper{'s' if count > 1 else ''}"
+        )
         lines.append(f"   Papers: {paper_list}")
         lines.append(f"")
 
@@ -521,7 +523,9 @@ def main(
     # "co-authors of X". Returns co-author pair frequencies, bypasses LLM.
     if _is_set(collaboration_mode):
         target = str(collaboration_mode).strip()
-        target_author = target if target.lower() not in ("true", "1", "yes", "all") else ""
+        target_author = (
+            target if target.lower() not in ("true", "1", "yes", "all") else ""
+        )
         result_text, intent_hint = _compute_collaborations(docs, target_author)
         result_lines = result_text.split("\n") if result_text else []
         if len(result_lines) > 30:
