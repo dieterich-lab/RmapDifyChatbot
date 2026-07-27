@@ -1,7 +1,7 @@
 # RMAP Chatbot – Technical Guide
 
 > **Audience:** Developers taking over maintenance and extension of the chatbot.
-> **Last updated:** 2026-07-20 · v0.4.8 · App `16d50bee-bc86-4bda-bb56-a861743f3ddb`
+> **Last updated:** 2026-07-27 · v0.4.14+ · App `16d50bee-bc86-4bda-bb56-a861743f3ddb`
 
 ---
 
@@ -83,7 +83,7 @@ Metadata LLM       Summary LLM         ┌───┼───┐              
 - 5 query intents, 6 LLM nodes (all qwen2.5:14b via Ollama)
 - 7 code nodes (Python, injected via build pipeline)
 - 1 knowledge-retrieval node (hybrid keyword 0.7 + vector 0.3, top_k=100)
-- Dataset: `<your-dataset-id>` (82 papers, nomic-embed-text-v2-moe)
+- Dataset: `<your-dataset-id>` (84 papers, 821 authors, nomic-embed-text-v2-moe)
 
 ---
 
@@ -641,17 +641,89 @@ text: '...relevant to the user''s query...'
 
 ---
 
+### 8.6 Author Name Normalization Pattern (v0.4.9)
+
+The Unified Router (qwen2.5:14b) cannot reliably distinguish person names from knowledge queries:
+
+```
+"Mark Helm" → metadata_list ✅
+"Helm, Mark" → author_lookup ❌ (LLM misclassifies comma format)
+"M. Helm" → author_lookup ❌ (LLM misclassifies dot-initial format)
+"Dieterich" → content_summary ❌ (LLM misclassifies bare last name)
+```
+
+**Fix: Code-Level Guard > Prompt-Only.** Prompt engineering alone was insufficient — the LLM could not distinguish "M. Helm" (a person) from "What is m6A?" (a knowledge question). Solution: `parse_router_output.py` detects bare person names via pattern matching:
+
+- **Comma format**: `"," in q and len(q.split(",")) == 2` → "Helm, Mark"
+- **Dot-initial format**: `re.match(r"^[A-Z].\\s+\\w{2,}$", q)` → "M. Helm"
+- **1–2 capitalized words without question markers**: no "who/what/which/how/why" etc. → "Dieterich", "Mark Helm"
+
+When detected, the guard overrides `author_lookup`/`knowledge_retrieval` → `metadata_list` and populates `paper_list` with the author name.
+
+**Complementary fix in `metadata_query.py`**: `_author_variants()` normalizes "Last, First" → "First Last", always includes last-name-only fallback, and handles abbreviated first names. `_matches_filters()` adds last-resort last-name substring check for edge cases like "Chr. Dieterich" vs "Christoph Dieterich".
+
+### 8.7 LLM Bypass Pattern (v0.4.14)
+
+**When the LLM can't follow instructions, bypass it.** For multi-author OR queries, qwen2.5:14b consistently interpreted comma-separated authors as AND logic — ignoring CRITICAL, PASSTHROUGH, VERBATIM instructions.
+
+**Three-layer pattern:**
+
+```
+parse_router_output.py          metadata_query.py            Final Answer Sanitizer
+┌─────────────────────┐    ┌──────────────────────────┐    ┌───────────────────────┐
+│ Code-level guard     │    │ Pre-formatted Markdown    │    │ Falls back to          │
+│ detects multi-author │───▶│ output from metadata      │───▶│ result_text when       │
+│ → paper_count = 0    │    │ _render_result()          │    │ LLM outputs are empty  │
+└─────────────────────┘    └──────────────────────────┘    └───────────────────────┘
+```
+
+1. **Code guard** detects multi-author queries and sets `paper_count=0`
+2. **Metadata LLM Bypass** (`paper_count=0`) routes through directly to Sanitizer
+3. **Pre-formatted output** from `metadata_query.py` passes through verbatim — no LLM formatting step
+
+### 8.8 Multi-Author OR Matching (v0.4.14)
+
+`_matches_filters()` in `metadata_query.py` now supports OR logic for comma-separated author names:
+
+```python
+# "Helm, Hengesbach" → paper matches if EITHER "Helm" OR "Hengesbach" appears
+has_multi = any("," in a for a in author_inputs)
+if has_multi:
+    all_names = [part.strip() for a in author_inputs for part in a.split(",")]
+    for name in all_names:
+        if any(v in meta_authors.lower() for v in _author_variants(name)):
+            break  # matched
+    else:
+        return False  # no name matched
+```
+
+The router recognizes queries like "Identify: Helm, Hengesbach" or "Papers by Helm, Hengesbach" as `metadata_list` with comma-separated author constraints.
+
+### 8.9 Embedding Model Evaluation Pattern (v0.4.14)
+
+**Test before switching, not after.** When evaluating `bge-m3` as a replacement for `nomic-embed-text-v2-moe`:
+
+1. Full regression across all 5 intents (not just a single query)
+2. `metadata_list` as control group (unaffected by embedding, uses Dataset API)
+3. Per-case latency measurement + quality assessment
+4. Document the negative result → prevents redundant re-evaluation
+
+Result: bge-m3 showed equivalent quality but 48% worse latency → nomic retained. See `docs/embeddings.md` for full methodology.
+
+---
+
 ## 9. Test Suite & Regression Testing
 
 ### 9.1 Test Cases Overview
 
-16 test cases in `docs/test-cases.md`, covering all 5 intents:
+20 test cases in `docs/test-cases.md`, covering all 5 intents:
 
 | Status | Count | Cases |
 |--------|-------|-------|
-| ✅ Passing | 13 | #1, #2, #3, #4, #6, #7, #8, #9, #10, #11, #12, #14, #15 |
-| ⚠️ Known Issue | 2 | #5 (entity recall, LLM model limit), #13 (Mark Helm timeout) |
-| ❌ Known Limitation | 1 | #16 (PI collaboration, architectural gap) |
+| ✅ Passing | 18 | #1, #2, #3, #4, #6, #7, #8, #9, #10, #11, #12, #13, #14, #15, #17, #19, #20, Bonus |
+| ⚠️ Known Issue | 1 | #5 (entity recall, LLM model limit) |
+| 🟡 Planned | 1 | #16 (PI collaboration, via multi-author OR) |
+| ❌ Known Limitation | 1 | #18 (external KB needed) |
 
 ### 9.2 Running Regression Tests
 
@@ -679,11 +751,27 @@ bash scripts/debug_route_runtime.sh \
 
 Before each release, verify:
 
-- [ ] #1: "Which papers are (co-) authored by Christoph Dieterich?" → "8 papers" ✅
-- [ ] #4: "Who has worked on tRNA modifications?" → No "Science Journals — AAAS", quotes present ✅
-- [ ] #6: "Find papers by Francesca Tuorto" → metadata_list format, not content_summary ✅
-- [ ] #12: "Who is using HEK cells?" → No "likely involved" / "could be implied" ✅
-- [ ] #15 (Turn 2): "Group them by journal" → Groups by journal, not all 81 papers ✅
+- [ ] #1: "Papers by Christoph Dieterich" → "8 papers" ✅
+- [ ] #3: "What is m6A?" → Citations correct, no fabricated facts ✅
+- [ ] #4: "Who has worked on tRNA modifications?" → Authors + Quotes, no cross-contamination ✅
+- [ ] #6: "Find papers by Francesca Tuorto" → `metadata_list`, "6 papers" ✅
+- [ ] #12: "Who is using HEK cells?" → No speculative claims, "No verbatim quote available" where appropriate ✅
+- [ ] #14: "Find Papers by Dieterich" → "8 papers" (last name only) ✅
+- [ ] #17: "Identify: Helm, Hengesbach" → "39 papers" (multi-author OR) ✅
+- [ ] Bonus: "Mark Helm" / "Helm, Mark" / "M. Helm" → all `metadata_list` ✅
+
+### 9.4 Running Full Regression
+
+```bash
+# Runtime API (published app, faster):
+DIFY_BASE_URL="http://rmap-chatbot-demo-dify" \
+DIFY_APP_API_KEY="app-..." \
+python3 scripts/regression_test.py
+
+# Draft API (per-node debug):
+bash scripts/debug_route_draft.sh --app-id 16d50bee-... \
+  --auto-login --query "Papers by Christoph Dieterich" ...
+```
 
 ---
 
@@ -733,6 +821,51 @@ bash scripts/fix_kr_dataset.sh --app-id 16d50bee-... --auto-login
 
 ---
 
+## 11. H100 LLM Upgrade Plan (2026-07-24)
+
+### 11.1 Motivation
+
+Current A2 GPU (16 GB VRAM) limits us to `qwen2.5:14b`. H100 (94 GB VRAM) enables larger models:
+
+| Stufe | Modell | Größe | VRAM (mit Context) | Fokus |
+|-------|--------|-------|---------------------|-------|
+| 1 | `qwen3.5:35b` | 24 GB | ~30 GB (32K ctx) | Baseline: 2.5× größer. Testet `entity_lookup` m6A-Recall (#5), `author_lookup` Recall |
+| 2 | `qwen3.5:122b` | 81 GB | ~90 GB (8K ctx) | Maximale Qualität. Braucht Context-Tuning |
+| 3 | `qwen3-embedding` | ~8 GB | – | Embedding-Upgrade: ~4× nomic. Bessere Rankings für Methoden-Level-Konzepte |
+
+### 11.2 Infrastructure
+
+```bash
+# Ollama auf H100 starten (Port 21434, GPU g5-1)
+bash scripts/start_ollama.sh
+
+# Modelle sind bereits gepullt und in Dify eingepflegt
+```
+
+### 11.3 Dify Provider Configuration
+
+Die DSL YAML muss einen zweiten Ollama-Provider für H100 referenzieren:
+
+```yaml
+# Aktuell (A2):
+provider: langgenius/ollama/ollama
+# name: qwen2.5:14b
+
+# Ziel (H100):
+provider: langgenius/ollama/ollama  # oder custom H100 provider
+# name: qwen3.5:35b
+```
+
+### 11.4 Test Plan
+
+1. Provider im YAML konfigurieren und importieren
+2. Vollständige Regression über alle 20 Test Cases
+3. Fokus-Metriken: #5 m6A-Recall, `author_lookup` Recall, Comprehensiveness
+4. Latenz-Vergleich: 14B (A2) vs. 35B (H100)
+5. Bei Erfolg: 122B mit reduziertem Context testen
+
+---
+
 ## Appendix A: File Reference
 
 | File | Purpose |
@@ -748,7 +881,7 @@ bash scripts/fix_kr_dataset.sh --app-id 16d50bee-... --auto-login
 | `scripts/update_dify_metadata.py` | Bulk metadata update via PubMed |
 | `.env` | DIFY_API_KEY, DIFY_BASE_URL, DIFY_DATASET_ID, credentials – **single source of truth** for all config |
 | `.secrets/dify_console_session.env` | Console auth tokens (cookie, csrf) |
-| `docs/test-cases.md` | Living document: 16 test cases with status |
+| `docs/test-cases.md` | Living document: 20 test cases with status |
 | `docs/roadmap.md` | Feature roadmap & intent analysis |
 | `docs/technical-guide.md` | This document |
 
