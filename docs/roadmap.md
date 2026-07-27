@@ -276,6 +276,7 @@ Context ("From paper:" headers with real metadata):
 16. **#13 Timeout**: ✅ Gefixt (v0.4.10, cap 15→8). Parallelisierung/Caching als optionale Verbesserung.
 17. **#16 Collaboration Analysis** 🟡 Planned: Multi-Author-Schnittmengen ("Wer hat mit wem publiziert?") via Joint-Query über `metadata_query.py` — mehrere Autoren per OR-Matching abfragen und Schnittmenge bilden. Technisch machbar seit v0.4.14 Multi-Author-OR.
 18. **Conversation Memory Expansion** 🟡 Planned: Memory aktuell nur für Papers (`memory`-Variable). Evaluieren, ob Authors und Entities ebenfalls gemerkt werden sollten für stabilere Multi-Turn-Konversationen (z.B. "What else did she publish?", "Any other methods?").
+19. **🔬 Abstract Parent-Child Chunking** 🔵 Research: Parent-Child-Indexierung mit Abstract als Parent, Body-Paragraphen (`\n\n`) als Children. Hypothese: Abstract-Vektor ist präziser als Full-Doc- oder mechanischer Split-Parent → bessere Retrieval-Rankings. Herausforderung: Dify-Bordmittel unterstützen kein semantisches Parent-Splitting — Preprocessing-Pipeline nötig (Abstract-Extraktion via `pdftotext` + Segments-API, separates Dataset, Dual-KR-Node-Architektur). Aufwand: mehrere Tage. Erfolgswahrscheinlichkeit: mittel (Embedding-Upgrade ist wahrscheinlich höherer Hebel).
 
 ### ❌ No-Fix – Architektonische Limits
 
