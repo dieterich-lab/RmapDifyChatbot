@@ -231,10 +231,47 @@ def main(router_text=None, conversation_memory=None, sys_query=None):
         if has_comma or len(all_authors) >= 2:
             multi_author_bypass = True
 
+    # ── Collaboration analysis guard ───────────────────────────
+    # Detects queries like "who collaborated most", "co-authors of X",
+    # "collaboration network", "published together". Forces metadata_list
+    # and passes collaboration_mode to metadata_query.py.
+    collaboration_mode = ""
+    if sys_query:
+        q = str(sys_query).strip().lower()
+        collab_markers = (
+            "collaborat",
+            "co-author",
+            "coauthor",
+            "co author",
+            "published together",
+            "publish together",
+            "worked together",
+            "work together",
+            "co-autoren",
+        )
+        if any(m in q for m in collab_markers):
+            intent = "metadata_list"
+            # Extract target author if specified: "co-authors of Mark Helm"
+            target = ""
+            for sep in ("co-authors of ", "collaborators of ", "coauthors of ",
+                        "collaborations of ", "collaboration of "):
+                if sep in q:
+                    target = q.split(sep, 1)[1].strip().rstrip(".,;?!")
+                    break
+            if not target:
+                for sep in ("co-authors with ", "collaborated with ", "collaborations with "):
+                    if sep in q:
+                        target = q.split(sep, 1)[1].strip().rstrip(".,;?!")
+                        break
+            collaboration_mode = target if target else "all"
+            paper_list = []
+            multi_author_bypass = True
+
     return {
         "intent": intent,
         "paper_list": paper_list,
         "paper_count": 0 if multi_author_bypass else len(paper_list),
         "rewritten_query": rw,
         "list_mode": list_mode,
+        "collaboration_mode": collaboration_mode,
     }

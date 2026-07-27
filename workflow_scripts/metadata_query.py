@@ -360,6 +360,112 @@ def _render_result(
     return result
 
 
+def _compute_collaborations(
+    docs: list[dict], target_author: str = ""
+) -> tuple[str, str]:
+    """Compute co-author pairs from paper metadata.
+
+    If target_author is set, filter to pairs involving that author.
+    Returns (result_text, intent_hint) for LLM-bypass output.
+    """
+    from collections import Counter
+
+    pair_counts: Counter = Counter()
+    pair_papers: dict[tuple, set] = {}  # (author_a, author_b) -> set of paper titles
+
+    for doc in docs:
+        author_str = doc.get("authors", "")
+        if not author_str:
+            continue
+        # Authors are "LastName1, FirstName1, LastName2, FirstName2, ..."
+        # Group every 2 items: (LastName, FirstName) → "FirstName LastName"
+        raw = [a.strip() for a in author_str.split(",") if a.strip()]
+        # If odd count, skip last (malformed)
+        if len(raw) % 2 != 0:
+            raw = raw[:-1]
+        names = []
+        for i in range(0, len(raw), 2):
+            last, first = raw[i], raw[i + 1]
+            # Normalize: "FirstName LastName"
+            names.append(f"{first} {last}")
+        if len(names) < 2:
+            continue
+
+        title = doc.get("title", "Unknown")
+        for i in range(len(names)):
+            for j in range(i + 1, len(names)):
+                a, b = names[i], names[j]
+                # Normalize: alphabetical order for consistent keys
+                key = (min(a, b, key=str.lower), max(a, b, key=str.lower))
+                pair_counts[key] += 1
+                if key not in pair_papers:
+                    pair_papers[key] = set()
+                pair_papers[key].add(title)
+
+    # Filter by target author if specified
+    if target_author:
+        target_lower = target_author.lower()
+        pair_counts = Counter(
+            {
+                k: v
+                for k, v in pair_counts.items()
+                if target_lower in k[0].lower() or target_lower in k[1].lower()
+            }
+        )
+        pair_papers = {
+            k: v
+            for k, v in pair_papers.items()
+            if target_lower in k[0].lower() or target_lower in k[1].lower()
+        }
+
+    if not pair_counts:
+        return (
+            "Keine Kollaborationen gefunden. "
+            "Der Datensatz enthält möglicherweise zu wenige Papers mit "
+            "mehreren Autoren für eine aussagekräftige Analyse."
+        ), ""
+
+    top = pair_counts.most_common(20)
+    total_pairs = len(pair_counts)
+    total_papers_with_pairs = len(
+        [d for d in docs if len(d.get("authors", "").split(",")) >= 2]
+    )
+
+    lines = [
+        f"Co-Author Collaboration Analysis",
+        f"",
+        f"Dataset: {len(docs)} papers, {total_papers_with_pairs} with ≥2 authors",
+        f"Unique co-author pairs found: {total_pairs}",
+    ]
+
+    if target_author:
+        lines.insert(1, f"Collaborator: {target_author}")
+        lines.append(f"")
+    else:
+        lines.append(f"")
+        lines.append(f"Top 20 most frequent co-author pairs:")
+        lines.append(f"")
+
+    for idx, (key, count) in enumerate(top, start=1):
+        a, b = key
+        papers = pair_papers.get(key, set())
+        paper_list = "; ".join(sorted(papers)[:3])
+        if len(papers) > 3:
+            paper_list += f" (+{len(papers) - 3} more)"
+        lines.append(f"{idx}. **{a}** + **{b}** — {count} paper{'s' if count > 1 else ''}")
+        lines.append(f"   Papers: {paper_list}")
+        lines.append(f"")
+
+    # Future computation modes (not yet implemented):
+    # - publication_timeline: papers grouped by year
+    # - journal_distribution: papers grouped by journal
+    # - author_productivity: paper count per author
+    # - topic_clustering: title-based keyword co-occurrence
+    intent_hint = "collaboration"
+
+    return "\n".join(lines), intent_hint
+
+
 def main(
     year=None,
     authors=None,
@@ -367,6 +473,7 @@ def main(
     title=None,
     paper_list=None,
     list_mode=None,
+    collaboration_mode=None,
     api_key_input=None,
     dataset_id_input=None,
 ):
@@ -408,6 +515,21 @@ def main(
 
     headers = _build_headers(str(api_key).strip())
     docs, errors = _collect_documents(str(api_base), str(dataset_id).strip(), headers)
+
+    # ── Collaboration Analysis Mode ─────────────────────────────────
+    # Detects queries like "who has collaborated the most?", "collaboration network",
+    # "co-authors of X". Returns co-author pair frequencies, bypasses LLM.
+    if _is_set(collaboration_mode):
+        target = str(collaboration_mode).strip()
+        target_author = target if target.lower() not in ("true", "1", "yes", "all") else ""
+        result_text, intent_hint = _compute_collaborations(docs, target_author)
+        result_lines = result_text.split("\n") if result_text else []
+        if len(result_lines) > 30:
+            result_lines = result_lines[:30]
+        return {
+            "result": result_lines,
+            "result_text": result_text,
+        }
 
     year_filter = _sanitize_year_filter(year)
     journal_filter = _sanitize_free_text_filter(journal, max_len=80)

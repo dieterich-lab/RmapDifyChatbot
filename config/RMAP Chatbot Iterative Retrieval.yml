@@ -841,64 +841,131 @@ workflow:
           \            f\"\\n\\n(Es werden nur die ersten {MAX_RESULTS} von {len(matches)}\
           \ Ergebnissen angezeigt. \"\n            \"Bitte die Suche mit einem Autor:innen-Namen,\
           \ Jahr oder Journal einschränken.)\"\n        )\n    return result\n\n\n\
-          def main(\n    year=None,\n    authors=None,\n    journal=None,\n    title=None,\n\
-          \    paper_list=None,\n    list_mode=None,\n    api_key_input=None,\n  \
-          \  dataset_id_input=None,\n):\n    api_base = (os.getenv(\"DIFY_API_URL\"\
-          ) or \"http://rmap-chatbot-demo-dify/v1\").rstrip(\n        \"/\"\n    )\n\
-          \    dataset_id = os.getenv(\"DIFY_DATASET_ID\") or \"<your-dataset-id>\"\
-          \n    api_key = os.getenv(\"DIFY_API_KEY\") or api_key_input or \"\"\n\n\
-          \    if not _is_set(api_base) or not _is_set(dataset_id) or not _is_set(api_key):\n\
-          \        return {\n            \"result\": (\n                \"Dify API\
-          \ Konfiguration unvollstaendig. \"\n                \"Erwarte DIFY_API_URL,\
-          \ DIFY_DATASET_ID und DIFY_API_KEY.\"\n            )\n        }\n\n    #\
-          \ Extract filter values from paper_list if passed (Parse Router Output)\n\
-          \    if isinstance(paper_list, list) and len(paper_list) > 0:\n        first\
-          \ = paper_list[0]\n        if isinstance(first, dict):\n            if not\
-          \ _is_set(year):\n                year = first.get(\"year\", \"\")\n   \
-          \         if not _is_set(journal):\n                journal = first.get(\"\
-          journal\", \"\")\n            if not _is_set(title):\n                title\
-          \ = first.get(\"title\", \"\")\n        # Collect authors from ALL entries\
-          \ (supports multi-name OR queries\n        # where parse_router_output splits\
-          \ \"X, Y\" into separate entries)\n        if not _is_set(authors):\n  \
-          \          all_authors = []\n            for entry in paper_list:\n    \
-          \            if isinstance(entry, dict):\n                    a = (entry.get(\"\
+          def _compute_collaborations(\n    docs: list[dict], target_author: str =\
+          \ \"\"\n) -> tuple[str, str]:\n    \"\"\"Compute co-author pairs from paper\
+          \ metadata.\n\n    If target_author is set, filter to pairs involving that\
+          \ author.\n    Returns (result_text, intent_hint) for LLM-bypass output.\n\
+          \    \"\"\"\n    from collections import Counter\n\n    pair_counts: Counter\
+          \ = Counter()\n    pair_papers: dict[tuple, set] = {}  # (author_a, author_b)\
+          \ -> set of paper titles\n\n    for doc in docs:\n        author_str = doc.get(\"\
+          authors\", \"\")\n        if not author_str:\n            continue\n   \
+          \     # Authors are \"LastName1, FirstName1, LastName2, FirstName2, ...\"\
+          \n        # Group every 2 items: (LastName, FirstName) → \"FirstName LastName\"\
+          \n        raw = [a.strip() for a in author_str.split(\",\") if a.strip()]\n\
+          \        # If odd count, skip last (malformed)\n        if len(raw) % 2\
+          \ != 0:\n            raw = raw[:-1]\n        names = []\n        for i in\
+          \ range(0, len(raw), 2):\n            last, first = raw[i], raw[i + 1]\n\
+          \            # Normalize: \"FirstName LastName\"\n            names.append(f\"\
+          {first} {last}\")\n        if len(names) < 2:\n            continue\n\n\
+          \        title = doc.get(\"title\", \"Unknown\")\n        for i in range(len(names)):\n\
+          \            for j in range(i + 1, len(names)):\n                a, b =\
+          \ names[i], names[j]\n                # Normalize: alphabetical order for\
+          \ consistent keys\n                key = (min(a, b, key=str.lower), max(a,\
+          \ b, key=str.lower))\n                pair_counts[key] += 1\n          \
+          \      if key not in pair_papers:\n                    pair_papers[key]\
+          \ = set()\n                pair_papers[key].add(title)\n\n    # Filter by\
+          \ target author if specified\n    if target_author:\n        target_lower\
+          \ = target_author.lower()\n        pair_counts = Counter(\n            {\n\
+          \                k: v\n                for k, v in pair_counts.items()\n\
+          \                if target_lower in k[0].lower() or target_lower in k[1].lower()\n\
+          \            }\n        )\n        pair_papers = {\n            k: v\n \
+          \           for k, v in pair_papers.items()\n            if target_lower\
+          \ in k[0].lower() or target_lower in k[1].lower()\n        }\n\n    if not\
+          \ pair_counts:\n        sample_authors = []\n        for d in docs[:3]:\n\
+          \            sample_authors.append(f\"  '{d.get('authors', '')[:80]}' →\
+          \ {len(d.get('authors','').split(','))} parts\")\n        sample_info =\
+          \ \"\\n\".join(sample_authors) if sample_authors else \"(no docs)\"\n  \
+          \      return (\n            f\"Keine Kollaborationen gefunden. \"\n   \
+          \         f\"Docs total: {len(docs)}, docs with authors: {sum(1 for d in\
+          \ docs if d.get('authors'))}. \"\n            f\"Sample authors:\\n{sample_info}\"\
+          \n        ), \"\"\n\n    top = pair_counts.most_common(20)\n    total_pairs\
+          \ = len(pair_counts)\n    total_papers_with_pairs = len(\n        [d for\
+          \ d in docs if len(d.get(\"authors\", \"\").split(\",\")) >= 2]\n    )\n\
+          \n    lines = [\n        f\"Co-Author Collaboration Analysis\",\n      \
+          \  f\"\",\n        f\"Dataset: {len(docs)} papers, {total_papers_with_pairs}\
+          \ with ≥2 authors\",\n        f\"Unique co-author pairs found: {total_pairs}\"\
+          ,\n    ]\n\n    if target_author:\n        lines.insert(1, f\"Collaborator:\
+          \ {target_author}\")\n        lines.append(f\"\")\n    else:\n        lines.append(f\"\
+          \")\n        lines.append(f\"Top 20 most frequent co-author pairs:\")\n\
+          \        lines.append(f\"\")\n\n    for idx, (key, count) in enumerate(top,\
+          \ start=1):\n        a, b = key\n        papers = pair_papers.get(key, set())\n\
+          \        paper_list = \"; \".join(sorted(papers)[:3])\n        if len(papers)\
+          \ > 3:\n            paper_list += f\" (+{len(papers) - 3} more)\"\n    \
+          \    lines.append(f\"{idx}. **{a}** + **{b}** — {count} paper{'s' if count\
+          \ > 1 else ''}\")\n        lines.append(f\"   Papers: {paper_list}\")\n\
+          \        lines.append(f\"\")\n\n    # Future computation modes (not yet\
+          \ implemented):\n    # - publication_timeline: papers grouped by year\n\
+          \    # - journal_distribution: papers grouped by journal\n    # - author_productivity:\
+          \ paper count per author\n    # - topic_clustering: title-based keyword\
+          \ co-occurrence\n    intent_hint = \"collaboration\"\n\n    return \"\\\
+          n\".join(lines), intent_hint\n\n\ndef main(\n    year=None,\n    authors=None,\n\
+          \    journal=None,\n    title=None,\n    paper_list=None,\n    list_mode=None,\n\
+          \    collaboration_mode=None,\n    api_key_input=None,\n    dataset_id_input=None,\n\
+          ):\n    api_base = (os.getenv(\"DIFY_API_URL\") or \"http://rmap-chatbot-demo-dify/v1\"\
+          ).rstrip(\n        \"/\"\n    )\n    dataset_id = os.getenv(\"DIFY_DATASET_ID\"\
+          ) or \"<your-dataset-id>\"\n    api_key = os.getenv(\"DIFY_API_KEY\") or\
+          \ api_key_input or \"\"\n\n    if not _is_set(api_base) or not _is_set(dataset_id)\
+          \ or not _is_set(api_key):\n        return {\n            \"result\": (\n\
+          \                \"Dify API Konfiguration unvollstaendig. \"\n         \
+          \       \"Erwarte DIFY_API_URL, DIFY_DATASET_ID und DIFY_API_KEY.\"\n  \
+          \          )\n        }\n\n    # Extract filter values from paper_list if\
+          \ passed (Parse Router Output)\n    if isinstance(paper_list, list) and\
+          \ len(paper_list) > 0:\n        first = paper_list[0]\n        if isinstance(first,\
+          \ dict):\n            if not _is_set(year):\n                year = first.get(\"\
+          year\", \"\")\n            if not _is_set(journal):\n                journal\
+          \ = first.get(\"journal\", \"\")\n            if not _is_set(title):\n \
+          \               title = first.get(\"title\", \"\")\n        # Collect authors\
+          \ from ALL entries (supports multi-name OR queries\n        # where parse_router_output\
+          \ splits \"X, Y\" into separate entries)\n        if not _is_set(authors):\n\
+          \            all_authors = []\n            for entry in paper_list:\n  \
+          \              if isinstance(entry, dict):\n                    a = (entry.get(\"\
           authors\") or \"\").strip()\n                    if a:\n               \
           \         all_authors.append(a)\n            if all_authors:\n         \
           \       authors = \", \".join(all_authors)\n\n    headers = _build_headers(str(api_key).strip())\n\
           \    docs, errors = _collect_documents(str(api_base), str(dataset_id).strip(),\
-          \ headers)\n\n    year_filter = _sanitize_year_filter(year)\n    journal_filter\
-          \ = _sanitize_free_text_filter(journal, max_len=80)\n    title_filter =\
-          \ _sanitize_free_text_filter(title, max_len=160)\n\n    has_any_filter =\
-          \ any(\n        [\n            _is_set(year_filter),\n            _is_set(journal_filter),\n\
-          \            _is_set(title_filter),\n            _is_set(authors),\n   \
-          \     ]\n    )\n\n    # No-filter query → return all documents or distinct\
-          \ authors\n    if not has_any_filter:\n        if str(list_mode or \"\"\
-          ).strip().lower() == \"authors\":\n            # Extract distinct authors\
-          \ from all docs\n            author_set = set()\n            for d in docs:\n\
-          \                for a in d.get(\"authors\", \"\").split(\",\"):\n     \
-          \               a = a.strip()\n                    if a and len(a) > 2:\n\
-          \                        author_set.add(a)\n            author_list = sorted(author_set)\n\
-          \            total = len(author_list)\n            display = author_list[:100]\n\
-          \            lines = [f\"{i}. {a}\" for i, a in enumerate(display, 1)]\n\
-          \            text = f\"Distinct authors in dataset: {total}\\n\\n\" + \"\
-          \\n\".join(lines)\n            if total > 100:\n                text +=\
-          \ f\"\\n\\n(Showing first 100 of {total} authors. Use 'Papers by <name>'\
-          \ to find specific authors.)\"\n            return {\n                \"\
-          result\": text.split(\"\\n\")[:30],\n                \"result_text\": text,\n\
-          \            }\n        else:\n            uniq = {}\n            for d\
-          \ in docs:\n                k = (\n                    d.get(\"title\",\
-          \ \"\").strip().lower(),\n                    d.get(\"authors\", \"\").strip().lower(),\n\
-          \                    d.get(\"year\", \"\").strip(),\n                  \
-          \  d.get(\"journal\", \"\").strip().lower(),\n                )\n      \
-          \          if k not in uniq:\n                    uniq[k] = d\n        \
-          \    all_docs = list(uniq.values())\n            total = len(all_docs)\n\
-          \            lines = [\n                f\"{i}. {d['title']}, {d['year']},\
-          \ {d['journal']}\"\n                for i, d in enumerate(all_docs, 1)\n\
-          \            ]\n            text = f\"Total papers in dataset: {total}\\\
-          n\\n\" + \"\\n\".join(lines)\n            return {\n                \"result\"\
-          : text.split(\"\\n\")[:30],\n                \"result_text\": text,\n  \
-          \          }\n\n    matches = []\n    for doc in docs:\n        if _matches_filters(doc,\
-          \ year_filter, authors, journal_filter, title_filter):\n            matches.append(doc)\n\
+          \ headers)\n\n    # ── Collaboration Analysis Mode ─────────────────────────────────\n\
+          \    # Detects queries like \"who has collaborated the most?\", \"collaboration\
+          \ network\",\n    # \"co-authors of X\". Returns co-author pair frequencies,\
+          \ bypasses LLM.\n    if _is_set(collaboration_mode):\n        target = str(collaboration_mode).strip()\n\
+          \        target_author = target if target.lower() not in (\"true\", \"1\"\
+          , \"yes\", \"all\") else \"\"\n        result_text, intent_hint = _compute_collaborations(docs,\
+          \ target_author)\n        result_lines = result_text.split(\"\\n\") if result_text\
+          \ else []\n        if len(result_lines) > 30:\n            result_lines\
+          \ = result_lines[:30]\n        return {\n            \"result\": result_lines,\n\
+          \            \"result_text\": result_text,\n        }\n\n    year_filter\
+          \ = _sanitize_year_filter(year)\n    journal_filter = _sanitize_free_text_filter(journal,\
+          \ max_len=80)\n    title_filter = _sanitize_free_text_filter(title, max_len=160)\n\
+          \n    has_any_filter = any(\n        [\n            _is_set(year_filter),\n\
+          \            _is_set(journal_filter),\n            _is_set(title_filter),\n\
+          \            _is_set(authors),\n        ]\n    )\n\n    # No-filter query\
+          \ → return all documents or distinct authors\n    if not has_any_filter:\n\
+          \        if str(list_mode or \"\").strip().lower() == \"authors\":\n   \
+          \         # Extract distinct authors from all docs\n            author_set\
+          \ = set()\n            for d in docs:\n                for a in d.get(\"\
+          authors\", \"\").split(\",\"):\n                    a = a.strip()\n    \
+          \                if a and len(a) > 2:\n                        author_set.add(a)\n\
+          \            author_list = sorted(author_set)\n            total = len(author_list)\n\
+          \            display = author_list[:100]\n            lines = [f\"{i}. {a}\"\
+          \ for i, a in enumerate(display, 1)]\n            text = f\"Distinct authors\
+          \ in dataset: {total}\\n\\n\" + \"\\n\".join(lines)\n            if total\
+          \ > 100:\n                text += f\"\\n\\n(Showing first 100 of {total}\
+          \ authors. Use 'Papers by <name>' to find specific authors.)\"\n       \
+          \     return {\n                \"result\": text.split(\"\\n\")[:30],\n\
+          \                \"result_text\": text,\n            }\n        else:\n\
+          \            uniq = {}\n            for d in docs:\n                k =\
+          \ (\n                    d.get(\"title\", \"\").strip().lower(),\n     \
+          \               d.get(\"authors\", \"\").strip().lower(),\n            \
+          \        d.get(\"year\", \"\").strip(),\n                    d.get(\"journal\"\
+          , \"\").strip().lower(),\n                )\n                if k not in\
+          \ uniq:\n                    uniq[k] = d\n            all_docs = list(uniq.values())\n\
+          \            total = len(all_docs)\n            lines = [\n            \
+          \    f\"{i}. {d['title']}, {d['year']}, {d['journal']}\"\n             \
+          \   for i, d in enumerate(all_docs, 1)\n            ]\n            text\
+          \ = f\"Total papers in dataset: {total}\\n\\n\" + \"\\n\".join(lines)\n\
+          \            return {\n                \"result\": text.split(\"\\n\")[:30],\n\
+          \                \"result_text\": text,\n            }\n\n    matches =\
+          \ []\n    for doc in docs:\n        if _matches_filters(doc, year_filter,\
+          \ authors, journal_filter, title_filter):\n            matches.append(doc)\n\
           \n    unique = {}\n    for doc in matches:\n        key = (\n          \
           \  (doc.get(\"title\") or \"\").strip().lower(),\n            (doc.get(\"\
           authors\") or \"\").strip().lower(),\n            (doc.get(\"year\") or\
@@ -938,6 +1005,11 @@ workflow:
           - list_mode
           value_type: string
           variable: list_mode
+        - value_selector:
+          - '1778800001033'
+          - collaboration_mode
+          value_type: string
+          variable: collaboration_mode
         - value_selector:
           - env
           - DIFY_API_KEY
@@ -1238,16 +1310,16 @@ workflow:
           \  api_key_input=None,\n):\n    api_base = (\n        _norm(os.getenv(\"\
           DIFY_API_URL\")) or \"http://rmap-chatbot-demo-dify/v1\"\n    ).rstrip(\"\
           /\")\n    dataset_id = (\n        _norm(os.getenv(\"DIFY_DATASET_ID\"))\
-          \ or \"<your-dataset-id>\"\n    )\n    api_key = _norm(os.getenv(\"\
-          DIFY_API_KEY\")) or api_key_input or \"\"\n    headers = {\"Authorization\"\
-          : f\"Bearer {api_key}\", \"Content-Type\": \"application/json\"}\n\n   \
-          \ resolved = _norm(doc_id)\n    used_title_fallback = False\n    if not\
-          \ resolved:\n        title = _norm(item_title)\n        if not title:\n\
-          \            return {\"paper_context\": \"\", \"paper_fetch_error\": \"\
-          no doc_id and no title\"}\n        resolved, err = _find_doc_id_by_title(api_base,\
-          \ dataset_id, title, headers)\n        if not resolved:\n            return\
-          \ {\n                \"paper_context\": \"\",\n                \"paper_fetch_error\"\
-          : err or \"title lookup failed\",\n            }\n        used_title_fallback\
+          \ or \"<your-dataset-id>\"\n    )\n    api_key = _norm(os.getenv(\"DIFY_API_KEY\"\
+          )) or api_key_input or \"\"\n    headers = {\"Authorization\": f\"Bearer\
+          \ {api_key}\", \"Content-Type\": \"application/json\"}\n\n    resolved =\
+          \ _norm(doc_id)\n    used_title_fallback = False\n    if not resolved:\n\
+          \        title = _norm(item_title)\n        if not title:\n            return\
+          \ {\"paper_context\": \"\", \"paper_fetch_error\": \"no doc_id and no title\"\
+          }\n        resolved, err = _find_doc_id_by_title(api_base, dataset_id, title,\
+          \ headers)\n        if not resolved:\n            return {\n           \
+          \     \"paper_context\": \"\",\n                \"paper_fetch_error\": err\
+          \ or \"title lookup failed\",\n            }\n        used_title_fallback\
           \ = True\n\n    text, err = _fetch_all_segments(api_base, dataset_id, resolved,\
           \ headers)\n\n    # Fallback: if doc_id fetch returned no segments, try\
           \ title lookup\n    if (not text or err) and not used_title_fallback:\n\
@@ -1499,29 +1571,31 @@ workflow:
             \ reference → \"knowledge_retrieval\"\n- Author + \"summarize their findings\"\
             \ → \"content_summary\"\n- \"Compare the papers by X and Y\" → \"content_summary\"\
             \n- \"Group/Sort/Filter/Categorize them by X\" (journal, topic, year,\
-            \ method) → \"content_summary\", paper_list: \"use_memory\"\n\n=== paper_list\
-            \ RULES ===\n\nFor \"knowledge_retrieval\", \"author_lookup\", \"entity_lookup\"\
-            : paper_list MUST be [].\nFor \"metadata_list\" and \"content_summary\"\
-            : follow the same rules as before.\n\nFOR NEW QUERIES (conversation.memory\
-            \ is empty or irrelevant):\n  → paper_list = SEARCH CONSTRAINTS for the\
-            \ database lookup.\n  Examples:\n  - \"papers by Christoph Dieterich\"\
-            \ → [{\"authors\": \"Christoph Dieterich\"}]\n  - \"papers about RNA from\
-            \ 2024\" → [{\"title\": \"RNA\", \"year\": \"2024\"}]\n\nFOR FOLLOW-UP\
-            \ QUERIES (conversation.memory has papers AND query references them):\n\
-            \  → paper_list = the STRING \"use_memory\". The downstream parser will\
-            \ fill in the actual papers.\n  The query contains pronouns or references\
-            \ to prior turns.\n\nCRITICAL: \"Papers by <name>\" / \"Find papers by\
-            \ <name>\" is ALWAYS a NEW metadata_list query. Even if conversation.memory\
-            \ has papers, do NOT use \"use_memory\" for these. They are fresh author\
-            \ searches, NOT follow-up refinements.\n\nFor \"metadata_list\": empty\
-            \ paper_list IS VALID (means all papers / all authors).\nFor \"content_summary\"\
-            : paper_list MUST NOT be empty. If you cannot determine which papers to\
-            \ summarize, use \"knowledge_retrieval\" instead.\n\n=== REWRITTEN QUERY\
-            \ RULES ===\n\n- Resolve pronouns: \"them\" → \"the papers from the previous\
-            \ turn\".\n- For author_lookup and entity_lookup: keep the original query\
-            \ as-is (it will be used for KR search).\n- Keep original language and\
-            \ intent.\n\nOutput ONLY the JSON. No <think> tags, no explanations, no\
-            \ markdown fences."
+            \ method) → \"content_summary\", paper_list: \"use_memory\"\n- \"Who has\
+            \ collaborated the most?\" / \"Who published together?\" / \"Co-authors\
+            \ of X?\" → \"metadata_list\"\" (journal, topic, year, method) → \"content_summary\"\
+            , paper_list: \"use_memory\"\n\n=== paper_list RULES ===\n\nFor \"knowledge_retrieval\"\
+            , \"author_lookup\", \"entity_lookup\": paper_list MUST be [].\nFor \"\
+            metadata_list\" and \"content_summary\": follow the same rules as before.\n\
+            \nFOR NEW QUERIES (conversation.memory is empty or irrelevant):\n  → paper_list\
+            \ = SEARCH CONSTRAINTS for the database lookup.\n  Examples:\n  - \"papers\
+            \ by Christoph Dieterich\" → [{\"authors\": \"Christoph Dieterich\"}]\n\
+            \  - \"papers about RNA from 2024\" → [{\"title\": \"RNA\", \"year\":\
+            \ \"2024\"}]\n\nFOR FOLLOW-UP QUERIES (conversation.memory has papers\
+            \ AND query references them):\n  → paper_list = the STRING \"use_memory\"\
+            . The downstream parser will fill in the actual papers.\n  The query contains\
+            \ pronouns or references to prior turns.\n\nCRITICAL: \"Papers by <name>\"\
+            \ / \"Find papers by <name>\" is ALWAYS a NEW metadata_list query. Even\
+            \ if conversation.memory has papers, do NOT use \"use_memory\" for these.\
+            \ They are fresh author searches, NOT follow-up refinements.\n\nFor \"\
+            metadata_list\": empty paper_list IS VALID (means all papers / all authors).\n\
+            For \"content_summary\": paper_list MUST NOT be empty. If you cannot determine\
+            \ which papers to summarize, use \"knowledge_retrieval\" instead.\n\n\
+            === REWRITTEN QUERY RULES ===\n\n- Resolve pronouns: \"them\" → \"the\
+            \ papers from the previous turn\".\n- For author_lookup and entity_lookup:\
+            \ keep the original query as-is (it will be used for KR search).\n- Keep\
+            \ original language and intent.\n\nOutput ONLY the JSON. No <think> tags,\
+            \ no explanations, no markdown fences."
         reasoning_format: separated
         selected: false
         structured_output:
@@ -1781,10 +1855,31 @@ workflow:
           \        # Multi-author if: any entry has comma, OR multiple entries with\
           \ authors\n        has_comma = any(\",\" in a for a in all_authors)\n  \
           \      if has_comma or len(all_authors) >= 2:\n            multi_author_bypass\
-          \ = True\n\n    return {\n        \"intent\": intent,\n        \"paper_list\"\
-          : paper_list,\n        \"paper_count\": 0 if multi_author_bypass else len(paper_list),\n\
-          \        \"rewritten_query\": rw,\n        \"list_mode\": list_mode,\n \
-          \   }\n"
+          \ = True\n\n    # ── Collaboration analysis guard ───────────────────────────\n\
+          \    # Detects queries like \"who collaborated most\", \"co-authors of X\"\
+          ,\n    # \"collaboration network\", \"published together\". Forces metadata_list\n\
+          \    # and passes collaboration_mode to metadata_query.py.\n    collaboration_mode\
+          \ = \"\"\n    if sys_query:\n        q = str(sys_query).strip().lower()\n\
+          \        collab_markers = (\n            \"collaborat\",\n            \"\
+          co-author\",\n            \"coauthor\",\n            \"co author\",\n  \
+          \          \"published together\",\n            \"publish together\",\n\
+          \            \"worked together\",\n            \"work together\",\n    \
+          \        \"co-autoren\",\n        )\n        if any(m in q for m in collab_markers):\n\
+          \            intent = \"metadata_list\"\n            # Extract target author\
+          \ if specified: \"co-authors of Mark Helm\"\n            target = \"\"\n\
+          \            for sep in (\"co-authors of \", \"collaborators of \", \"coauthors\
+          \ of \",\n                        \"collaborations of \", \"collaboration\
+          \ of \"):\n                if sep in q:\n                    target = q.split(sep,\
+          \ 1)[1].strip().rstrip(\".,;?!\")\n                    break\n         \
+          \   if not target:\n                for sep in (\"co-authors with \", \"\
+          collaborated with \", \"collaborations with \"):\n                    if\
+          \ sep in q:\n                        target = q.split(sep, 1)[1].strip().rstrip(\"\
+          .,;?!\")\n                        break\n            collaboration_mode\
+          \ = target if target else \"all\"\n            paper_list = []\n       \
+          \     multi_author_bypass = True\n\n    return {\n        \"intent\": intent,\n\
+          \        \"paper_list\": paper_list,\n        \"paper_count\": 0 if multi_author_bypass\
+          \ else len(paper_list),\n        \"rewritten_query\": rw,\n        \"list_mode\"\
+          : list_mode,\n        \"collaboration_mode\": collaboration_mode,\n    }\n"
         code_language: python3
         isInIteration: false
         isInLoop: false
@@ -1802,6 +1897,9 @@ workflow:
             children: null
             type: array[object]
           rewritten_query:
+            children: null
+            type: string
+          collaboration_mode:
             children: null
             type: string
         selected: false
