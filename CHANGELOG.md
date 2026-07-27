@@ -1,5 +1,21 @@
 # Changelog
 
+## [0.4.15] - 2026-07-27
+
+### Added
+
+- **#16 Collaboration Analysis**: New computation mode in `metadata_query.py` (`_compute_collaborations()`) calculates co-author pair frequencies from paper metadata. Queries like "Who has collaborated the most?" and "Co-authors of Mark Helm" route to `metadata_list` via collaboration query guard. Uses LastName,FirstName → FirstName LastName parsing. LLM-bypassed (pre-formatted output).
+- **Future computation modes**: `publication_timeline`, `journal_distribution`, `author_productivity` noted as planned extensions.
+
+### Changed
+
+- **Roadmap restructured**: 329→88 lines. Extracted `intent-architecture.md` (per-intent deep dives) and `lessons-learned.md`.
+- **Technical Guide**: Updated to v0.4.14+ (H100 plan, author normalization, LLM bypass, embedding eval).
+
+### Known Issues
+
+- **Dify Publish HTTP 500**: Draft→published sync fails. Collaboration analysis verified locally but not in published app.
+
 ## [0.4.11] - 2026-07-22
 
 ### Fixed

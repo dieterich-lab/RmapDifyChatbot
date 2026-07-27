@@ -1,6 +1,6 @@
 # RMAP Chatbot – Feature Roadmap & Analysis
 
-> Stand: 2026-07-27 · v0.4.14+ · App `16d50bee-bc86-4bda-bb56-a861743f3ddb` · Model `qwen2.5:14b` · Embedding `nomic-embed-text-v2-moe` · 20 Test Cases
+> Stand: 2026-07-27 · v0.4.15 · App `16d50bee-bc86-4bda-bb56-a861743f3ddb` · Model `qwen2.5:14b` · Embedding `nomic-embed-text-v2-moe` · 20 Test Cases
 
 ## Übersicht
 
@@ -28,7 +28,7 @@
 | 13 | `content_summary` | Mark Helm → Summarize | ✅ 194s (cap 8 papers) | v0.4.10 |
 | 14 | `metadata_list` | Papers by Dieterich (last name) | ✅ 8 papers | v0.4.6 |
 | 15 | `content_summary` | Papers by X → Group by journal | ✅ Groups by journal | v0.4.6 |
-| 16 | N/A | PI Collaboration Analysis | 🟡 planned: multi-author intersection via OR-matching | – |
+| 16 | `metadata_list` | PI Collaboration Analysis | ✅ co-author pair frequencies | v0.4.15 |
 | 17 | `metadata_list` | Multi-author OR: "Identify: Helm, Hengesbach" | ✅ 39 papers, 14–28s | v0.4.14 |
 | 18 | N/A | Hardcoded info for Lauren Saunders | ❌ external KB needed | – |
 | 19 | `metadata_list` | Find papers by Tamer Butto | ✅ 2 papers | v0.4.11 |
@@ -55,9 +55,10 @@
 |---|--------|:---:|--------|--------|--------|
 | 1 | **H100 Provider Config + 35B Regression** | 🔴 | Behebt #5 (m6A-Recall), verbessert `author_lookup` Recall | 2h | Models gepullt, YAML fehlt |
 | 2 | **qwen3-embedding Evaluation** | 🟡 | Bessere Retrieval-Rankings (miCLIP/MeRIP) | 3h | Analog zu bge-m3 Test (v0.4.14) |
-| 3 | **#16 Collaboration Analysis** | 🟢 | Multi-Author-Schnittmengen | 1–2d | OR-Matching seit v0.4.14 |
+| 3 | **#16 Collaboration Analysis** | 🟢 | Co-Author pair frequencies | ✅ Done | ✅ Implemented (v0.4.15) |
 | 4 | **Conversation Memory Expansion** | 🟢 | Stabilere Multi-Turn ("What else did she publish?") | 4h | Memory aktuell nur Papers |
 | 5 | **🔬 Abstract Parent-Child Chunking** | 🔵 | Bessere Retrieval-Rankings durch semantisches Chunking | >2d | Preprocessing-Pipeline nötig |
+| – | **Future computation modes** | 🔵 | `publication_timeline`, `journal_distribution`, `author_productivity` | je 2–4h | Nach Collaboration-Pattern |
 
 ### 🔴 Priority 1 — H100 LLM Upgrade
 
