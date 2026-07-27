@@ -31,7 +31,7 @@ workflow:
     selector:
     - env
     - DIFY_API_KEY
-    value: dataset-7wcBkJhIdor2hpDWsj0XAuNu
+    value: dataset-N1iM87woo8r1NgLG1aPB0hP9
     value_type: string
   - description: ''
     id: 01298697-9219-4423-bc87-f65e3fde14d7
@@ -382,7 +382,7 @@ workflow:
         title: Start
         type: start
         variables: []
-      height: 21
+      height: 100
       id: '1711528914102'
       position:
         x: -1479.2766666643752
@@ -394,10 +394,10 @@ workflow:
       sourcePosition: right
       targetPosition: left
       type: custom
-      width: 150
+      width: 242
     - data:
         dataset_ids:
-        - K9iY7UQHypr3owDhkZx2EhhWlDZuvgoXWozjL9VwmDw=
+        - 5a231cec-21bf-40b9-86c8-87b9d01bca74
         isInIteration: false
         isInLoop: false
         metadata_filtering_conditions:
@@ -417,21 +417,21 @@ workflow:
           top_k: 100
           weights:
             keyword_setting:
-              keyword_weight: 0.7
+              keyword_weight: 0.3
             vector_setting:
-              embedding_model_name: nomic-embed-text-v2-moe
+              embedding_model_name: ' nomic-embed-text-v2-moe'
               embedding_provider_name: langgenius/ollama/ollama
-              vector_weight: 0.3
+              vector_weight: 0.7
             weight_type: customized
         query_attachment_selector: []
         query_variable_selector:
         - sys
         - query
         retrieval_mode: multiple
-        selected: false
+        selected: true
         title: Knowledge Retrieval
         type: knowledge-retrieval
-      height: 51
+      height: 89
       id: '17785930638200'
       position:
         x: -1072.0495596626015
@@ -439,7 +439,7 @@ workflow:
       positionAbsolute:
         x: -1072.0495596626015
         y: 3681.1329167788017
-      selected: false
+      selected: true
       sourcePosition: right
       targetPosition: left
       type: custom
@@ -901,23 +901,23 @@ workflow:
           \    list_mode=None,\n    collaboration_mode=None,\n    api_key_input=None,\n\
           \    dataset_id_input=None,\n):\n    api_base = (os.getenv(\"DIFY_API_URL\"\
           ) or \"http://rmap-chatbot-demo-dify/v1\").rstrip(\n        \"/\"\n    )\n\
-          \    dataset_id = os.getenv(\"DIFY_DATASET_ID\") or \"<your-dataset-id>\"\
-          \n    api_key = os.getenv(\"DIFY_API_KEY\") or api_key_input or \"\"\n\n\
-          \    if not _is_set(api_base) or not _is_set(dataset_id) or not _is_set(api_key):\n\
-          \        return {\n            \"result\": (\n                \"Dify API\
-          \ Konfiguration unvollstaendig. \"\n                \"Erwarte DIFY_API_URL,\
-          \ DIFY_DATASET_ID und DIFY_API_KEY.\"\n            )\n        }\n\n    #\
-          \ Extract filter values from paper_list if passed (Parse Router Output)\n\
-          \    if isinstance(paper_list, list) and len(paper_list) > 0:\n        first\
-          \ = paper_list[0]\n        if isinstance(first, dict):\n            if not\
-          \ _is_set(year):\n                year = first.get(\"year\", \"\")\n   \
-          \         if not _is_set(journal):\n                journal = first.get(\"\
-          journal\", \"\")\n            if not _is_set(title):\n                title\
-          \ = first.get(\"title\", \"\")\n        # Collect authors from ALL entries\
-          \ (supports multi-name OR queries\n        # where parse_router_output splits\
-          \ \"X, Y\" into separate entries)\n        if not _is_set(authors):\n  \
-          \          all_authors = []\n            for entry in paper_list:\n    \
-          \            if isinstance(entry, dict):\n                    a = (entry.get(\"\
+          \    dataset_id = dataset_id_input or os.getenv(\"DIFY_DATASET_ID\") or\
+          \ \"5a231cec-21bf-40b9-86c8-87b9d01bca74\"\n    api_key = api_key_input\
+          \ or os.getenv(\"DIFY_API_KEY\") or \"\"\n\n    if not _is_set(api_base)\
+          \ or not _is_set(dataset_id) or not _is_set(api_key):\n        return {\n\
+          \            \"result\": (\n                \"Dify API Konfiguration unvollstaendig.\
+          \ \"\n                \"Erwarte DIFY_API_URL, DIFY_DATASET_ID und DIFY_API_KEY.\"\
+          \n            )\n        }\n\n    # Extract filter values from paper_list\
+          \ if passed (Parse Router Output)\n    if isinstance(paper_list, list) and\
+          \ len(paper_list) > 0:\n        first = paper_list[0]\n        if isinstance(first,\
+          \ dict):\n            if not _is_set(year):\n                year = first.get(\"\
+          year\", \"\")\n            if not _is_set(journal):\n                journal\
+          \ = first.get(\"journal\", \"\")\n            if not _is_set(title):\n \
+          \               title = first.get(\"title\", \"\")\n        # Collect authors\
+          \ from ALL entries (supports multi-name OR queries\n        # where parse_router_output\
+          \ splits \"X, Y\" into separate entries)\n        if not _is_set(authors):\n\
+          \            all_authors = []\n            for entry in paper_list:\n  \
+          \              if isinstance(entry, dict):\n                    a = (entry.get(\"\
           authors\") or \"\").strip()\n                    if a:\n               \
           \         all_authors.append(a)\n            if all_authors:\n         \
           \       authors = \", \".join(all_authors)\n\n    headers = _build_headers(str(api_key).strip())\n\
@@ -1309,16 +1309,16 @@ workflow:
           \  api_key_input=None,\n):\n    api_base = (\n        _norm(os.getenv(\"\
           DIFY_API_URL\")) or \"http://rmap-chatbot-demo-dify/v1\"\n    ).rstrip(\"\
           /\")\n    dataset_id = (\n        _norm(os.getenv(\"DIFY_DATASET_ID\"))\
-          \ or \"<your-dataset-id>\"\n    )\n    api_key = _norm(os.getenv(\"DIFY_API_KEY\"\
-          )) or api_key_input or \"\"\n    headers = {\"Authorization\": f\"Bearer\
-          \ {api_key}\", \"Content-Type\": \"application/json\"}\n\n    resolved =\
-          \ _norm(doc_id)\n    used_title_fallback = False\n    if not resolved:\n\
-          \        title = _norm(item_title)\n        if not title:\n            return\
-          \ {\"paper_context\": \"\", \"paper_fetch_error\": \"no doc_id and no title\"\
-          }\n        resolved, err = _find_doc_id_by_title(api_base, dataset_id, title,\
-          \ headers)\n        if not resolved:\n            return {\n           \
-          \     \"paper_context\": \"\",\n                \"paper_fetch_error\": err\
-          \ or \"title lookup failed\",\n            }\n        used_title_fallback\
+          \ or \"5a231cec-21bf-40b9-86c8-87b9d01bca74\"\n    )\n    api_key = api_key_input\
+          \ or _norm(os.getenv(\"DIFY_API_KEY\")) or \"\"\n    headers = {\"Authorization\"\
+          : f\"Bearer {api_key}\", \"Content-Type\": \"application/json\"}\n\n   \
+          \ resolved = _norm(doc_id)\n    used_title_fallback = False\n    if not\
+          \ resolved:\n        title = _norm(item_title)\n        if not title:\n\
+          \            return {\"paper_context\": \"\", \"paper_fetch_error\": \"\
+          no doc_id and no title\"}\n        resolved, err = _find_doc_id_by_title(api_base,\
+          \ dataset_id, title, headers)\n        if not resolved:\n            return\
+          \ {\n                \"paper_context\": \"\",\n                \"paper_fetch_error\"\
+          : err or \"title lookup failed\",\n            }\n        used_title_fallback\
           \ = True\n\n    text, err = _fetch_all_segments(api_base, dataset_id, resolved,\
           \ headers)\n\n    # Fallback: if doc_id fetch returned no segments, try\
           \ title lookup\n    if (not text or err) and not used_title_fallback:\n\
@@ -2395,7 +2395,7 @@ workflow:
       type: custom
       width: 241
     viewport:
-      x: 1346.8308625694722
-      y: -313.82300036027505
-      zoom: 0.25000000000000033
+      x: 865.8929356980279
+      y: -1581.495717501479
+      zoom: 0.5479058832238461
   rag_pipeline_variables: []
