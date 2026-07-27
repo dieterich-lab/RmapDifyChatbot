@@ -245,16 +245,19 @@ def main(router_text=None, conversation_memory=None, sys_query=None):
             "co author",
             "published together",
             "publish together",
+            "published with",
             "worked together",
             "work together",
             "co-autoren",
         )
         if any(m in q for m in collab_markers):
             intent = "metadata_list"
-            # Extract target author if specified: "co-authors of Mark Helm"
+            # Extract target author if specified: "co-authors of Mark Helm",
+            # "Who has collaborated with Dieterich?", "Which co-authors has X published with?"
             target = ""
             for sep in (
                 "co-authors of ",
+                "co-author of ",
                 "collaborators of ",
                 "coauthors of ",
                 "collaborations of ",
@@ -268,10 +271,19 @@ def main(router_text=None, conversation_memory=None, sys_query=None):
                     "co-authors with ",
                     "collaborated with ",
                     "collaborations with ",
+                    "published with ",
                 ):
                     if sep in q:
                         target = q.split(sep, 1)[1].strip().rstrip(".,;?!")
                         break
+            if not target:
+                # "Which co-authors has Mark Helm published with?" → extract "mark helm"
+                m = re.search(
+                    r"(?:co-authors?\s+(?:has\s+)?|coauthors?\s+(?:has\s+)?)([\w\s.-]+?)\s+(?:published\s+with|collaborated\s+with)",
+                    q,
+                )
+                if m:
+                    target = m.group(1).strip().rstrip(".,;?!")
             collaboration_mode = target if target else "all"
             paper_list = []
             multi_author_bypass = True

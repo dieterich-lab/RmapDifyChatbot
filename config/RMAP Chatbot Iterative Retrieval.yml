@@ -901,9 +901,9 @@ workflow:
           \    list_mode=None,\n    collaboration_mode=None,\n    api_key_input=None,\n\
           \    dataset_id_input=None,\n):\n    api_base = (os.getenv(\"DIFY_API_URL\"\
           ) or \"http://rmap-chatbot-demo-dify/v1\").rstrip(\n        \"/\"\n    )\n\
-          \    dataset_id = dataset_id_input or os.getenv(\"DIFY_DATASET_ID\") or\
-          \ \"5a231cec-21bf-40b9-86c8-87b9d01bca74\"\n    api_key = api_key_input\
-          \ or os.getenv(\"DIFY_API_KEY\") or \"\"\n\n    if not _is_set(api_base)\
+          \    dataset_id = (\n        dataset_id_input\n        or os.getenv(\"DIFY_DATASET_ID\"\
+          )\n        or \"5a231cec-21bf-40b9-86c8-87b9d01bca74\"\n    )\n    api_key\
+          \ = api_key_input or os.getenv(\"DIFY_API_KEY\") or \"\"\n\n    if not _is_set(api_base)\
           \ or not _is_set(dataset_id) or not _is_set(api_key):\n        return {\n\
           \            \"result\": (\n                \"Dify API Konfiguration unvollstaendig.\
           \ \"\n                \"Erwarte DIFY_API_URL, DIFY_DATASET_ID und DIFY_API_KEY.\"\
@@ -1572,29 +1572,29 @@ workflow:
             \n- \"Group/Sort/Filter/Categorize them by X\" (journal, topic, year,\
             \ method) → \"content_summary\", paper_list: \"use_memory\"\n- \"Who has\
             \ collaborated the most?\" / \"Who published together?\" / \"Co-authors\
-            \ of X?\" → \"metadata_list\"\" (journal, topic, year, method) → \"content_summary\"\
-            , paper_list: \"use_memory\"\n\n=== paper_list RULES ===\n\nFor \"knowledge_retrieval\"\
-            , \"author_lookup\", \"entity_lookup\": paper_list MUST be [].\nFor \"\
-            metadata_list\" and \"content_summary\": follow the same rules as before.\n\
-            \nFOR NEW QUERIES (conversation.memory is empty or irrelevant):\n  → paper_list\
-            \ = SEARCH CONSTRAINTS for the database lookup.\n  Examples:\n  - \"papers\
-            \ by Christoph Dieterich\" → [{\"authors\": \"Christoph Dieterich\"}]\n\
-            \  - \"papers about RNA from 2024\" → [{\"title\": \"RNA\", \"year\":\
-            \ \"2024\"}]\n\nFOR FOLLOW-UP QUERIES (conversation.memory has papers\
-            \ AND query references them):\n  → paper_list = the STRING \"use_memory\"\
-            . The downstream parser will fill in the actual papers.\n  The query contains\
-            \ pronouns or references to prior turns.\n\nCRITICAL: \"Papers by <name>\"\
-            \ / \"Find papers by <name>\" is ALWAYS a NEW metadata_list query. Even\
-            \ if conversation.memory has papers, do NOT use \"use_memory\" for these.\
-            \ They are fresh author searches, NOT follow-up refinements.\n\nFor \"\
-            metadata_list\": empty paper_list IS VALID (means all papers / all authors).\n\
-            For \"content_summary\": paper_list MUST NOT be empty. If you cannot determine\
-            \ which papers to summarize, use \"knowledge_retrieval\" instead.\n\n\
-            === REWRITTEN QUERY RULES ===\n\n- Resolve pronouns: \"them\" → \"the\
-            \ papers from the previous turn\".\n- For author_lookup and entity_lookup:\
-            \ keep the original query as-is (it will be used for KR search).\n- Keep\
-            \ original language and intent.\n\nOutput ONLY the JSON. No <think> tags,\
-            \ no explanations, no markdown fences."
+            \ of X?\" / \"Which co-authors has X published with?\" → \"metadata_list\"\
+            \n\n=== paper_list RULES ===\n\nFor \"knowledge_retrieval\", \"author_lookup\"\
+            , \"entity_lookup\": paper_list MUST be [].\nFor \"metadata_list\" and\
+            \ \"content_summary\": follow the same rules as before.\n\nFOR NEW QUERIES\
+            \ (conversation.memory is empty or irrelevant):\n  → paper_list = SEARCH\
+            \ CONSTRAINTS for the database lookup.\n  Examples:\n  - \"papers by Christoph\
+            \ Dieterich\" → [{\"authors\": \"Christoph Dieterich\"}]\n  - \"papers\
+            \ about RNA from 2024\" → [{\"title\": \"RNA\", \"year\": \"2024\"}]\n\
+            \nFOR FOLLOW-UP QUERIES (conversation.memory has papers AND query references\
+            \ them):\n  → paper_list = the STRING \"use_memory\". The downstream parser\
+            \ will fill in the actual papers.\n  The query contains pronouns or references\
+            \ to prior turns.\n\nCRITICAL: \"Papers by <name>\" / \"Find papers by\
+            \ <name>\" is ALWAYS a NEW metadata_list query. Even if conversation.memory\
+            \ has papers, do NOT use \"use_memory\" for these. They are fresh author\
+            \ searches, NOT follow-up refinements.\n\nFor \"metadata_list\": empty\
+            \ paper_list IS VALID (means all papers / all authors).\nFor \"content_summary\"\
+            : paper_list MUST NOT be empty. If you cannot determine which papers to\
+            \ summarize, use \"knowledge_retrieval\" instead.\n\n=== REWRITTEN QUERY\
+            \ RULES ===\n\n- Resolve pronouns: \"them\" → \"the papers from the previous\
+            \ turn\".\n- For author_lookup and entity_lookup: keep the original query\
+            \ as-is (it will be used for KR search).\n- Keep original language and\
+            \ intent.\n\nOutput ONLY the JSON. No <think> tags, no explanations, no\
+            \ markdown fences."
         reasoning_format: separated
         selected: false
         structured_output:
@@ -1862,26 +1862,35 @@ workflow:
           \        collab_markers = (\n            \"collaborat\",\n            \"\
           co-author\",\n            \"coauthor\",\n            \"co author\",\n  \
           \          \"published together\",\n            \"publish together\",\n\
-          \            \"worked together\",\n            \"work together\",\n    \
-          \        \"co-autoren\",\n        )\n        if any(m in q for m in collab_markers):\n\
-          \            intent = \"metadata_list\"\n            # Extract target author\
-          \ if specified: \"co-authors of Mark Helm\"\n            target = \"\"\n\
+          \            \"published with\",\n            \"worked together\",\n   \
+          \         \"work together\",\n            \"co-autoren\",\n        )\n \
+          \       if any(m in q for m in collab_markers):\n            intent = \"\
+          metadata_list\"\n            # Extract target author if specified: \"co-authors\
+          \ of Mark Helm\",\n            # \"Who has collaborated with Dieterich?\"\
+          , \"Which co-authors has X published with?\"\n            target = \"\"\n\
           \            for sep in (\n                \"co-authors of \",\n       \
-          \         \"collaborators of \",\n                \"coauthors of \",\n \
-          \               \"collaborations of \",\n                \"collaboration\
-          \ of \",\n            ):\n                if sep in q:\n               \
-          \     target = q.split(sep, 1)[1].strip().rstrip(\".,;?!\")\n          \
-          \          break\n            if not target:\n                for sep in\
-          \ (\n                    \"co-authors with \",\n                    \"collaborated\
-          \ with \",\n                    \"collaborations with \",\n            \
-          \    ):\n                    if sep in q:\n                        target\
-          \ = q.split(sep, 1)[1].strip().rstrip(\".,;?!\")\n                     \
-          \   break\n            collaboration_mode = target if target else \"all\"\
-          \n            paper_list = []\n            multi_author_bypass = True\n\n\
-          \    return {\n        \"intent\": intent,\n        \"paper_list\": paper_list,\n\
-          \        \"paper_count\": 0 if multi_author_bypass else len(paper_list),\n\
-          \        \"rewritten_query\": rw,\n        \"list_mode\": list_mode,\n \
-          \       \"collaboration_mode\": collaboration_mode,\n    }\n"
+          \         \"co-author of \",\n                \"collaborators of \",\n \
+          \               \"coauthors of \",\n                \"collaborations of\
+          \ \",\n                \"collaboration of \",\n            ):\n        \
+          \        if sep in q:\n                    target = q.split(sep, 1)[1].strip().rstrip(\"\
+          .,;?!\")\n                    break\n            if not target:\n      \
+          \          for sep in (\n                    \"co-authors with \",\n   \
+          \                 \"collaborated with \",\n                    \"collaborations\
+          \ with \",\n                    \"published with \",\n                ):\n\
+          \                    if sep in q:\n                        target = q.split(sep,\
+          \ 1)[1].strip().rstrip(\".,;?!\")\n                        break\n     \
+          \       if not target:\n                # \"Which co-authors has Mark Helm\
+          \ published with?\" → extract \"mark helm\"\n                m = re.search(\n\
+          \                    r\"(?:co-authors?\\s+(?:has\\s+)?|coauthors?\\s+(?:has\\\
+          s+)?)([\\w\\s.-]+?)\\s+(?:published\\s+with|collaborated\\s+with)\",\n \
+          \                   q,\n                )\n                if m:\n     \
+          \               target = m.group(1).strip().rstrip(\".,;?!\")\n        \
+          \    collaboration_mode = target if target else \"all\"\n            paper_list\
+          \ = []\n            multi_author_bypass = True\n\n    return {\n       \
+          \ \"intent\": intent,\n        \"paper_list\": paper_list,\n        \"paper_count\"\
+          : 0 if multi_author_bypass else len(paper_list),\n        \"rewritten_query\"\
+          : rw,\n        \"list_mode\": list_mode,\n        \"collaboration_mode\"\
+          : collaboration_mode,\n    }\n"
         code_language: python3
         isInIteration: false
         isInLoop: false
