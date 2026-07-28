@@ -170,20 +170,18 @@ curl "http://rmap-chatbot-demo-dify/v1/datasets?page=1" \
 
 ### 2.4 What Needs Hardcoded Fallbacks (and Why)
 
-The code nodes have hardcoded infrastructure defaults as **last-resort fallbacks**:
+Only the Dify API base URL has a hardcoded fallback — the dataset ID and API key MUST come from `.env`:
 
-| Value | Location | Why it's there |
-|-------|----------|----------------|
+| Value | Location | Why |
+|-------|----------|-----|
 | `http://rmap-chatbot-demo-dify/v1` | `metadata_query.py`, `fetch_full_paper.py` | Dify API base URL — internal Docker hostname, not a secret |
-| `5a231cec-21bf-40b9-86c8-87b9d01bca74` | `metadata_query.py`, `fetch_full_paper.py` | Dataset UUID — permanent, not a secret |
 
-These are **never the primary source**. The priority is always:
+The dataset ID (`DIFY_DATASET_ID`) has **no hardcoded fallback**. If it's missing, the code returns an error telling you to run `import_dify_dsl.sh`. This ensures `.env` is always the single source of truth.
 
+The priority chain for all values:
 1. Dify-injected env var (`api_key_input`, `dataset_id_input`) — set by `import_dify_dsl.sh` from `.env`
 2. Container environment (`os.getenv("DIFY_DATASET_ID")`) — if set in Docker
-3. Hardcoded fallback — safety net only
-
-If you ever see the hardcoded fallback being used, it means the `.env` → Dify injection failed — check `import_dify_dsl.sh` output for errors.
+3. Error — if neither is available, fail loudly
 
 ---
 
