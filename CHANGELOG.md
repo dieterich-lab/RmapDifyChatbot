@@ -1,20 +1,34 @@
 # Changelog
 
-## [0.4.15] - 2026-07-27
+## [0.4.15] - 2026-07-28
 
 ### Added
 
-- **#16 Collaboration Analysis**: New computation mode in `metadata_query.py` (`_compute_collaborations()`) calculates co-author pair frequencies from paper metadata. Queries like "Who has collaborated the most?" and "Co-authors of Mark Helm" route to `metadata_list` via collaboration query guard. Uses LastName,FirstName → FirstName LastName parsing. LLM-bypassed (pre-formatted output).
+- **#16 Collaboration Analysis**: New computation mode in `metadata_query.py` (`_compute_collaborations()`) calculates co-author pair frequencies from paper metadata. Three query types supported:
+  - **Global ranking**: "Who has collaborated the most?" → Top 20 co-author pairs (3,253 pairs, top: Helm+Motorin at 10 papers)
+  - **Single-author**: "Co-authors of Mark Helm" → All pairs involving target (197 pairs)
+  - **Dual-author**: "Papers co-authored by Helm and Motorin" → Shared paper list with titles (11 papers)
+- **Dual-author pipe-separated targets**: `parse_router_output.py` detects pairs via 5 regex patterns (specific before generic), passes as `"Helm|Motorin"` to `metadata_query.py`.
+- **Case-preserving name extraction**: Collaboration targets preserve original case from `sys_query` (not lowercased), fixing display issues.
 - **Future computation modes**: `publication_timeline`, `journal_distribution`, `author_productivity` noted as planned extensions.
 
 ### Changed
 
 - **Roadmap restructured**: 329→88 lines. Extracted `intent-architecture.md` (per-intent deep dives) and `lessons-learned.md`.
-- **Technical Guide**: Updated to v0.4.14+ (H100 plan, author normalization, LLM bypass, embedding eval).
+- **Technical Guide**: Updated to v0.4.15+ with Collaboration Analysis §8.11, code patterns, regex ordering notes.
 
-### Known Issues
+### Fixed
 
-- **Dify Publish HTTP 500**: Draft→published sync fails. Collaboration analysis verified locally but not in published app.
+- **Curl payload size limit**: `import_dify_dsl.sh` DSL grew to 125KB, exceeding shell argument limit. Fixed by writing to temp file (`mktemp` → `--data @file`).
+- **Dual-author regex false match**: Generic pattern `X and Y verb` matched "do Helm" instead of "Helm". Fixed by ordering specific prefix patterns before generic ones.
+- **Dify Publish HTTP 500**: Phantom validation checklist (21 items) fixed in Dify UI. Re-occurred after import, required re-fix.
+
+### Results
+
+- 84 papers → 3,253 unique co-author pairs
+- Top pair: **Mark Helm + Yuri Motorin** (10 papers)
+- Helm + Motorin: 11 shared papers; Helm + Dieterich: 2 shared papers
+- All collaboration queries verified live in published app
 
 ## [0.4.11] - 2026-07-22
 

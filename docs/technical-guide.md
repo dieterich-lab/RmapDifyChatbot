@@ -1,7 +1,7 @@
 # RMAP Chatbot – Technical Guide
 
 > **Audience:** Developers taking over maintenance and extension of the chatbot.
-> **Last updated:** 2026-07-27 · v0.4.14+ · App `16d50bee-bc86-4bda-bb56-a861743f3ddb`
+> **Last updated:** 2026-07-28 · v0.4.15+ · App `16d50bee-bc86-4bda-bb56-a861743f3ddb`
 
 ---
 
@@ -729,6 +729,54 @@ if any(m in query for m in collab_markers):
 4. Document the negative result → prevents redundant re-evaluation
 
 Result: bge-m3 showed equivalent quality but 48% worse latency → nomic retained. See `docs/embeddings.md` for full methodology.
+
+### 8.11 Collaboration Analysis (v0.4.15)
+
+**Co-author pair computation** within `metadata_list` — no new intent or LLM needed. Uses the Dataset API to compute pair frequencies from paper metadata.
+
+**Three query types:**
+
+| Query Pattern | Example | Guard | Output |
+|---|---|---|---|
+| Global ranking | "Who has collaborated the most?" | `collaborat`, `co-author`, `published together` | Top 20 co-author pairs |
+| Single-author | "Co-authors of Mark Helm" | `co-authors of <name>` | All pairs involving target |
+| Dual-author | "Papers co-authored by Helm and Motorin" | `co-authored by X and Y`, `how many papers do X and Y share` | Shared paper list + count |
+
+**Implementation:**
+
+```
+parse_router_output.py          metadata_query.py
+┌──────────────────────────┐    ┌──────────────────────────────────┐
+│ Collaboration guard       │    │ _compute_collaborations()         │
+│ detects collab markers    │───▶│ - LastName,FirstName → First Last │
+│ extracts author name(s)   │    │ - Pairwise counting (Counter)     │
+│ → collaboration_mode      │    │ - target_author / dual filter     │
+│ → paper_list=[]           │    │ - Pre-formatted Markdown output   │
+│ → multi_author_bypass=True│    │ - LLM bypassed                    │
+└──────────────────────────┘    └──────────────────────────────────┘
+```
+
+**Key code pattern:**
+```python
+# metadata_query.py
+if _is_set(collaboration_mode):
+    target_author = target if target not in ("true","1","yes","all") else ""
+    # If pipe-separated: dual-author mode
+    if "|" in target_author:
+        a1, a2 = target_author.split("|")
+        # Filter pairs containing BOTH authors
+        # Show joint paper list instead of pair ranking
+    result_text, _ = _compute_collaborations(docs, target_author)
+    return {"result_text": result_text, ...}  # LLM bypass
+```
+
+**Results** (84 papers, 100% PubMed coverage):
+- 3.253 unique co-author pairs
+- Top: **Mark Helm + Yuri Motorin** (10 papers)
+- Helm + Motorin: 11 shared papers
+- Helm + Dieterich: 2 shared papers
+
+**Dual-author regex ordering:** Specific prefix patterns (`how many papers do X and Y share?`) must be tried before generic patterns (`X and Y share`) to avoid false matches.
 
 ---
 
