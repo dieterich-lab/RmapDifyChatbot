@@ -6,50 +6,50 @@ RmapDifyChatbot is a Dify-based academic literature assistant for the RMaP proje
 
 **v0.4.16 — EU AI Act Art. 50 Compliant 🇪🇺**
 
-1. **5 Query-Intents + Collaboration**: ✅ `metadata_list`, `content_summary`, `knowledge_retrieval`, `author_lookup`, `entity_lookup` + 🆕 Co-Author Analysis
-2. **84 Papers** im Dataset, alle mit PubMed/CrossRef-Metadaten
-3. **Alle Prompt-Fixes** (v0.4.6–v0.4.15): Quote, Count, Group-by, Find-by-name, Citation, Cross-Contamination, HEK, Name-Format, Author-Display, Umlaut, Multi-Author-OR+LLM-Bypass, Two-Turn-Memory, Code-Guard, Collaboration
+1. **5 Query Intents + Collaboration**: ✅ `metadata_list`, `content_summary`, `knowledge_retrieval`, `author_lookup`, `entity_lookup` + 🆕 Co-Author Analysis
+2. **84 Papers** in dataset, all with PubMed/CrossRef metadata
+3. **All Prompt Fixes** (v0.4.6–v0.4.16): Quote, Count, Group-by, Find-by-name, Citation, Cross-Contamination, HEK, Name-Format, Author-Display, Umlaut, Multi-Author-OR+LLM-Bypass, Two-Turn-Memory, Code-Guard, Collaboration, EU AI Act
 4. **top_k: 100**, Hybrid **0.7/0.3**, **qwen2.5:14b** (A2 16GB VRAM), 23 Nodes, 28 Edges
 5. **20 Test Cases**: ✅ 19 · ⚠️ 1 · ❌ 0 (Regression 2026-07-27)
 6. **EU AI Act Art. 50 Compliant 🇪🇺**: Opening statement (Art. 50(1)) + machine-readable watermark `<!-- AI_GENERATED_CONTENT_RMAP -->` on all AI-generated text (Art. 50(2))
 
 ---
 
-## Für Tester: Quick Start
+## For Testers: Quick Start
 
-### Zugang
+### Access
 
-| Variante | URL | Modus |
+| Variant | URL | Mode |
 |---|---|---|
-| **Published App** (stabil) | `http://rmap-chatbot-demo-dify.internal/chat/qSKbMGikJuIdhlfr` | Live-API, kein Debug |
-| **Draft-Modus** (Preview) | Dify Console → App → "Preview" Tab | Debug-Output: Node-Status, Laufzeit |
+| **Published App** (stable) | `http://rmap-chatbot-demo-dify.internal/chat/qSKbMGikJuIdhlfr` | Live API, no debug |
+| **Draft Mode** (Preview) | Dify Console → App → "Preview" tab | Debug output: node status, runtime |
 
-Du bekommst eine Einladung zur Dify-Account-Erstellung. Nach dem Login findest du die App unter **Apps → RMAP Chatbot Iterative Retrieval**.
+You will receive an invitation to create a Dify account. After login, find the app under **Apps → RMAP Chatbot Iterative Retrieval**.
 
-### Im Draft-Modus testen
+### Testing in Draft Mode
 
-1. App öffnen → Tab **"Preview"** (nicht "Published"!)
-2. Query eingeben → der rechte Panel zeigt Workflow-Node-Status und Laufzeit
-3. Bei Fehlern: den blauen/roten Node-Status checken – dort siehst du, welcher Node failed
+1. Open the app → **"Preview"** tab (not "Published"!)
+2. Enter a query → the right panel shows workflow node status and runtime
+3. On errors: check the blue/red node status — shows which node failed
 
-### Erwartete Ergebnisse
+### Expected Results
 
-| Intent | Beispiel-Query | Erwartet | Bekannte Einschränkung |
+| Intent | Example Query | Expected | Known Limitation |
 |---|---|---|---|
-| `metadata_list` | "Papers by Christoph Dieterich" | 8 Papers aufgelistet | – |
-| `metadata_list` | "Find all research papers" | 81 Papers (LLM-native, kein Regex) | – |
-| `metadata_list` | "List all researchers" | 776 Authors (LLM-native) | – |
+| `metadata_list` | "Papers by Christoph Dieterich" | 8 papers listed | – |
+| `metadata_list` | "Find all research papers" | 81 papers (LLM-native, no regex) | – |
+| `metadata_list` | "List all researchers" | 776 authors (LLM-native) | – |
 | `metadata_list` | "Who has collaborated with X?" | Co-author pairs for X | – |
-| `content_summary` | "Summarize them" (nach metadata_list) | Global Synthesis + 3 Bullet Points/Paper | Max 8 Papers (A2-Latenz-Limit, v0.4.10) |
-| `knowledge_retrieval` | "What is m6A?" | Methoden mit Inline-Citations | ✅ Citations verified (v0.4.7) |
-| `author_lookup` | "Who has worked on tRNA modifications?" | ~9 Papers mit Autoren + Quotes | ✅ Quotes + Authors verified (v0.4.7) |
-| `entity_lookup` | "Which RNA modifications are most studied?" | ~5 Entity-Typen mit Paper-Zuordnung | ⚠️ m6A fehlt (14B-Limit, braucht 32B) |
+| `content_summary` | "Summarize them" (after metadata_list) | Global Synthesis + 3 bullet points/paper | Max 8 papers (A2 latency limit, v0.4.10) |
+| `knowledge_retrieval` | "What is m6A?" | Methods with inline citations | ✅ Citations verified (v0.4.7) |
+| `author_lookup` | "Who has worked on tRNA modifications?" | ~9 papers with authors + quotes | ✅ Quotes + Authors verified (v0.4.7) |
+| `entity_lookup` | "Which RNA modifications are most studied?" | ~5 entity types with paper references | ⚠️ m6A missing (14B limit, needs 32B) |
 
-→ Detaillierte Test-Ergebnisse: [`docs/test-cases.md`](docs/test-cases.md)
+→ Detailed test results: [`docs/test-cases.md`](docs/test-cases.md)
 
 ---
 
-## Architektur
+## Architecture
 
 ```mermaid
 flowchart TD
@@ -85,47 +85,47 @@ flowchart TD
     SAN --> ANS([Answer])
 ```
 
-### Die 5 Intents im Detail
+### The 5 Intents in Detail
 
-| Intent | Routing-Kriterium | Datenquelle | LLM | Prompt-Fokus |
+| Intent | Routing Criterion | Data Source | LLM | Prompt Focus |
 |---|---|---|---|---|
-| `metadata_list` | Autor/Titel/Journal-Filter | Dify Dataset API | Metadata LLM | "Total count + nummerierte Liste" |
-| `content_summary` | Paper-Inhalte abrufen | Fetch Full Paper (Segments API) | Summary LLM | "Global Synthesis + 3 Bullets/Paper" |
-| `knowledge_retrieval` | Allgemeine Wissensfrage | Hybrid Retrieval (top_k=50) | KR Extraction LLM | "Verbatim Quotes + Inline-Citations" |
-| `author_lookup` | "Who has worked on X?" | Hybrid Retrieval + Chunk-Filter | Author Extraction LLM | "ALL authors + Quotes pro Paper" |
-| `entity_lookup` | "Which X are studied?" | Hybrid Retrieval + Chunk-Filter | Entity Extraction LLM | "Entity-Tabelle mit Paper-Zuordnung" |
+| `metadata_list` | Author/title/journal filter | Dify Dataset API | Metadata LLM | "Total count + numbered list" |
+| `content_summary` | Retrieve paper content | Fetch Full Paper (Segments API) | Summary LLM | "Global Synthesis + 3 bullets/paper" |
+| `knowledge_retrieval` | General knowledge question | Hybrid Retrieval (top_k=50) | KR Extraction LLM | "Verbatim quotes + inline citations" |
+| `author_lookup` | "Who has worked on X?" | Hybrid Retrieval + Chunk Filter | Author Extraction LLM | "ALL authors + quotes per paper" |
+| `entity_lookup` | "Which X are studied?" | Hybrid Retrieval + Chunk Filter | Entity Extraction LLM | "Entity table with paper references" |
 
 ### Node Reference
 
-| # | Node | Typ | Zweck |
+| # | Node | Type | Purpose |
 |---|---|---|---|
-| 1 | **Unified Router** | llm | Klassifiziert Intent, extrahiert Paper-Constraints, schreibt Query standalone |
-| 2 | **Parse Router Output** | code | Parst JSON-Output des Routers, liest `list_mode` (papers/authors) aus LLM-JSON, Auto-Fallback `conversation.memory` nur für `content_summary` |
-| 3 | **Intent Dispatcher** | if-else | 5-Branch Routing basierend auf `intent`-Feld |
+| 1 | **Unified Router** | llm | Classifies intent, extracts paper constraints, writes standalone query |
+| 2 | **Parse Router Output** | code | Parses router JSON output, reads `list_mode` (papers/authors) from LLM JSON, auto-fallback `conversation.memory` for `content_summary` only |
+| 3 | **Intent Dispatcher** | if-else | 5-branch routing based on `intent` field |
 | 4 | **Knowledge Retrieval** | knowledge-retrieval | Hybrid keyword (0.7) + vector (0.3), top_k=50, nomic-embed-text-v2-moe |
-| 5 | **KR Chunk Filter** | code | Reference-List-Filter, 1 Chunk/Paper Dedup, Metadata-Garbling-Detection, 30-Element Cap |
-| 6 | **KR Intent Router** | if-else | Routet Chunks zu Author/Entity/KR Extraction LLM |
-| 7 | **Author Extraction LLM** | llm | Extrahiert ALLE Autoren mit verbatim Quotes pro Paper |
-| 8 | **Entity Extraction LLM** | llm | Extrahiert Entitäten (Modifikationen, Methoden, Organismen) als Tabelle |
-| 9 | **KR Extraction LLM** | llm | Allgemeine Wissensfragen: Verbatim Quotes + Inline-Citations |
-| 10 | **Metadata Query** | code | Durchsucht Dataset-API nach Author/Year/Title/Journal; `list_mode` steuert Papers vs. Authors-Extraktion |
-| 11 | **Paper Iterator** | iteration | Iteriert über `paper_list`, ruft Full-Text-Chunks ab |
-| 12 | **Fetch Full Paper** | code | Holt Segments via Dify-API (0.4-0.9s/Paper), dynamisches Text-Budget |
-| 13 | **Metadata LLM** | llm | `metadata_list`: "Total count + nummerierte Liste" |
-| 14 | **Summary LLM** | llm | `content_summary`: "Global Synthesis + 3 Bullets/Paper" |
-| 15 | **Final Answer Sanitizer** | code | Merged Outputs aller 5 Pfade, strippt `<think>`-Tags, reichert Autoren an |
+| 5 | **KR Chunk Filter** | code | Reference list filter, 1 chunk/paper dedup, metadata garbling detection, 30-element cap |
+| 6 | **KR Intent Router** | if-else | Routes chunks to Author/Entity/KR Extraction LLM |
+| 7 | **Author Extraction LLM** | llm | Extracts ALL authors with verbatim quotes per paper |
+| 8 | **Entity Extraction LLM** | llm | Extracts entities (modifications, methods, organisms) as table |
+| 9 | **KR Extraction LLM** | llm | General knowledge questions: verbatim quotes + inline citations |
+| 10 | **Metadata Query** | code | Queries Dataset API by author/year/title/journal; `list_mode` controls papers vs. authors extraction |
+| 11 | **Paper Iterator** | iteration | Iterates over `paper_list`, fetches full-text chunks |
+| 12 | **Fetch Full Paper** | code | Retrieves segments via Dify API (0.4–0.9s/paper), dynamic text budget |
+| 13 | **Metadata LLM** | llm | `metadata_list`: "Total count + numbered list" |
+| 14 | **Summary LLM** | llm | `content_summary`: "Global Synthesis + 3 bullets/paper" |
+| 15 | **Final Answer Sanitizer** | code | Merges outputs from all 5 paths, strips `<think>` tags, enriches authors, appends EU AI Act watermark |
 
-## Technische Details
+## Technical Details
 
 ### Key Design Decisions
 
-- **Regex-freies Broad-Query-Routing** (v0.4.6): Unified Router LLM steuert "Find all papers" und "List all researchers" nativ via `list_mode`-Feld. 24 Zeilen Regex-Patterns aus `parse_router_output.py` entfernt.
-- **MAX_PAPERS_FOR_SUMMARY = 8** (v0.4.10): Verhindert Timeout (>5 min) auf A2 bei Autoren mit vielen Papers. 15→8 reduziert, getestet bei 194s für Mark Helm (28 Papers).
-- **KR Query Rewriter entfernt** (v0.4.0): HyDE-style Keyword-Expansion matchte überproportional Bibliography-Sections. Query geht jetzt unverändert an KR.
-- **qwen2.5:14b für alle LLMs** (v0.4.6): `gpt-oss` komplett ersetzt – weniger Halluzination, strikteres Grounding.
-- **1 Chunk/Paper** (v0.4.2): Maximiert Paper-Diversität im Context (bis 50 unique Papers).
-- **top_k=100** (v0.4.7): `TOP_K_MAX_VALUE=100` im Dify-Container gesetzt – GUI-Limit umgangen.
-- **PubMed-Metadaten** (v0.4.3→v0.4.10): 100% Coverage via DOI→PMID→MEDLINE + CrossRef + LLM (qwen3:32b). Keine LLM-Halluzination.
+- **Regex-free Broad Query Routing** (v0.4.6): Unified Router LLM natively handles "Find all papers" and "List all researchers" via `list_mode` field. 24 lines of regex patterns removed from `parse_router_output.py`.
+- **MAX_PAPERS_FOR_SUMMARY = 8** (v0.4.10): Prevents timeout (>5 min) on A2 for authors with many papers. Reduced 15→8, tested at 194s for Mark Helm (28 papers).
+- **KR Query Rewriter Removed** (v0.4.0): HyDE-style keyword expansion disproportionately matched bibliography sections. Query now passes through unchanged to KR.
+- **qwen2.5:14b for All LLMs** (v0.4.6): `gpt-oss` fully replaced — less hallucination, stricter grounding.
+- **1 Chunk/Paper** (v0.4.2): Maximizes paper diversity in context (up to 50 unique papers).
+- **top_k=100** (v0.4.7): `TOP_K_MAX_VALUE=100` set in Dify container — bypasses GUI limit.
+- **PubMed Metadata** (v0.4.3→v0.4.10): 100% coverage via DOI→PMID→MEDLINE + CrossRef + LLM (qwen3:32b). No LLM hallucination in metadata.
 
 ### Model Configuration
 
@@ -136,25 +136,25 @@ flowchart TD
 | Metadata LLM | qwen2.5:14b | 4000 | 32768 | 0 |
 | Summary LLM | qwen2.5:14b | 4000 | 65536 | 0 |
 
-> Alle LLM-Nodes nutzen jetzt `qwen2.5:14b` (Ollama). `gpt-oss` wurde in v0.4.6 vollständig ersetzt.
+> All LLM nodes now use `qwen2.5:14b` (Ollama). `gpt-oss` was fully replaced in v0.4.6.
 
 ### Dataset
 
 - **Name**: RMAP Papers
 - **UUID**: `5a231cec-21bf-40b9-86c8-87b9d01bca74`
-- **Dokumente**: 84 Papers (RMaP First Funding Period), alle mit PubMed/CrossRef-Metadaten
+- **Documents**: 84 papers (RMaP First Funding Period), all with PubMed/CrossRef metadata
 - **Embedding**: nomic-embed-text-v2-moe (Ollama)
-- **Chunking**: Dify Standard (automatic mode)
+- **Chunking**: Dify standard (automatic mode)
 
 ## Known Issues
 
-| # | Intent | Problem | Schweregrad | Details |
-|---|--------|---------|-------------|---------|
-| 1 | `entity_lookup` | Recall-Limit | ⚠️ Mittel | Nur 5 Entities. m6A fehlt. qwen2.5:14b stoppt intrinsisch bei ~6 Entities. Fix braucht 32B-Upgrade (P3). |
-| 2 | `content_summary` | Mark Helm Timeout | ✅ Gefixt (v0.4.10) | Cap 15→8: 194s statt >5 min Timeout. |
-| 3 | `knowledge_retrieval` | miCLIP/MeRIP-Lücke | ⚠️ Niedrig | Embedding-Model-Limit: nomic mappt "detection methods" nicht auf miCLIP/MeRIP-Chunks. Hybrid weights getestet (0.1–0.9), kein Effekt. bge-m3 evaluiert (gleiche Qualität, 48% langsamer). |
+| # | Intent | Problem | Severity | Details |
+|---|--------|---------|----------|---------|
+| 1 | `entity_lookup` | Recall limit | ⚠️ Medium | Only 5 entities. m6A missing. qwen2.5:14b intrinsically stops at ~6 entities. Fix requires 32B upgrade (P3). |
+| 2 | `content_summary` | Mark Helm timeout | ✅ Fixed (v0.4.10) | Cap 15→8: 194s instead of >5 min timeout. |
+| 3 | `knowledge_retrieval` | miCLIP/MeRIP gap | ⚠️ Low | Embedding model limit: nomic doesn't map "detection methods" to miCLIP/MeRIP chunks. Hybrid weights tested (0.1–0.9), no effect. bge-m3 evaluated (same quality, 48% slower). |
 
-→ Detaillierte Analyse: [`docs/test-cases.md`](docs/test-cases.md)
+→ Detailed analysis: [`docs/test-cases.md`](docs/test-cases.md)
 
 ## Repository Structure
 
@@ -162,29 +162,30 @@ flowchart TD
 rmap-chatbot/
 ├── config/                     # Dify DSL YAML files
 │   └── RMAP Chatbot Iterative Retrieval.yml
-├── workflow_scripts/           # Code-Node Python-Quellen (vom Build-Prozess injected)
-├── scripts/                    # Import/Export/Debug-Skripte
-│   ├── import_dify_dsl.sh      # Import + KR-Dataset-Auto-Fix
-│   ├── export_dify_dsl.sh      # Export + KR-Dataset-Patch
-│   └── debug_route_draft.sh    # Draft-Modus Test-Runner
-├── dify_uploader/              # CLI für Paper-Upload & Metadaten-Extraktion
-├── .env                        # Alle Secrets & Konfiguration (git-ignored)
-├── .env.example                # Template ohne echte Keys (committed)
-└── .secrets/                   # Runtime-Session-Tokens (git-ignored)
+├── workflow_scripts/           # Code node Python sources (injected by build process)
+├── scripts/                    # Import/export/debug scripts
+│   ├── import_dify_dsl.sh      # Import + KR dataset auto-fix
+│   ├── export_dify_dsl.sh      # Export + KR dataset patch
+│   └── debug_route_draft.sh    # Draft mode test runner
+├── dify_uploader/              # CLI for paper upload & metadata extraction
+├── .env                        # All secrets & configuration (git-ignored)
+├── .env.example                # Template without real keys (committed)
+└── .secrets/                   # Runtime session tokens (git-ignored)
 ```
 
 ## Development Workflow
 
 ```bash
-# 1. Änderungen in Dify UI machen
-# 2. DSL exportieren
+# 1. Make changes in Dify UI
+# 2. Export DSL
 bash scripts/export_dify_dsl.sh "config/RMAP Chatbot Iterative Retrieval.yml" --auto-login
 
-# 3. In Dify UI: Draft testen via Preview-Tab
+# 3. In Dify UI: test draft via Preview tab
 
-# 4. Bei Erfolg: DSL committen & per Import deployen
+# 4. On success: commit DSL & deploy via import
 bash scripts/import_dify_dsl.sh "config/RMAP Chatbot Iterative Retrieval.yml" --allow-cookie-auth --auto-login
 
-# 5. Draft via debug_route testen
+# 5. Test draft via debug_route
 bash scripts/debug_route_draft.sh --app-id "16d50bee-..." --classifier-node-id "1778800001032" \
   --query "What is m6A?" --allow-cookie-auth --auto-login
+```
