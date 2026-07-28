@@ -103,63 +103,50 @@ The chatbot uses three distinct API key types, each serving a different purpose:
 
 **Note on Console Auth:** We do not use a persistent Console API Key. Instead, all admin scripts use **auto-login**: they POST email + base64-encoded password to `/console/api/login`, receive a session cookie + CSRF token, and store these in `.secrets/dify_console_session.env`. This session is automatically refreshed when it expires (HTTP 401 → re-login).
 
-### 2.2 How the Dataset Key Reaches the Metadata Query Node
+### 2.2 How Env Vars Reach the Code Nodes
 
-The most critical key flow is the dataset key → Metadata Query code node:
+The flow from `.env` to the running code node has three stages:
 
 ```
-┌─────────────────────────────────────────────────────────────────┐
-│  Dify App Environment Variables (set via console API)            │
-│  ┌──────────────────────┬─────────────────────────────────────┐ │
-│  │ DIFY_API_KEY         │ dataset-<your-dataset-key>    │ │
-│  │ DIFY_DATASET_ID      │ <your-dataset-id>│ │
-│  └──────────────────────┴─────────────────────────────────────┘ │
-└─────────────────────────────────────────────────────────────────┘
-        │
-        │ Dify runtime injects env vars into code node execution
-        ▼
-┌─────────────────────────────────────────────────────────────────┐
-│  Metadata Query code node (workflow_scripts/metadata_query.py)   │
-│                                                                  │
-│  api_key = os.getenv("DIFY_API_KEY") or api_key_input or ""      │
-│                                                                  │
-│  api_key_input is mapped from the DSL variable binding:          │
-│    - value_selector: [env, DIFY_API_KEY]                         │
-│    - variable: api_key_input                                     │
-└─────────────────────────────────────────────────────────────────┘
+┌──────────┐    import_dify_dsl.sh     ┌─────────────────┐    variable binding    ┌──────────────┐
+│  .env    │ ────────────────────────▶ │  Dify App Draft  │ ────────────────────▶ │  Code Node   │
+│ (local)  │   sync_draft() reads      │  environment_    │   [env, DIFY_API_KEY] │  api_key =   │
+│          │   DIFY_API_KEY +          │  variables       │   → api_key_input     │  api_key_    │
+│          │   DIFY_DATASET_ID         │  (real values)   │                       │  input or     │
+└──────────┘                          └─────────────────┘                       │  os.getenv()  │
+                                                                                └──────────────┘
 ```
 
-**Critical detail:** The DSL YAML specifies variable bindings for each code node. For Metadata Query:
-
+**Stage 1 — YAML (git-safe):** The DSL YAML stores only **placeholders** in `environment_variables`:
 ```yaml
+environment_variables:
+  - name: DIFY_API_KEY
+    value: dataset-<your-dataset-key>    # ← placeholder, never real
+  - name: DIFY_DATASET_ID
+    value: <your-dataset-id>            # ← placeholder, never real
+```
+
+**Stage 2 — Import injection:** `import_dify_dsl.sh` → `sync_draft()` reads **real values** from `.env` and overwrites the placeholders before POSTing to the Dify draft endpoint. After import, the Dify draft always has real values.
+
+**Stage 3 — Runtime injection:** Dify passes the app's `environment_variables` into code nodes via variable bindings:
+```yaml
+# In Metadata Query code node:
 variables:
-  - value_selector: [env, DIFY_API_KEY]    # ← reads from Dify env vars
-    value_type: string
+  - value_selector: [env, DIFY_API_KEY]     # ← reads from Dify app env vars
     variable: api_key_input
   - value_selector: [env, DIFY_DATASET_ID]
-    value_type: string
     variable: dataset_id_input
 ```
 
-**After every `import_dify_dsl.sh` run, env vars are automatically injected from `.env`** via `sync_draft()`. No manual step needed — the import script reads `DIFY_API_KEY` and `DIFY_DATASET_ID` from `.env` and writes them into the draft before syncing. The DSL YAML only contains placeholders which are overwritten during import.
-
-For reference, the (now automated) process was:
-
+**Code node priority** (in `metadata_query.py` and `fetch_full_paper.py`):
 ```python
-# POST to /console/api/apps/{id}/workflows/draft with payload:
-{
-    "graph": ...,
-    "environment_variables": [
-        {"name": "DIFY_API_KEY", "value_type": "string",
-         "value": "dataset-<your-dataset-key>", "description": "..."},
-        {"name": "DIFY_DATASET_ID", "value_type": "string",
-         "value": "<your-dataset-id>", "description": "..."}
-    ],
-    ...
-}
+# Dify-injected value FIRST, container env SECOND, hardcoded fallback LAST
+api_key    = api_key_input or os.getenv("DIFY_API_KEY") or ""
+dataset_id = dataset_id_input or os.getenv("DIFY_DATASET_ID") or "5a231cec-..."
+api_base   = os.getenv("DIFY_API_URL") or "http://rmap-chatbot-demo-dify/v1"
 ```
 
-Then the same payload is POSTed to `/console/api/apps/{id}/workflows/publish` to propagate to the published (runtime) app.
+> **Key rule:** `.env` is the single source of truth. YAML has placeholders. `import_dify_dsl.sh` bridges the gap. No manual env var step needed after import.
 
 ### 2.3 Key Rotation Procedure
 
@@ -167,19 +154,36 @@ When the dataset API key expires:
 
 ```bash
 # 1. Create new key in Dify UI: Datasets → RMAP Papers → API Access
-# 2. Update .env:
-sed -i 's/DIFY_API_KEY=dataset-OLD_KEY/DIFY_API_KEY=dataset-NEW_KEY/' .env
+# 2. Update .env (single source of truth):
+sed -i 's/DIFY_DATASET_API_KEY=dataset-OLD_KEY/DIFY_DATASET_API_KEY=dataset-NEW_KEY/' .env
 
-# 3. Set in Dify app:
-python3 -c "
-# ... (POST to /console/api/apps/{id}/workflows/draft with new env vars)
-# ... (POST to /console/api/apps/{id}/workflows/publish)
-"
+# 3. Re-import — injects new key into Dify draft + publishes:
+bash scripts/import_dify_dsl.sh "config/RMAP Chatbot Iterative Retrieval.yml" \
+  --skip-build --allow-cookie-auth --auto-login
 
-# 4. Verify:
-curl "http://<your-dify-host>/v1/datasets?page=1" \
+# 4. Verify (direct API):
+curl "http://rmap-chatbot-demo-dify/v1/datasets?page=1" \
   -H "Authorization: Bearer dataset-NEW_KEY"
 ```
+
+> `import_dify_dsl.sh` → `sync_draft()` automatically reads the new key from `.env` and injects it. No manual env var step needed.
+
+### 2.4 What Needs Hardcoded Fallbacks (and Why)
+
+The code nodes have hardcoded infrastructure defaults as **last-resort fallbacks**:
+
+| Value | Location | Why it's there |
+|-------|----------|----------------|
+| `http://rmap-chatbot-demo-dify/v1` | `metadata_query.py`, `fetch_full_paper.py` | Dify API base URL — internal Docker hostname, not a secret |
+| `5a231cec-21bf-40b9-86c8-87b9d01bca74` | `metadata_query.py`, `fetch_full_paper.py` | Dataset UUID — permanent, not a secret |
+
+These are **never the primary source**. The priority is always:
+
+1. Dify-injected env var (`api_key_input`, `dataset_id_input`) — set by `import_dify_dsl.sh` from `.env`
+2. Container environment (`os.getenv("DIFY_DATASET_ID")`) — if set in Docker
+3. Hardcoded fallback — safety net only
+
+If you ever see the hardcoded fallback being used, it means the `.env` → Dify injection failed — check `import_dify_dsl.sh` output for errors.
 
 ---
 
@@ -877,7 +881,9 @@ bash scripts/debug_route_draft.sh --app-id <your-app-id> \
 
 **Historical cause:** `import_dify_dsl.sh` replaced the draft graph, which cleared env vars.
 
-**Fix:** `sync_draft()` now auto-injects `DIFY_API_KEY` and `DIFY_DATASET_ID` from `.env` on every import. No manual step needed.
+**Fix:** `sync_draft()` now auto-injects `DIFY_API_KEY` and `DIFY_DATASET_ID` from `.env` on every import. See §2.2 for the complete flow. No manual step needed.
+
+> If you suspect env vars are stale, just re-run `import_dify_dsl.sh` — `sync_draft()` will refresh them from `.env`.
 
 ### 10.6 Knowledge Retrieval Returns Wrong Dataset
 
@@ -904,11 +910,16 @@ grep -n "custo" config/RMAP\ Chatbot\ Iterative\ Retrieval.yml
 
 **Fix:** Remove redundant `import re` inside function bodies. Use the module-level import.
 
-### 10.9 "No papers found" After API Key Rotation
+### 10.9 "No papers found" / Metadata Queries Return Empty
 
-**Cause:** Code nodes use `os.getenv("DIFY_API_KEY")` before `api_key_input` (Dify-injected env var). Container still has old key.
+**Cause:** Stale or missing env vars in Dify draft. The YAML stores only placeholders — real values come from `.env` via `import_dify_dsl.sh`.
 
-**Fix:** Prioritize Dify-injected parameter (see §2.4).
+**Fix:** Re-run import to inject current `.env` values:
+```bash
+bash scripts/import_dify_dsl.sh "config/RMAP Chatbot Iterative Retrieval.yml" \
+  --skip-build --allow-cookie-auth --auto-login
+```
+Then publish. See §2.2 for the complete env var pipeline.
 
 ---
 
