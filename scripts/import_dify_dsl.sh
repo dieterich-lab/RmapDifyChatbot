@@ -279,7 +279,7 @@ dsl   = yaml.safe_load(Path(os.environ["DSL_PATH"]).read_text(encoding="utf-8"))
 draft = json.loads(Path(os.environ["TMP_DRAFT_GET"]).read_text(encoding="utf-8"))
 payload = {
     "graph":                 dsl["workflow"]["graph"],
-    "features":              dsl.get("features", {}),
+    "features":              dsl.get("app", {}).get("features", {}),
     "environment_variables": draft.get("environment_variables", []),
     "conversation_variables":draft.get("conversation_variables", []),
     "hash":                  draft.get("hash", ""),
