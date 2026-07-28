@@ -94,6 +94,18 @@ def build_dsl(input_path: Path, output_path: Path) -> None:
     if "rag_pipeline_variables" not in data["workflow"]:
         data["workflow"]["rag_pipeline_variables"] = []
 
+    # Cleanup: sanitize env var values (secrets should never be in git)
+    env_vars = data["workflow"].get("environment_variables") or []
+    for ev in env_vars:
+        val = str(ev.get("value") or "")
+        name = str(ev.get("name") or "")
+        if val.startswith("dataset-") and "API_KEY" in name:
+            ev["value"] = "dataset-<your-dataset-key>"
+        elif val and "API_KEY" in name:
+            ev["value"] = "<your-api-key>"
+        elif name == "DIFY_DATASET_ID" and val:
+            ev["value"] = "<your-dataset-id>"
+
     print(f"\nWriting final DSL to: {output_path}")
     with open(output_path, "w") as f:
         yaml.dump(

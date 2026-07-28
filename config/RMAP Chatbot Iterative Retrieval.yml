@@ -31,7 +31,7 @@ workflow:
     selector:
     - env
     - DIFY_API_KEY
-    value: dataset-N1iM87woo8r1NgLG1aPB0hP9
+    value: dataset-<your-dataset-key>
     value_type: string
   - description: ''
     id: 01298697-9219-4423-bc87-f65e3fde14d7
@@ -39,7 +39,7 @@ workflow:
     selector:
     - env
     - DIFY_DATASET_ID
-    value: 5a231cec-21bf-40b9-86c8-87b9d01bca74
+    value: <your-dataset-id>
     value_type: string
   features:
     file_upload:

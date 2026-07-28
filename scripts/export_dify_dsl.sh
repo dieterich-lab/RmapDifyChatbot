@@ -118,6 +118,17 @@ for n in dsl["workflow"]["graph"].get("nodes", []):
 if "rag_pipeline_variables" not in dsl["workflow"]:
     dsl["workflow"]["rag_pipeline_variables"] = []
 
+# Sanitize: replace secret values with placeholders (they should never be in git)
+for ev in dsl["workflow"].get("environment_variables") or []:
+    val = str(ev.get("value") or "")
+    name = str(ev.get("name") or "")
+    if val.startswith("dataset-") and "API_KEY" in name:
+        ev["value"] = "dataset-<your-dataset-key>"
+    elif val and "API_KEY" in name:
+        ev["value"] = "<your-api-key>"
+    elif name == "DIFY_DATASET_ID" and val:
+        ev["value"] = "<your-dataset-id>"
+
 if kr_fixed:
     with open(out_path, "w") as f:
         yaml.dump(dsl, f, sort_keys=False, allow_unicode=True, width=1000)
