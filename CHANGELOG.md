@@ -1,5 +1,26 @@
 # Changelog
 
+## [0.4.16] - 2026-07-28
+
+### Added
+
+- **EU AI Act Article 50 Compliance**: Full transparency obligations for AI systems deployed in the EU.
+  - **Art. 50(1) – AI interaction disclosure**: `opening_statement` informs every user at chat start: "Hello, I am the RMaP Copilot. I am an AI system based on Large Language Models (LLMs). I assist with searching and summarising RMaP publications. Please always verify my answers against the cited original documents. (EU AI Act Art. 50(1))"
+  - **Art. 50(2) – Machine-readable watermark**: Every non-empty answer ends with a human-readable disclaimer + machine-readable HTML comment `<!-- AI_GENERATED_CONTENT_RMAP -->`, injected by `final_answer_sanitizer.py`. Survives Markdown rendering, detectable in raw API/SSE payloads.
+
+### Fixed
+
+- **Opening statement lost on import**: `import_dify_dsl.sh` `sync_draft()` read `features` from wrong YAML path (`dsl.get("features", {})` instead of `dsl.get("app", {}).get("features", {})`). Every Dify import silently reset `opening_statement` to `''`. Fixed — opening statement now survives import cycles.
+
+### Compliance Deadlines
+
+| Obligation | Deadline | Status |
+|---|---|---|
+| Art. 50(1) – Inform users of AI interaction | 2 Aug 2026 | ✅ Deployed |
+| Art. 50(2) – Mark AI-generated content machine-readable | 2 Dec 2026 | ✅ Deployed |
+
+---
+
 ## [0.4.15] - 2026-07-28
 
 ### Added
