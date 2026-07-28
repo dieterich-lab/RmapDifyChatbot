@@ -183,6 +183,18 @@ The priority chain for all values:
 2. Container environment (`os.getenv("DIFY_DATASET_ID")`) — if set in Docker
 3. Error — if neither is available, fail loudly
 
+### 2.5 Common Pitfalls
+
+| Pitfall | Symptom | Fix |
+|---------|---------|-----|
+| Editing YAML env vars manually | Real keys in git! Keys leaked | Never edit `environment_variables` in the YAML — they're placeholders |
+| Pasting real keys into Dify UI | Works, but overwritten on next import | Always use `import_dify_dsl.sh` — it auto-injects from `.env` |
+| Forgetting to publish after import | Draft works, runtime doesn't | Run the full deploy cycle (§5.1) |
+| `debug_route_draft.sh` returns empty | Draft has placeholder env vars | Run `import_dify_dsl.sh` first to inject real values |
+| "No papers found" after key rotation | Old key still in Dify draft | Update `.env`, then re-run `import_dify_dsl.sh` |
+
+> **Golden rule:** `.env` is the single source of truth. YAML has placeholders. `import_dify_dsl.sh` bridges the gap. Never edit env vars manually in Dify UI or YAML.
+
 ---
 
 ## 3. DSL Build Pipeline
@@ -260,11 +272,12 @@ bash scripts/import_dify_dsl.sh "config/RMAP Chatbot Iterative Retrieval.yml" \
 
 What happens:
 1. **Build**: `build_dsl.py` injects `workflow_scripts/*.py` into YAML
-2. **Import**: POSTs YAML to `/console/api/apps/imports`
-3. **Draft sync**: Fetches current draft hash, then POSTs `{graph, features, environment_variables, conversation_variables, hash}` to `/console/api/apps/{id}/workflows/draft`
-4. **KR dataset fix**: Dify export/import sometimes strips `dataset_ids` from the Knowledge Retrieval node (id `17785930638200`). This step restores it from `DIFY_DATASET_ID` in `.env`. Still necessary as of v0.4.8.
+2. **Sanitize**: `build_dsl.py` replaces real API keys in `environment_variables` with placeholders (git-safe)
+3. **Import**: POSTs YAML to `/console/api/apps/imports`
+4. **Draft sync + env injection**: `sync_draft()` fetches the draft, reads **real** `DIFY_API_KEY` and `DIFY_DATASET_ID` from `.env`, injects them into `environment_variables`, and POSTs the updated draft
+5. **KR dataset fix**: Restores `dataset_ids` on the Knowledge Retrieval node from `DIFY_DATASET_ID` in `.env` (Dify import sometimes strips it)
 
-**After import, always re-set env vars and publish** (see §2.2).
+**After import, publish.** The draft already has real env vars from step 4 — no manual env var step needed. See §5.1 for the full deploy cycle.
 
 ---
 
@@ -352,11 +365,23 @@ bash scripts/import_dify_dsl.sh "config/RMAP Chatbot Iterative Retrieval.yml" \
   --skip-build --allow-cookie-auth --auto-login
 
 # 4. Publish (draft already has real env vars from step 3)
-python3 -c "
-import json, os, urllib.request
-base = os.environ['DIFY_BASE_URL'].rstrip('/')
-app_id = '<your-app-id>'
-# ... fetch draft, POST to publish
+.venv/bin/python -c "
+import json, os, requests
+with open('.env') as f:
+    env = {}
+    for line in f:
+        if '=' in line and not line.startswith('#'): k,v = line.split('=',1); env[k.strip()]=v.strip().strip('\"')
+with open('.secrets/dify_console_session.env') as f:
+    for line in f:
+        if '=' in line and not line.startswith('#'): k,v = line.split('=',1); env[k.strip()]=v.strip().strip('\"')
+r = requests.get(f'{env['DIFY_BASE_URL']}/console/api/apps/16d50bee-bc86-4bda-bb56-a861743f3ddb/workflows/draft',
+    headers={'Cookie': env['DIFY_CONSOLE_COOKIE'], 'x-csrf-token': env['DIFY_CSRF_TOKEN']})
+d = r.json()
+requests.post(f'{env['DIFY_BASE_URL']}/console/api/apps/16d50bee-bc86-4bda-bb56-a861743f3ddb/workflows/publish',
+    headers={'Cookie': env['DIFY_CONSOLE_COOKIE'], 'x-csrf-token': env['DIFY_CSRF_TOKEN'], 'Content-Type': 'application/json'},
+    json={'graph': d['graph'], 'features': d.get('features',{}), 'environment_variables': d.get('environment_variables',[]),
+          'conversation_variables': d.get('conversation_variables',[]), 'hash': d.get('hash','')})
+print('Published')
 "
 
 # 5. Test
@@ -733,54 +758,6 @@ if any(m in query for m in collab_markers):
 4. Document the negative result → prevents redundant re-evaluation
 
 Result: bge-m3 showed equivalent quality but 48% worse latency → nomic retained. See `docs/embeddings.md` for full methodology.
-
-### 8.11 Collaboration Analysis (v0.4.15)
-
-**Co-author pair computation** within `metadata_list` — no new intent or LLM needed. Uses the Dataset API to compute pair frequencies from paper metadata.
-
-**Three query types:**
-
-| Query Pattern | Example | Guard | Output |
-|---|---|---|---|
-| Global ranking | "Who has collaborated the most?" | `collaborat`, `co-author`, `published together` | Top 20 co-author pairs |
-| Single-author | "Co-authors of Mark Helm" | `co-authors of <name>` | All pairs involving target |
-| Dual-author | "Papers co-authored by Helm and Motorin" | `co-authored by X and Y`, `how many papers do X and Y share` | Shared paper list + count |
-
-**Implementation:**
-
-```
-parse_router_output.py          metadata_query.py
-┌──────────────────────────┐    ┌──────────────────────────────────┐
-│ Collaboration guard       │    │ _compute_collaborations()         │
-│ detects collab markers    │───▶│ - LastName,FirstName → First Last │
-│ extracts author name(s)   │    │ - Pairwise counting (Counter)     │
-│ → collaboration_mode      │    │ - target_author / dual filter     │
-│ → paper_list=[]           │    │ - Pre-formatted Markdown output   │
-│ → multi_author_bypass=True│    │ - LLM bypassed                    │
-└──────────────────────────┘    └──────────────────────────────────┘
-```
-
-**Key code pattern:**
-```python
-# metadata_query.py
-if _is_set(collaboration_mode):
-    target_author = target if target not in ("true","1","yes","all") else ""
-    # If pipe-separated: dual-author mode
-    if "|" in target_author:
-        a1, a2 = target_author.split("|")
-        # Filter pairs containing BOTH authors
-        # Show joint paper list instead of pair ranking
-    result_text, _ = _compute_collaborations(docs, target_author)
-    return {"result_text": result_text, ...}  # LLM bypass
-```
-
-**Results** (84 papers, 100% PubMed coverage):
-- 3.253 unique co-author pairs
-- Top: **Mark Helm + Yuri Motorin** (10 papers)
-- Helm + Motorin: 11 shared papers
-- Helm + Dieterich: 2 shared papers
-
-**Dual-author regex ordering:** Specific prefix patterns (`how many papers do X and Y share?`) must be tried before generic patterns (`X and Y share`) to avoid false matches.
 
 ---
 

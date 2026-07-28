@@ -176,16 +176,39 @@ rmap-chatbot/
 ## Development Workflow
 
 ```bash
-# 1. Make changes in Dify UI
-# 2. Export DSL
+# 1. Make changes (code in workflow_scripts/ or prompts in Dify UI)
+
+# 2a. If changed Dify UI: export DSL
 bash scripts/export_dify_dsl.sh "config/RMAP Chatbot Iterative Retrieval.yml" --auto-login
+# 2b. If changed workflow_scripts/: nothing needed (build step handles it)
 
-# 3. In Dify UI: test draft via Preview tab
-
-# 4. On success: commit DSL & deploy via import
+# 3. Deploy — one command does it all:
+#    build → sanitize → import → env inject → KR fix → draft sync
 bash scripts/import_dify_dsl.sh "config/RMAP Chatbot Iterative Retrieval.yml" --allow-cookie-auth --auto-login
 
-# 5. Test draft via debug_route
-bash scripts/debug_route_draft.sh --app-id "<your-app-id>" --classifier-node-id "1778800001032" \
-  --query "What is m6A?" --allow-cookie-auth --auto-login
+# 4. Publish (draft already has real env vars from step 3)
+python3 -c "
+import requests, os
+with open('.env') as f:
+    env = {}
+    for line in f:
+        if '=' in line and not line.startswith('#'): k,v = line.split('=',1); env[k.strip()]=v.strip().strip('\"')
+with open('.secrets/dify_console_session.env') as f:
+    for line in f:
+        if '=' in line and not line.startswith('#'): k,v = line.split('=',1); env[k.strip()]=v.strip().strip('\"')
+r = requests.get(f'{env[\"DIFY_BASE_URL\"]}/console/api/apps/16d50bee-bc86-4bda-bb56-a861743f3ddb/workflows/draft',
+    headers={'Cookie': env['DIFY_CONSOLE_COOKIE'], 'x-csrf-token': env['DIFY_CSRF_TOKEN']})
+d = r.json()
+requests.post(f'{env[\"DIFY_BASE_URL\"]}/console/api/apps/16d50bee-bc86-4bda-bb56-a861743f3ddb/workflows/publish',
+    headers={'Cookie': env['DIFY_CONSOLE_COOKIE'], 'x-csrf-token': env['DIFY_CSRF_TOKEN'], 'Content-Type': 'application/json'},
+    json={'graph': d['graph'], 'features': d.get('features',{}), 'environment_variables': d.get('environment_variables',[]),
+          'conversation_variables': d.get('conversation_variables',[]), 'hash': d.get('hash','')})
+print('Published')
+"
+
+# 5. Quick smoke test
+DIFY_BASE_URL="http://rmap-chatbot-demo-dify" DIFY_APP_API_KEY="app-..." \
+  bash scripts/debug_route_runtime.sh --query "Papers by Christoph Dieterich"
 ```
+
+> **Key rule:** `.env` is the single source of truth. The YAML only contains placeholders. `import_dify_dsl.sh` auto-injects real values from `.env` on every run. Never manually edit env vars in the Dify UI.
