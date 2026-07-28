@@ -1,6 +1,6 @@
 import os
 
-DIFY_API_URL = os.getenv("DIFY_API_URL", "http://rmap-chatbot-demo-dify/v1")
+DIFY_API_URL = os.getenv("DIFY_API_URL", "http://<your-dify-host>/v1")
 # Preferred explicit name for dataset operations (paper upload/metadata update).
 # Backward-compatible fallback: DIFY_API_KEY.
 DIFY_DATASET_API_KEY = os.getenv(

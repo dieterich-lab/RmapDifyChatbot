@@ -81,7 +81,7 @@ def _api_post(opener, csrf, url, body):
 def main():
     dry_run = "--dry-run" in sys.argv
 
-    base = os.getenv("DIFY_BASE_URL", "http://rmap-chatbot-demo-dify")
+    base = os.getenv("DIFY_BASE_URL", "http://<your-dify-host>")
     ds = os.getenv("DIFY_DATASET_ID", "<your-dataset-id>")
     pdf_folder = os.getenv(
         "PDF_FOLDER", str(REPO_ROOT / "RMaP papers first funding period")

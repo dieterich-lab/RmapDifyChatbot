@@ -21,7 +21,7 @@ RmapDifyChatbot is a Dify-based academic literature assistant for the RMaP proje
 
 | Variant | URL | Mode |
 |---|---|---|
-| **Published App** (stable) | `http://rmap-chatbot-demo-dify.internal/chat/qSKbMGikJuIdhlfr` | Live API, no debug |
+| **Published App** (stable) | `http://<your-dify-host>/chat/<your-chat-url-token>` | Live API, no debug |
 | **Draft Mode** (Preview) | Dify Console → App → "Preview" tab | Debug output: node status, runtime |
 
 You will receive an invitation to create a Dify account. After login, find the app under **Apps → RMAP Chatbot Iterative Retrieval**.
@@ -141,7 +141,7 @@ flowchart TD
 ### Dataset
 
 - **Name**: RMAP Papers
-- **UUID**: `5a231cec-21bf-40b9-86c8-87b9d01bca74`
+- **UUID**: `<your-dataset-id>`
 - **Documents**: 84 papers (RMaP First Funding Period), all with PubMed/CrossRef metadata
 - **Embedding**: nomic-embed-text-v2-moe (Ollama)
 - **Chunking**: Dify standard (automatic mode)
@@ -186,6 +186,6 @@ bash scripts/export_dify_dsl.sh "config/RMAP Chatbot Iterative Retrieval.yml" --
 bash scripts/import_dify_dsl.sh "config/RMAP Chatbot Iterative Retrieval.yml" --allow-cookie-auth --auto-login
 
 # 5. Test draft via debug_route
-bash scripts/debug_route_draft.sh --app-id "16d50bee-..." --classifier-node-id "1778800001032" \
+bash scripts/debug_route_draft.sh --app-id "<your-app-id>" --classifier-node-id "1778800001032" \
   --query "What is m6A?" --allow-cookie-auth --auto-login
 ```

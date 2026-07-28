@@ -345,7 +345,7 @@
 
 ### Fixed
 
-- **Dataset UUID**: `fiCgoIRC...` (API-Key) durch echte Dataset-UUID `5a231cec-...` ersetzt. PostgreSQL benötigt UUID-Format.
+- **Dataset UUID**: `fiCgoIRC...` (API-Key) durch echte Dataset-UUID `<your-dataset-id>` ersetzt. PostgreSQL benötigt UUID-Format.
 - **Final Answer Sanitizer**: Orphaned `content_text` Variable auf gelöschten Content LLM entfernt.
 - **Paper Count in Parse Router Output**: `paper_count` Output fehlte – Fetch Full Paper bekam keinen Count.
 

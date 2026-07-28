@@ -2,7 +2,7 @@
 
 > **Purpose:** Reference document for defending the choice of `nomic-embed-text-v2-moe` as the embedding model for the RMAP Chatbot knowledge retrieval pipeline.
 >
-> **Last evaluated:** 2026-07-24 · App `16d50bee-bc86-4bda-bb56-a861743f3ddb` · 84 papers · qwen2.5:14b
+> **Last evaluated:** 2026-07-24 · App `<your-app-id>` · 84 papers · qwen2.5:14b
 
 ---
 

@@ -1,7 +1,7 @@
 # RMAP Chatbot – Technical Guide
 
 > **Audience:** Developers taking over maintenance and extension of the chatbot.
-> **Last updated:** 2026-07-28 · v0.4.15+ · App `16d50bee-bc86-4bda-bb56-a861743f3ddb`
+> **Last updated:** 2026-07-28 · v0.4.15+ · App `<your-app-id>`
 
 ---
 
@@ -83,7 +83,7 @@ Metadata LLM       Summary LLM         ┌───┼───┐              
 - 5 query intents + collaboration analysis, 6 LLM nodes (all qwen2.5:14b via Ollama)
 - 7 code nodes (Python, injected via build pipeline)
 - 1 knowledge-retrieval node (hybrid keyword 0.7 + vector 0.3, top_k=100)
-- Dataset: `5a231cec-21bf-40b9-86c8-87b9d01bca74` (84 papers, 821 authors, nomic-embed-text-v2-moe)
+- Dataset: `<your-dataset-id>` (84 papers, 821 authors, nomic-embed-text-v2-moe)
 
 ---
 
@@ -175,7 +175,7 @@ python3 -c "
 "
 
 # 4. Verify:
-curl "http://rmap-chatbot-demo-dify/v1/datasets?page=1" \
+curl "http://<your-dify-host>/v1/datasets?page=1" \
   -H "Authorization: Bearer dataset-NEW_KEY"
 ```
 
@@ -322,7 +322,7 @@ Body: {"inputs":{"sys.query":"..."},"response_mode":"streaming","user":"test"}
 Used for production-like testing. Requires the app to be published with valid env vars.
 
 ```bash
-DIFY_BASE_URL="http://rmap-chatbot-demo-dify" \
+DIFY_BASE_URL="http://<your-dify-host>" \
 DIFY_APP_API_KEY="app-<your-app-key>" \
 bash scripts/debug_route_runtime.sh \
   --query "Papers by Christoph Dieterich" \
@@ -351,13 +351,13 @@ bash scripts/import_dify_dsl.sh "config/RMAP Chatbot Iterative Retrieval.yml" \
 python3 -c "
 import json, os, urllib.request
 base = os.environ['DIFY_BASE_URL'].rstrip('/')
-app_id = '16d50bee-bc86-4bda-bb56-a861743f3ddb'
+app_id = '<your-app-id>'
 # ... fetch draft, build payload with env vars, POST to draft + publish
 "
 
 # 5. Test
 # Draft API:
-bash scripts/debug_route_draft.sh --app-id 16d50bee-... \
+bash scripts/debug_route_draft.sh --app-id <your-app-id> \
   --query "Who has worked on tRNA modifications?" --allow-cookie-auth
 
 # Runtime API:
@@ -796,7 +796,7 @@ if _is_set(collaboration_mode):
 
 **Quick smoke test (draft API):**
 ```bash
-bash scripts/debug_route_draft.sh --app-id 16d50bee-... \
+bash scripts/debug_route_draft.sh --app-id <your-app-id> \
   --query "Which papers are (co-) authored by Christoph Dieterich?" \
   --allow-cookie-auth
 # Expected: "8 papers" with all 8 listed including Sci-ModoM
@@ -804,7 +804,7 @@ bash scripts/debug_route_draft.sh --app-id 16d50bee-... \
 
 **Full regression (runtime API):**
 ```bash
-DIFY_BASE_URL="http://rmap-chatbot-demo-dify" \
+DIFY_BASE_URL="http://<your-dify-host>" \
 DIFY_APP_API_KEY="app-<your-app-key>" \
 bash scripts/debug_route_runtime.sh \
   --query "What is m6A?" \
@@ -831,12 +831,12 @@ Before each release, verify:
 
 ```bash
 # Runtime API (published app, faster):
-DIFY_BASE_URL="http://rmap-chatbot-demo-dify" \
+DIFY_BASE_URL="http://<your-dify-host>" \
 DIFY_APP_API_KEY="app-..." \
 python3 scripts/regression_test.py
 
 # Draft API (per-node debug):
-bash scripts/debug_route_draft.sh --app-id 16d50bee-... \
+bash scripts/debug_route_draft.sh --app-id <your-app-id> \
   --auto-login --query "Papers by Christoph Dieterich" ...
 ```
 
@@ -883,7 +883,7 @@ bash scripts/debug_route_draft.sh --app-id 16d50bee-... \
 
 **Fix:** `import_dify_dsl.sh` auto-fixes via `fix_kr_dataset()`. If manual fix needed:
 ```bash
-bash scripts/fix_kr_dataset.sh --app-id 16d50bee-... --auto-login
+bash scripts/fix_kr_dataset.sh --app-id <your-app-id> --auto-login
 ```
 
 ### 10.7 Start Node Appears as White Bar / All Nodes "Not Connected"
@@ -993,11 +993,11 @@ base = os.environ['DIFY_BASE_URL'].rstrip('/')
 
 # Test via draft API
 bash scripts/debug_route_draft.sh \
-  --app-id 16d50bee-bc86-4bda-bb56-a861743f3ddb \
+  --app-id <your-app-id> \
   --query "What is m6A?" --allow-cookie-auth
 
 # Test via runtime API
-DIFY_BASE_URL="http://rmap-chatbot-demo-dify" \
+DIFY_BASE_URL="http://<your-dify-host>" \
 DIFY_APP_API_KEY="app-<your-app-key>" \
 bash scripts/debug_route_runtime.sh --query "What is m6A?"
 

@@ -27,7 +27,7 @@ for pdf in "$FOLDER"/*.pdf; do
     count=$((count + 1))
 
     DIFY_DATASET_ID="$DIFY_DATASET_ID" \
-    DIFY_API_URL="${DIFY_API_URL:-http://rmap-chatbot-demo-dify/v1}" \
+    DIFY_API_URL="${DIFY_API_URL:-http://<your-dify-host>/v1}" \
     DIFY_DATASET_API_KEY="${DIFY_DATASET_API_KEY:-}" \
     "$REPO_ROOT/.venv/bin/python" -c "
 import os, sys, json, requests, time

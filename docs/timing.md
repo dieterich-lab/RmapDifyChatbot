@@ -1,7 +1,7 @@
 # RMAP Chatbot – Timing Benchmarks
 
 > **Purpose:** Track end-to-end latency across hardware configurations for regression testing and capacity planning.
-> **Last updated:** 2026-07-21 · v0.4.8 · App `16d50bee-bc86-4bda-bb56-a861743f3ddb`
+> **Last updated:** 2026-07-21 · v0.4.8 · App `<your-app-id>`
 
 ## Current Baseline: A2 (Ampere, 16 GB VRAM)
 
@@ -64,7 +64,7 @@ import requests, time
 h = {'Authorization': 'Bearer $DIFY_APP_API_KEY'}
 for q in ['Find Papers by Dieterich', 'What is m6A?', 'Who has worked on tRNA modifications?']:
     t0 = time.time()
-    r = requests.post('http://rmap-chatbot-demo-dify/v1/chat-messages',
+    r = requests.post('http://<your-dify-host>/v1/chat-messages',
         headers=h, json={'query':q, 'inputs':{}, 'response_mode':'blocking', 'user':'bench'})
     print(f'{q}: {round(time.time()-t0,1)}s')
 "

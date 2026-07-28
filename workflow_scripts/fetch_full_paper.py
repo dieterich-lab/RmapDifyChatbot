@@ -114,10 +114,10 @@ def main(
     api_key_input=None,
 ):
     api_base = (
-        _norm(os.getenv("DIFY_API_URL")) or "http://rmap-chatbot-demo-dify/v1"
+        _norm(os.getenv("DIFY_API_URL")) or "http://<your-dify-host>/v1"
     ).rstrip("/")
     dataset_id = (
-        _norm(os.getenv("DIFY_DATASET_ID")) or "5a231cec-21bf-40b9-86c8-87b9d01bca74"
+        _norm(os.getenv("DIFY_DATASET_ID")) or "<your-dataset-id>"
     )
     api_key = api_key_input or _norm(os.getenv("DIFY_API_KEY")) or ""
     headers = {"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"}

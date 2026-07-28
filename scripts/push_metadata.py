@@ -9,7 +9,7 @@ import time
 
 import requests
 
-API_BASE = os.getenv("DIFY_BASE_URL", "http://rmap-chatbot-demo-dify").rstrip("/")
+API_BASE = os.getenv("DIFY_BASE_URL", "http://<your-dify-host>").rstrip("/")
 DS_ID = os.getenv("DIFY_DATASET_ID", "<your-dataset-id>")
 
 # Read API key from .env
