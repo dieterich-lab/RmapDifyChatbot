@@ -6,6 +6,7 @@ fail() { echo "$*"; exit 1; }
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+export REPO_ROOT
 PYTHON_BIN="${PYTHON_BIN:-$REPO_ROOT/.venv/bin/python}"
 [[ -x "$PYTHON_BIN" ]] || fail "Python not found: $PYTHON_BIN"
 
@@ -270,17 +271,38 @@ sync_draft() {
     return 0
   fi
 
-  # Build draft payload: graph + features from DSL, env/conv vars from current draft
+  # Build draft payload: graph + features from DSL, env vars from .env (not draft!)
   DSL_PATH="$DSL_PATH" TMP_DRAFT_GET="$TMP_DRAFT_GET" TMP_DRAFT_PAYLOAD="$TMP_DRAFT_PAYLOAD" \
   "$PYTHON_BIN" - <<'PY'
 import json, os, yaml
 from pathlib import Path
 dsl   = yaml.safe_load(Path(os.environ["DSL_PATH"]).read_text(encoding="utf-8"))
 draft = json.loads(Path(os.environ["TMP_DRAFT_GET"]).read_text(encoding="utf-8"))
+
+# Read real env vars from .env file (single source of truth)
+env_vars = []
+env_file = Path(os.environ.get("REPO_ROOT", "")) / ".env"
+if env_file.exists():
+    env_map = {}
+    for line in env_file.read_text().splitlines():
+        line = line.strip()
+        if line and not line.startswith("#") and "=" in line:
+            k, v = line.split("=", 1)
+            env_map[k.strip()] = v.strip().strip('"').strip("'")
+    for ev in draft.get("environment_variables", []):
+        name = ev.get("name", "")
+        if name in env_map and env_map[name]:
+            ev["value"] = env_map[name]
+    env_vars = draft.get("environment_variables", [])
+    masked = {ev['name']: ev['value'][:15]+'...' if len(ev.get('value',''))>18 else ev.get('value','') for ev in env_vars}
+    print(f"Env vars injected from .env: {masked}")
+else:
+    env_vars = draft.get("environment_variables", [])
+
 payload = {
     "graph":                 dsl["workflow"]["graph"],
     "features":              dsl.get("app", {}).get("features", {}),
-    "environment_variables": draft.get("environment_variables", []),
+    "environment_variables": env_vars,
     "conversation_variables":draft.get("conversation_variables", []),
     "hash":                  draft.get("hash", ""),
 }

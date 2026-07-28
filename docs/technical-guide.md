@@ -141,7 +141,9 @@ variables:
     variable: dataset_id_input
 ```
 
-**After every `import_dify_dsl.sh` run, the env vars must be re-set** because the import replaces the draft graph (which includes the env vars). The fix script sets them via:
+**After every `import_dify_dsl.sh` run, env vars are automatically injected from `.env`** via `sync_draft()`. No manual step needed — the import script reads `DIFY_API_KEY` and `DIFY_DATASET_ID` from `.env` and writes them into the draft before syncing. The DSL YAML only contains placeholders which are overwritten during import.
+
+For reference, the (now automated) process was:
 
 ```python
 # POST to /console/api/apps/{id}/workflows/draft with payload:
@@ -343,16 +345,16 @@ The runtime script maintains `conversation_id` across multi-turn queries, simula
 # 2. Build DSL
 .venv/bin/python scripts/build_dsl.py
 
-# 3. Import to Dify
+# 3. Import to Dify (env vars auto-injected from .env)
 bash scripts/import_dify_dsl.sh "config/RMAP Chatbot Iterative Retrieval.yml" \
   --skip-build --allow-cookie-auth --auto-login
 
-# 4. Set env vars + publish (MUST do after every import!)
+# 4. Publish (draft already has real env vars from step 3)
 python3 -c "
 import json, os, urllib.request
 base = os.environ['DIFY_BASE_URL'].rstrip('/')
 app_id = '<your-app-id>'
-# ... fetch draft, build payload with env vars, POST to draft + publish
+# ... fetch draft, POST to publish
 "
 
 # 5. Test
@@ -871,11 +873,11 @@ bash scripts/debug_route_draft.sh --app-id <your-app-id> \
 
 **Mitigation:** `MAX_PAPERS_FOR_SUMMARY = 8` in `parse_router_output.py` (v0.4.10). Tested at 194s for Mark Helm (28 papers → 8 summarized). Well under the 5 min draft timeout.
 
-### 10.5 env vars Lost After Import
+### 10.5 env vars Lost After Import (Fixed in v0.4.16+)
 
-**Cause:** `import_dify_dsl.sh` replaces the draft graph, which clears env vars.
+**Historical cause:** `import_dify_dsl.sh` replaced the draft graph, which cleared env vars.
 
-**Fix:** Always re-set env vars and publish after every import (see §5.1 step 4).
+**Fix:** `sync_draft()` now auto-injects `DIFY_API_KEY` and `DIFY_DATASET_ID` from `.env` on every import. No manual step needed.
 
 ### 10.6 Knowledge Retrieval Returns Wrong Dataset
 
