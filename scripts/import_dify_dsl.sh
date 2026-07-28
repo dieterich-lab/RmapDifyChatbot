@@ -102,12 +102,14 @@ PY
 )
 
 TMP_IMPORT=$(mktemp)
+TMP_PAYLOAD_FILE=$(mktemp)
+echo "$PAYLOAD" > "$TMP_PAYLOAD_FILE"
 USED_AUTH_MODE=""
 
 post_import_api() {
   curl -sS -o "$TMP_IMPORT" -w "%{http_code}" -X POST "$IMPORT_URL" \
     -H "Authorization: Bearer ${DIFY_CONSOLE_API_KEY}" \
-    -H "Content-Type: application/json" --data "$PAYLOAD"
+    -H "Content-Type: application/json" --data @"$TMP_PAYLOAD_FILE"
 }
 
 post_import_cookie() {
@@ -116,7 +118,7 @@ post_import_cookie() {
   curl -sS -o "$TMP_IMPORT" -w "%{http_code}" -X POST "$IMPORT_URL" \
     -H "Cookie: ${DIFY_CONSOLE_COOKIE}" \
     -H "x-csrf-token: ${DIFY_CSRF_TOKEN}" \
-    -H "Content-Type: application/json" --data "$PAYLOAD"
+    -H "Content-Type: application/json" --data @"$TMP_PAYLOAD_FILE"
 }
 
 run_console_auto_login() {

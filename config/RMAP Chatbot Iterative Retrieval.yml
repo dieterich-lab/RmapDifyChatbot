@@ -866,58 +866,84 @@ workflow:
           \ b, key=str.lower))\n                pair_counts[key] += 1\n          \
           \      if key not in pair_papers:\n                    pair_papers[key]\
           \ = set()\n                pair_papers[key].add(title)\n\n    # Filter by\
-          \ target author if specified\n    if target_author:\n        target_lower\
-          \ = target_author.lower()\n        pair_counts = Counter(\n            {\n\
-          \                k: v\n                for k, v in pair_counts.items()\n\
-          \                if target_lower in k[0].lower() or target_lower in k[1].lower()\n\
+          \ target author(s) if specified.\n    # Single author: \"Mark Helm\" → match\
+          \ pairs containing \"mark helm\".\n    # Dual author (pipe-separated): \"\
+          Mark Helm|Yuri Motorin\" → match exact pair.\n    target_authors = []\n\
+          \    if target_author:\n        if \"|\" in target_author:\n           \
+          \ target_authors = [a.strip() for a in target_author.split(\"|\") if a.strip()]\n\
+          \        else:\n            target_authors = [target_author]\n\n    if len(target_authors)\
+          \ == 2:\n        # Dual-author: show papers they co-authored together\n\
+          \        a1, a2 = target_authors\n        a1_lower, a2_lower = a1.lower(),\
+          \ a2.lower()\n        pair_counts = Counter(\n            {\n          \
+          \      k: v\n                for k, v in pair_counts.items()\n         \
+          \       if (a1_lower in k[0].lower() and a2_lower in k[1].lower())\n   \
+          \             or (a2_lower in k[0].lower() and a1_lower in k[1].lower())\n\
           \            }\n        )\n        pair_papers = {\n            k: v\n \
-          \           for k, v in pair_papers.items()\n            if target_lower\
-          \ in k[0].lower() or target_lower in k[1].lower()\n        }\n\n    if not\
-          \ pair_counts:\n        return (\n            \"Keine Kollaborationen gefunden.\
-          \ \"\n            \"Der Datensatz enthält möglicherweise zu wenige Papers\
-          \ mit \"\n            \"mehreren Autoren für eine aussagekräftige Analyse.\"\
-          \n        ), \"\"\n\n    top = pair_counts.most_common(20)\n    total_pairs\
-          \ = len(pair_counts)\n    total_papers_with_pairs = len(\n        [d for\
-          \ d in docs if len(d.get(\"authors\", \"\").split(\",\")) >= 2]\n    )\n\
-          \n    lines = [\n        f\"Co-Author Collaboration Analysis\",\n      \
-          \  f\"\",\n        f\"Dataset: {len(docs)} papers, {total_papers_with_pairs}\
+          \           for k, v in pair_papers.items()\n            if (a1_lower in\
+          \ k[0].lower() and a2_lower in k[1].lower())\n            or (a2_lower in\
+          \ k[0].lower() and a1_lower in k[1].lower())\n        }\n    elif len(target_authors)\
+          \ == 1:\n        target_lower = target_authors[0].lower()\n        pair_counts\
+          \ = Counter(\n            {\n                k: v\n                for k,\
+          \ v in pair_counts.items()\n                if target_lower in k[0].lower()\
+          \ or target_lower in k[1].lower()\n            }\n        )\n        pair_papers\
+          \ = {\n            k: v\n            for k, v in pair_papers.items()\n \
+          \           if target_lower in k[0].lower() or target_lower in k[1].lower()\n\
+          \        }\n\n    if not pair_counts:\n        return (\n            \"\
+          Keine Kollaborationen gefunden. \"\n            \"Der Datensatz enthält\
+          \ möglicherweise zu wenige Papers mit \"\n            \"mehreren Autoren\
+          \ für eine aussagekräftige Analyse.\"\n        ), \"\"\n\n    top = pair_counts.most_common(20)\n\
+          \    total_pairs = len(pair_counts)\n    total_papers_with_pairs = len(\n\
+          \        [d for d in docs if len(d.get(\"authors\", \"\").split(\",\"))\
+          \ >= 2]\n    )\n\n    lines = [\n        f\"Co-Author Collaboration Analysis\"\
+          ,\n        f\"\",\n        f\"Dataset: {len(docs)} papers, {total_papers_with_pairs}\
           \ with ≥2 authors\",\n        f\"Unique co-author pairs found: {total_pairs}\"\
-          ,\n    ]\n\n    if target_author:\n        lines.insert(1, f\"Collaborator:\
-          \ {target_author}\")\n        lines.append(f\"\")\n    else:\n        lines.append(f\"\
-          \")\n        lines.append(f\"Top 20 most frequent co-author pairs:\")\n\
-          \        lines.append(f\"\")\n\n    for idx, (key, count) in enumerate(top,\
-          \ start=1):\n        a, b = key\n        papers = pair_papers.get(key, set())\n\
-          \        paper_list = \"; \".join(sorted(papers)[:3])\n        if len(papers)\
-          \ > 3:\n            paper_list += f\" (+{len(papers) - 3} more)\"\n    \
-          \    lines.append(\n            f\"{idx}. **{a}** + **{b}** — {count} paper{'s'\
-          \ if count > 1 else ''}\"\n        )\n        lines.append(f\"   Papers:\
-          \ {paper_list}\")\n        lines.append(f\"\")\n\n    # Future computation\
-          \ modes (not yet implemented):\n    # - publication_timeline: papers grouped\
-          \ by year\n    # - journal_distribution: papers grouped by journal\n   \
-          \ # - author_productivity: paper count per author\n    # - topic_clustering:\
-          \ title-based keyword co-occurrence\n    intent_hint = \"collaboration\"\
-          \n\n    return \"\\n\".join(lines), intent_hint\n\n\ndef main(\n    year=None,\n\
-          \    authors=None,\n    journal=None,\n    title=None,\n    paper_list=None,\n\
-          \    list_mode=None,\n    collaboration_mode=None,\n    api_key_input=None,\n\
-          \    dataset_id_input=None,\n):\n    api_base = (os.getenv(\"DIFY_API_URL\"\
-          ) or \"http://rmap-chatbot-demo-dify/v1\").rstrip(\n        \"/\"\n    )\n\
-          \    dataset_id = (\n        dataset_id_input\n        or os.getenv(\"DIFY_DATASET_ID\"\
-          )\n        or \"5a231cec-21bf-40b9-86c8-87b9d01bca74\"\n    )\n    api_key\
-          \ = api_key_input or os.getenv(\"DIFY_API_KEY\") or \"\"\n\n    if not _is_set(api_base)\
-          \ or not _is_set(dataset_id) or not _is_set(api_key):\n        return {\n\
-          \            \"result\": (\n                \"Dify API Konfiguration unvollstaendig.\
-          \ \"\n                \"Erwarte DIFY_API_URL, DIFY_DATASET_ID und DIFY_API_KEY.\"\
-          \n            )\n        }\n\n    # Extract filter values from paper_list\
-          \ if passed (Parse Router Output)\n    if isinstance(paper_list, list) and\
-          \ len(paper_list) > 0:\n        first = paper_list[0]\n        if isinstance(first,\
-          \ dict):\n            if not _is_set(year):\n                year = first.get(\"\
-          year\", \"\")\n            if not _is_set(journal):\n                journal\
-          \ = first.get(\"journal\", \"\")\n            if not _is_set(title):\n \
-          \               title = first.get(\"title\", \"\")\n        # Collect authors\
-          \ from ALL entries (supports multi-name OR queries\n        # where parse_router_output\
-          \ splits \"X, Y\" into separate entries)\n        if not _is_set(authors):\n\
-          \            all_authors = []\n            for entry in paper_list:\n  \
-          \              if isinstance(entry, dict):\n                    a = (entry.get(\"\
+          ,\n    ]\n\n    if len(target_authors) == 2:\n        a1, a2 = target_authors\n\
+          \        lines.insert(1, f\"Joint papers: {a1} + {a2}\")\n        if pair_counts:\n\
+          \            total_papers_count = sum(pair_counts.values())\n          \
+          \  lines.append(f\"Shared papers: {total_papers_count}\")\n        lines.append(f\"\
+          \")\n        # Dual-author: show ALL shared papers, not pairs\n        all_shared\
+          \ = set()\n        for papers in pair_papers.values():\n            all_shared\
+          \ |= papers\n        if all_shared:\n            for idx, paper in enumerate(sorted(all_shared),\
+          \ 1):\n                lines.append(f\"{idx}. {paper}\")\n            lines.append(f\"\
+          \")\n    elif len(target_authors) == 1:\n        lines.insert(1, f\"Collaborator:\
+          \ {target_authors[0]}\")\n        lines.append(f\"\")\n    else:\n     \
+          \   lines.append(f\"\")\n        lines.append(f\"Top 20 most frequent co-author\
+          \ pairs:\")\n        lines.append(f\"\")\n\n    # Render pair list (skip\
+          \ for dual-author — already shown as paper list)\n    if len(target_authors)\
+          \ != 2:\n        for idx, (key, count) in enumerate(top, start=1):\n   \
+          \         a, b = key\n            papers = pair_papers.get(key, set())\n\
+          \            paper_list = \"; \".join(sorted(papers)[:3])\n            if\
+          \ len(papers) > 3:\n                paper_list += f\" (+{len(papers) - 3}\
+          \ more)\"\n            lines.append(\n                f\"{idx}. **{a}**\
+          \ + **{b}** — {count} paper{'s' if count > 1 else ''}\"\n            )\n\
+          \            lines.append(f\"   Papers: {paper_list}\")\n            lines.append(f\"\
+          \")\n\n    # Future computation modes (not yet implemented):\n    # - publication_timeline:\
+          \ papers grouped by year\n    # - journal_distribution: papers grouped by\
+          \ journal\n    # - author_productivity: paper count per author\n    # -\
+          \ topic_clustering: title-based keyword co-occurrence\n    intent_hint =\
+          \ \"collaboration\"\n\n    return \"\\n\".join(lines), intent_hint\n\n\n\
+          def main(\n    year=None,\n    authors=None,\n    journal=None,\n    title=None,\n\
+          \    paper_list=None,\n    list_mode=None,\n    collaboration_mode=None,\n\
+          \    api_key_input=None,\n    dataset_id_input=None,\n):\n    api_base =\
+          \ (os.getenv(\"DIFY_API_URL\") or \"http://rmap-chatbot-demo-dify/v1\").rstrip(\n\
+          \        \"/\"\n    )\n    dataset_id = (\n        dataset_id_input\n  \
+          \      or os.getenv(\"DIFY_DATASET_ID\")\n        or \"5a231cec-21bf-40b9-86c8-87b9d01bca74\"\
+          \n    )\n    api_key = api_key_input or os.getenv(\"DIFY_API_KEY\") or \"\
+          \"\n\n    if not _is_set(api_base) or not _is_set(dataset_id) or not _is_set(api_key):\n\
+          \        return {\n            \"result\": (\n                \"Dify API\
+          \ Konfiguration unvollstaendig. \"\n                \"Erwarte DIFY_API_URL,\
+          \ DIFY_DATASET_ID und DIFY_API_KEY.\"\n            )\n        }\n\n    #\
+          \ Extract filter values from paper_list if passed (Parse Router Output)\n\
+          \    if isinstance(paper_list, list) and len(paper_list) > 0:\n        first\
+          \ = paper_list[0]\n        if isinstance(first, dict):\n            if not\
+          \ _is_set(year):\n                year = first.get(\"year\", \"\")\n   \
+          \         if not _is_set(journal):\n                journal = first.get(\"\
+          journal\", \"\")\n            if not _is_set(title):\n                title\
+          \ = first.get(\"title\", \"\")\n        # Collect authors from ALL entries\
+          \ (supports multi-name OR queries\n        # where parse_router_output splits\
+          \ \"X, Y\" into separate entries)\n        if not _is_set(authors):\n  \
+          \          all_authors = []\n            for entry in paper_list:\n    \
+          \            if isinstance(entry, dict):\n                    a = (entry.get(\"\
           authors\") or \"\").strip()\n                    if a:\n               \
           \         all_authors.append(a)\n            if all_authors:\n         \
           \       authors = \", \".join(all_authors)\n\n    headers = _build_headers(str(api_key).strip())\n\
@@ -1861,40 +1887,62 @@ workflow:
           \ = \"\"\n    if sys_query:\n        q = str(sys_query).strip().lower()\n\
           \        collab_markers = (\n            \"collaborat\",\n            \"\
           co-author\",\n            \"coauthor\",\n            \"co author\",\n  \
-          \          \"published together\",\n            \"publish together\",\n\
-          \            \"published with\",\n            \"worked together\",\n   \
-          \         \"work together\",\n            \"co-autoren\",\n        )\n \
-          \       if any(m in q for m in collab_markers):\n            intent = \"\
-          metadata_list\"\n            # Extract target author — match separators\
-          \ case-insensitively (q_lower)\n            # but extract name preserving\
-          \ original case from sys_query\n            q_orig = str(sys_query).strip()\n\
-          \            target = \"\"\n            for sep in (\n                \"\
-          co-authors of \",\n                \"co-author of \",\n                \"\
-          collaborators of \",\n                \"coauthors of \",\n             \
-          \   \"collaborations of \",\n                \"collaboration of \",\n  \
-          \          ):\n                if sep in q:  # match lowercase\n       \
-          \             idx = q.index(sep)\n                    target = q_orig[idx\
-          \ + len(sep):].strip().rstrip(\".,;?!\")\n                    break\n  \
-          \          if not target:\n                for sep in (\n              \
-          \      \"co-authors with \",\n                    \"collaborated with \"\
-          ,\n                    \"collaborations with \",\n                    \"\
-          published with \",\n                ):\n                    if sep in q:\n\
-          \                        idx = q.index(sep)\n                        target\
-          \ = q_orig[idx + len(sep):].strip().rstrip(\".,;?!\")\n                \
-          \        break\n            if not target:\n                # \"Which co-authors\
-          \ has Mark Helm published with?\" → extract name\n                m = re.search(\n\
-          \                    r\"(?:co-authors?\\s+(?:has\\s+)?|coauthors?\\s+(?:has\\\
-          s+)?)([\\w\\s.-]+?)\\s+(?:published\\s+with|collaborated\\s+with)\",\n \
-          \                   q,\n                )\n                if m:\n     \
-          \               # Use the match position to extract from original case\n\
-          \                    start = m.start(1)\n                    end = m.end(1)\n\
-          \                    target = q_orig[start:end].strip().rstrip(\".,;?!\"\
-          )\n            collaboration_mode = target if target else \"all\"\n    \
-          \        paper_list = []\n            multi_author_bypass = True\n\n   \
-          \ return {\n        \"intent\": intent,\n        \"paper_list\": paper_list,\n\
-          \        \"paper_count\": 0 if multi_author_bypass else len(paper_list),\n\
-          \        \"rewritten_query\": rw,\n        \"list_mode\": list_mode,\n \
-          \       \"collaboration_mode\": collaboration_mode,\n    }\n"
+          \          \"co-authored\",\n            \"coauthored\",\n            \"\
+          published together\",\n            \"publish together\",\n            \"\
+          published with\",\n            \"worked together\",\n            \"work\
+          \ together\",\n            \"co-autoren\",\n        )\n        # Also match\
+          \ \"share papers\", \"shared papers\", \"papers shared\"\n        has_share\
+          \ = bool(re.search(r\"\\bshare[ds]?\\b.*\\bpaper\\b|\\bpaper.*\\bshare[ds]?\\\
+          b|\\bshare[ds]?\\s*\\?\", q))\n        if any(m in q for m in collab_markers)\
+          \ or has_share:\n            intent = \"metadata_list\"\n            # Extract\
+          \ target author — match separators case-insensitively (q_lower)\n      \
+          \      # but extract name preserving original case from sys_query\n    \
+          \        q_orig = str(sys_query).strip()\n            target = \"\"\n  \
+          \          for sep in (\n                \"co-authors of \",\n         \
+          \       \"co-author of \",\n                \"collaborators of \",\n   \
+          \             \"coauthors of \",\n                \"collaborations of \"\
+          ,\n                \"collaboration of \",\n            ):\n            \
+          \    if sep in q:  # match lowercase\n                    idx = q.index(sep)\n\
+          \                    target = q_orig[idx + len(sep) :].strip().rstrip(\"\
+          .,;?!\")\n                    break\n            if not target:\n      \
+          \          for sep in (\n                    \"co-authors with \",\n   \
+          \                 \"collaborated with \",\n                    \"collaborations\
+          \ with \",\n                    \"published with \",\n                ):\n\
+          \                    if sep in q:\n                        idx = q.index(sep)\n\
+          \                        target = q_orig[idx + len(sep) :].strip().rstrip(\"\
+          .,;?!\")\n                        break\n            if not target:\n  \
+          \              # \"Which co-authors has Mark Helm published with?\" → extract\
+          \ name\n                m = re.search(\n                    r\"(?:co-authors?\\\
+          s+(?:has\\s+)?|coauthors?\\s+(?:has\\s+)?)([\\w\\s.-]+?)\\s+(?:published\\\
+          s+with|collaborated\\s+with)\",\n                    q,\n              \
+          \  )\n                if m:\n                    # Use the match position\
+          \ to extract from original case\n                    start = m.start(1)\n\
+          \                    end = m.end(1)\n                    target = q_orig[start:end].strip().rstrip(\"\
+          .,;?!\")\n            # ── Dual-author detection ───────────────────────────\n\
+          \            # Patterns: \"co-authored by X and Y\", \"X and Y collaboration\"\
+          ,\n            # \"papers co-authored by X and Y\", \"do X and Y share papers?\"\
+          \n            dual_target = \"\"\n            dual_patterns = [\n      \
+          \          r\"co[- ]?authored?\\s+by\\s+([\\w.-]+(?:\\s+[\\w.-]+)?)\\s+and\\\
+          s+([\\w.-]+(?:\\s+[\\w.-]+)?)\",\n                r\"([\\w.-]+(?:\\s+[\\\
+          w.-]+)?)\\s+and\\s+([\\w.-]+(?:\\s+[\\w.-]+)?)\\s+collaborat\",\n      \
+          \          r\"([\\w.-]+(?:\\s+[\\w.-]+)?)\\s+and\\s+([\\w.-]+(?:\\s+[\\\
+          w.-]+)?)\\s+(?:published|co[- ]?authored|share|shared|joint)\",\n      \
+          \          r\"do\\s+([\\w.-]+(?:\\s+[\\w.-]+)?)\\s+and\\s+([\\w.-]+(?:\\\
+          s+[\\w.-]+)?)\\s+(?:share|have|co[- ]?author)\",\n                r\"how\\\
+          s+many\\s+papers\\s+(?:do|have)\\s+([\\w.-]+(?:\\s+[\\w.-]+)?)\\s+and\\\
+          s+([\\w.-]+(?:\\s+[\\w.-]+)?)\\s+(?:share|co[- ]?author|publish)\",\n  \
+          \          ]\n            for pattern in dual_patterns:\n              \
+          \  m = re.search(pattern, q)\n                if m:\n                  \
+          \  n1 = q_orig[m.start(1):m.end(1)].strip().rstrip(\".,;?!\")\n        \
+          \            n2 = q_orig[m.start(2):m.end(2)].strip().rstrip(\".,;?!\")\n\
+          \                    if n1 and n2 and len(n1) > 1 and len(n2) > 1:\n   \
+          \                     dual_target = f\"{n1}|{n2}\"\n                   \
+          \ break\n\n            collaboration_mode = dual_target if dual_target else\
+          \ (target if target else \"all\")\n            paper_list = []\n       \
+          \     multi_author_bypass = True\n\n    return {\n        \"intent\": intent,\n\
+          \        \"paper_list\": paper_list,\n        \"paper_count\": 0 if multi_author_bypass\
+          \ else len(paper_list),\n        \"rewritten_query\": rw,\n        \"list_mode\"\
+          : list_mode,\n        \"collaboration_mode\": collaboration_mode,\n    }\n"
         code_language: python3
         isInIteration: false
         isInLoop: false

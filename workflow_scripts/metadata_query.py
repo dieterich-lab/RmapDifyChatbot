@@ -402,9 +402,36 @@ def _compute_collaborations(
                     pair_papers[key] = set()
                 pair_papers[key].add(title)
 
-    # Filter by target author if specified
+    # Filter by target author(s) if specified.
+    # Single author: "Mark Helm" → match pairs containing "mark helm".
+    # Dual author (pipe-separated): "Mark Helm|Yuri Motorin" → match exact pair.
+    target_authors = []
     if target_author:
-        target_lower = target_author.lower()
+        if "|" in target_author:
+            target_authors = [a.strip() for a in target_author.split("|") if a.strip()]
+        else:
+            target_authors = [target_author]
+
+    if len(target_authors) == 2:
+        # Dual-author: show papers they co-authored together
+        a1, a2 = target_authors
+        a1_lower, a2_lower = a1.lower(), a2.lower()
+        pair_counts = Counter(
+            {
+                k: v
+                for k, v in pair_counts.items()
+                if (a1_lower in k[0].lower() and a2_lower in k[1].lower())
+                or (a2_lower in k[0].lower() and a1_lower in k[1].lower())
+            }
+        )
+        pair_papers = {
+            k: v
+            for k, v in pair_papers.items()
+            if (a1_lower in k[0].lower() and a2_lower in k[1].lower())
+            or (a2_lower in k[0].lower() and a1_lower in k[1].lower())
+        }
+    elif len(target_authors) == 1:
+        target_lower = target_authors[0].lower()
         pair_counts = Counter(
             {
                 k: v
@@ -438,25 +465,42 @@ def _compute_collaborations(
         f"Unique co-author pairs found: {total_pairs}",
     ]
 
-    if target_author:
-        lines.insert(1, f"Collaborator: {target_author}")
+    if len(target_authors) == 2:
+        a1, a2 = target_authors
+        lines.insert(1, f"Joint papers: {a1} + {a2}")
+        if pair_counts:
+            total_papers_count = sum(pair_counts.values())
+            lines.append(f"Shared papers: {total_papers_count}")
+        lines.append(f"")
+        # Dual-author: show ALL shared papers, not pairs
+        all_shared = set()
+        for papers in pair_papers.values():
+            all_shared |= papers
+        if all_shared:
+            for idx, paper in enumerate(sorted(all_shared), 1):
+                lines.append(f"{idx}. {paper}")
+            lines.append(f"")
+    elif len(target_authors) == 1:
+        lines.insert(1, f"Collaborator: {target_authors[0]}")
         lines.append(f"")
     else:
         lines.append(f"")
         lines.append(f"Top 20 most frequent co-author pairs:")
         lines.append(f"")
 
-    for idx, (key, count) in enumerate(top, start=1):
-        a, b = key
-        papers = pair_papers.get(key, set())
-        paper_list = "; ".join(sorted(papers)[:3])
-        if len(papers) > 3:
-            paper_list += f" (+{len(papers) - 3} more)"
-        lines.append(
-            f"{idx}. **{a}** + **{b}** — {count} paper{'s' if count > 1 else ''}"
-        )
-        lines.append(f"   Papers: {paper_list}")
-        lines.append(f"")
+    # Render pair list (skip for dual-author — already shown as paper list)
+    if len(target_authors) != 2:
+        for idx, (key, count) in enumerate(top, start=1):
+            a, b = key
+            papers = pair_papers.get(key, set())
+            paper_list = "; ".join(sorted(papers)[:3])
+            if len(papers) > 3:
+                paper_list += f" (+{len(papers) - 3} more)"
+            lines.append(
+                f"{idx}. **{a}** + **{b}** — {count} paper{'s' if count > 1 else ''}"
+            )
+            lines.append(f"   Papers: {paper_list}")
+            lines.append(f"")
 
     # Future computation modes (not yet implemented):
     # - publication_timeline: papers grouped by year
