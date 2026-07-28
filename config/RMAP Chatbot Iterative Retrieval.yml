@@ -1892,8 +1892,9 @@ workflow:
           published with\",\n            \"worked together\",\n            \"work\
           \ together\",\n            \"co-autoren\",\n        )\n        # Also match\
           \ \"share papers\", \"shared papers\", \"papers shared\"\n        has_share\
-          \ = bool(re.search(r\"\\bshare[ds]?\\b.*\\bpaper\\b|\\bpaper.*\\bshare[ds]?\\\
-          b|\\bshare[ds]?\\s*\\?\", q))\n        if any(m in q for m in collab_markers)\
+          \ = bool(\n            re.search(\n                r\"\\bshare[ds]?\\b.*\\\
+          bpaper\\b|\\bpaper.*\\bshare[ds]?\\b|\\bshare[ds]?\\s*\\?\",\n         \
+          \       q,\n            )\n        )\n        if any(m in q for m in collab_markers)\
           \ or has_share:\n            intent = \"metadata_list\"\n            # Extract\
           \ target author — match separators case-insensitively (q_lower)\n      \
           \      # but extract name preserving original case from sys_query\n    \
@@ -1922,27 +1923,29 @@ workflow:
           \            # Patterns: \"co-authored by X and Y\", \"X and Y collaboration\"\
           ,\n            # \"papers co-authored by X and Y\", \"do X and Y share papers?\"\
           \n            dual_target = \"\"\n            dual_patterns = [\n      \
-          \          r\"co[- ]?authored?\\s+by\\s+([\\w.-]+(?:\\s+[\\w.-]+)?)\\s+and\\\
-          s+([\\w.-]+(?:\\s+[\\w.-]+)?)\",\n                r\"([\\w.-]+(?:\\s+[\\\
-          w.-]+)?)\\s+and\\s+([\\w.-]+(?:\\s+[\\w.-]+)?)\\s+collaborat\",\n      \
-          \          r\"([\\w.-]+(?:\\s+[\\w.-]+)?)\\s+and\\s+([\\w.-]+(?:\\s+[\\\
-          w.-]+)?)\\s+(?:published|co[- ]?authored|share|shared|joint)\",\n      \
-          \          r\"do\\s+([\\w.-]+(?:\\s+[\\w.-]+)?)\\s+and\\s+([\\w.-]+(?:\\\
-          s+[\\w.-]+)?)\\s+(?:share|have|co[- ]?author)\",\n                r\"how\\\
-          s+many\\s+papers\\s+(?:do|have)\\s+([\\w.-]+(?:\\s+[\\w.-]+)?)\\s+and\\\
-          s+([\\w.-]+(?:\\s+[\\w.-]+)?)\\s+(?:share|co[- ]?author|publish)\",\n  \
-          \          ]\n            for pattern in dual_patterns:\n              \
-          \  m = re.search(pattern, q)\n                if m:\n                  \
-          \  n1 = q_orig[m.start(1):m.end(1)].strip().rstrip(\".,;?!\")\n        \
-          \            n2 = q_orig[m.start(2):m.end(2)].strip().rstrip(\".,;?!\")\n\
-          \                    if n1 and n2 and len(n1) > 1 and len(n2) > 1:\n   \
-          \                     dual_target = f\"{n1}|{n2}\"\n                   \
-          \ break\n\n            collaboration_mode = dual_target if dual_target else\
-          \ (target if target else \"all\")\n            paper_list = []\n       \
-          \     multi_author_bypass = True\n\n    return {\n        \"intent\": intent,\n\
-          \        \"paper_list\": paper_list,\n        \"paper_count\": 0 if multi_author_bypass\
-          \ else len(paper_list),\n        \"rewritten_query\": rw,\n        \"list_mode\"\
-          : list_mode,\n        \"collaboration_mode\": collaboration_mode,\n    }\n"
+          \          # Specific prefix patterns first (avoid ambiguous matching)\n\
+          \                r\"co[- ]?authored?\\s+by\\s+([\\w.-]+(?:\\s+[\\w.-]+)?)\\\
+          s+and\\s+([\\w.-]+(?:\\s+[\\w.-]+)?)\",\n                r\"how\\s+many\\\
+          s+papers\\s+(?:do|have)\\s+([\\w.-]+(?:\\s+[\\w.-]+)?)\\s+and\\s+([\\w.-]+(?:\\\
+          s+[\\w.-]+)?)\\s+(?:share|co[- ]?author|publish)\",\n                r\"\
+          ([\\w.-]+(?:\\s+[\\w.-]+)?)\\s+and\\s+([\\w.-]+(?:\\s+[\\w.-]+)?)\\s+collaborat\"\
+          ,\n                r\"do\\s+([\\w.-]+(?:\\s+[\\w.-]+)?)\\s+and\\s+([\\w.-]+(?:\\\
+          s+[\\w.-]+)?)\\s+(?:share|have|co[- ]?author)\",\n                # Generic\
+          \ \"X and Y verb\" — LAST to avoid false matches\n                r\"([\\\
+          w.-]+(?:\\s+[\\w.-]+)?)\\s+and\\s+([\\w.-]+(?:\\s+[\\w.-]+)?)\\s+(?:published|co[-\
+          \ ]?authored|share|shared|joint)\",\n            ]\n            for pattern\
+          \ in dual_patterns:\n                m = re.search(pattern, q)\n       \
+          \         if m:\n                    n1 = q_orig[m.start(1) : m.end(1)].strip().rstrip(\"\
+          .,;?!\")\n                    n2 = q_orig[m.start(2) : m.end(2)].strip().rstrip(\"\
+          .,;?!\")\n                    if n1 and n2 and len(n1) > 1 and len(n2) >\
+          \ 1:\n                        dual_target = f\"{n1}|{n2}\"\n           \
+          \         break\n\n            collaboration_mode = (\n                dual_target\
+          \ if dual_target else (target if target else \"all\")\n            )\n \
+          \           paper_list = []\n            multi_author_bypass = True\n\n\
+          \    return {\n        \"intent\": intent,\n        \"paper_list\": paper_list,\n\
+          \        \"paper_count\": 0 if multi_author_bypass else len(paper_list),\n\
+          \        \"rewritten_query\": rw,\n        \"list_mode\": list_mode,\n \
+          \       \"collaboration_mode\": collaboration_mode,\n    }\n"
         code_language: python3
         isInIteration: false
         isInLoop: false

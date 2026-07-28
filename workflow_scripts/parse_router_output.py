@@ -253,7 +253,12 @@ def main(router_text=None, conversation_memory=None, sys_query=None):
             "co-autoren",
         )
         # Also match "share papers", "shared papers", "papers shared"
-        has_share = bool(re.search(r"\bshare[ds]?\b.*\bpaper\b|\bpaper.*\bshare[ds]?\b|\bshare[ds]?\s*\?", q))
+        has_share = bool(
+            re.search(
+                r"\bshare[ds]?\b.*\bpaper\b|\bpaper.*\bshare[ds]?\b|\bshare[ds]?\s*\?",
+                q,
+            )
+        )
         if any(m in q for m in collab_markers) or has_share:
             intent = "metadata_list"
             # Extract target author — match separators case-insensitively (q_lower)
@@ -299,22 +304,26 @@ def main(router_text=None, conversation_memory=None, sys_query=None):
             # "papers co-authored by X and Y", "do X and Y share papers?"
             dual_target = ""
             dual_patterns = [
+                # Specific prefix patterns first (avoid ambiguous matching)
                 r"co[- ]?authored?\s+by\s+([\w.-]+(?:\s+[\w.-]+)?)\s+and\s+([\w.-]+(?:\s+[\w.-]+)?)",
-                r"([\w.-]+(?:\s+[\w.-]+)?)\s+and\s+([\w.-]+(?:\s+[\w.-]+)?)\s+collaborat",
-                r"([\w.-]+(?:\s+[\w.-]+)?)\s+and\s+([\w.-]+(?:\s+[\w.-]+)?)\s+(?:published|co[- ]?authored|share|shared|joint)",
-                r"do\s+([\w.-]+(?:\s+[\w.-]+)?)\s+and\s+([\w.-]+(?:\s+[\w.-]+)?)\s+(?:share|have|co[- ]?author)",
                 r"how\s+many\s+papers\s+(?:do|have)\s+([\w.-]+(?:\s+[\w.-]+)?)\s+and\s+([\w.-]+(?:\s+[\w.-]+)?)\s+(?:share|co[- ]?author|publish)",
+                r"([\w.-]+(?:\s+[\w.-]+)?)\s+and\s+([\w.-]+(?:\s+[\w.-]+)?)\s+collaborat",
+                r"do\s+([\w.-]+(?:\s+[\w.-]+)?)\s+and\s+([\w.-]+(?:\s+[\w.-]+)?)\s+(?:share|have|co[- ]?author)",
+                # Generic "X and Y verb" — LAST to avoid false matches
+                r"([\w.-]+(?:\s+[\w.-]+)?)\s+and\s+([\w.-]+(?:\s+[\w.-]+)?)\s+(?:published|co[- ]?authored|share|shared|joint)",
             ]
             for pattern in dual_patterns:
                 m = re.search(pattern, q)
                 if m:
-                    n1 = q_orig[m.start(1):m.end(1)].strip().rstrip(".,;?!")
-                    n2 = q_orig[m.start(2):m.end(2)].strip().rstrip(".,;?!")
+                    n1 = q_orig[m.start(1) : m.end(1)].strip().rstrip(".,;?!")
+                    n2 = q_orig[m.start(2) : m.end(2)].strip().rstrip(".,;?!")
                     if n1 and n2 and len(n1) > 1 and len(n2) > 1:
                         dual_target = f"{n1}|{n2}"
                     break
 
-            collaboration_mode = dual_target if dual_target else (target if target else "all")
+            collaboration_mode = (
+                dual_target if dual_target else (target if target else "all")
+            )
             paper_list = []
             multi_author_bypass = True
 
