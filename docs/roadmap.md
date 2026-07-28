@@ -43,7 +43,7 @@
 | `Mark Helm` | `metadata_list` ✅ | `metadata_list` ✅ |
 | `Helm, Mark` | `author_lookup` ❌ | `metadata_list` ✅ |
 | `M. Helm` | `author_lookup` ❌ | `metadata_list` ✅ |
-| `Dieterich` | `content_summary` ❌ | `metadata_list` ✅ |
+| `Dieterich` | `content_summary` ❌ | `metadata_li|
 
 ---
 
