@@ -252,8 +252,9 @@ def main(router_text=None, conversation_memory=None, sys_query=None):
         )
         if any(m in q for m in collab_markers):
             intent = "metadata_list"
-            # Extract target author if specified: "co-authors of Mark Helm",
-            # "Who has collaborated with Dieterich?", "Which co-authors has X published with?"
+            # Extract target author — match separators case-insensitively (q_lower)
+            # but extract name preserving original case from sys_query
+            q_orig = str(sys_query).strip()
             target = ""
             for sep in (
                 "co-authors of ",
@@ -263,8 +264,9 @@ def main(router_text=None, conversation_memory=None, sys_query=None):
                 "collaborations of ",
                 "collaboration of ",
             ):
-                if sep in q:
-                    target = q.split(sep, 1)[1].strip().rstrip(".,;?!")
+                if sep in q:  # match lowercase
+                    idx = q.index(sep)
+                    target = q_orig[idx + len(sep):].strip().rstrip(".,;?!")
                     break
             if not target:
                 for sep in (
@@ -274,16 +276,20 @@ def main(router_text=None, conversation_memory=None, sys_query=None):
                     "published with ",
                 ):
                     if sep in q:
-                        target = q.split(sep, 1)[1].strip().rstrip(".,;?!")
+                        idx = q.index(sep)
+                        target = q_orig[idx + len(sep):].strip().rstrip(".,;?!")
                         break
             if not target:
-                # "Which co-authors has Mark Helm published with?" → extract "mark helm"
+                # "Which co-authors has Mark Helm published with?" → extract name
                 m = re.search(
                     r"(?:co-authors?\s+(?:has\s+)?|coauthors?\s+(?:has\s+)?)([\w\s.-]+?)\s+(?:published\s+with|collaborated\s+with)",
                     q,
                 )
                 if m:
-                    target = m.group(1).strip().rstrip(".,;?!")
+                    # Use the match position to extract from original case
+                    start = m.start(1)
+                    end = m.end(1)
+                    target = q_orig[start:end].strip().rstrip(".,;?!")
             collaboration_mode = target if target else "all"
             paper_list = []
             multi_author_bypass = True

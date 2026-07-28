@@ -1865,32 +1865,36 @@ workflow:
           \            \"published with\",\n            \"worked together\",\n   \
           \         \"work together\",\n            \"co-autoren\",\n        )\n \
           \       if any(m in q for m in collab_markers):\n            intent = \"\
-          metadata_list\"\n            # Extract target author if specified: \"co-authors\
-          \ of Mark Helm\",\n            # \"Who has collaborated with Dieterich?\"\
-          , \"Which co-authors has X published with?\"\n            target = \"\"\n\
-          \            for sep in (\n                \"co-authors of \",\n       \
-          \         \"co-author of \",\n                \"collaborators of \",\n \
-          \               \"coauthors of \",\n                \"collaborations of\
-          \ \",\n                \"collaboration of \",\n            ):\n        \
-          \        if sep in q:\n                    target = q.split(sep, 1)[1].strip().rstrip(\"\
-          .,;?!\")\n                    break\n            if not target:\n      \
-          \          for sep in (\n                    \"co-authors with \",\n   \
-          \                 \"collaborated with \",\n                    \"collaborations\
-          \ with \",\n                    \"published with \",\n                ):\n\
-          \                    if sep in q:\n                        target = q.split(sep,\
-          \ 1)[1].strip().rstrip(\".,;?!\")\n                        break\n     \
-          \       if not target:\n                # \"Which co-authors has Mark Helm\
-          \ published with?\" → extract \"mark helm\"\n                m = re.search(\n\
+          metadata_list\"\n            # Extract target author — match separators\
+          \ case-insensitively (q_lower)\n            # but extract name preserving\
+          \ original case from sys_query\n            q_orig = str(sys_query).strip()\n\
+          \            target = \"\"\n            for sep in (\n                \"\
+          co-authors of \",\n                \"co-author of \",\n                \"\
+          collaborators of \",\n                \"coauthors of \",\n             \
+          \   \"collaborations of \",\n                \"collaboration of \",\n  \
+          \          ):\n                if sep in q:  # match lowercase\n       \
+          \             idx = q.index(sep)\n                    target = q_orig[idx\
+          \ + len(sep):].strip().rstrip(\".,;?!\")\n                    break\n  \
+          \          if not target:\n                for sep in (\n              \
+          \      \"co-authors with \",\n                    \"collaborated with \"\
+          ,\n                    \"collaborations with \",\n                    \"\
+          published with \",\n                ):\n                    if sep in q:\n\
+          \                        idx = q.index(sep)\n                        target\
+          \ = q_orig[idx + len(sep):].strip().rstrip(\".,;?!\")\n                \
+          \        break\n            if not target:\n                # \"Which co-authors\
+          \ has Mark Helm published with?\" → extract name\n                m = re.search(\n\
           \                    r\"(?:co-authors?\\s+(?:has\\s+)?|coauthors?\\s+(?:has\\\
           s+)?)([\\w\\s.-]+?)\\s+(?:published\\s+with|collaborated\\s+with)\",\n \
           \                   q,\n                )\n                if m:\n     \
-          \               target = m.group(1).strip().rstrip(\".,;?!\")\n        \
-          \    collaboration_mode = target if target else \"all\"\n            paper_list\
-          \ = []\n            multi_author_bypass = True\n\n    return {\n       \
-          \ \"intent\": intent,\n        \"paper_list\": paper_list,\n        \"paper_count\"\
-          : 0 if multi_author_bypass else len(paper_list),\n        \"rewritten_query\"\
-          : rw,\n        \"list_mode\": list_mode,\n        \"collaboration_mode\"\
-          : collaboration_mode,\n    }\n"
+          \               # Use the match position to extract from original case\n\
+          \                    start = m.start(1)\n                    end = m.end(1)\n\
+          \                    target = q_orig[start:end].strip().rstrip(\".,;?!\"\
+          )\n            collaboration_mode = target if target else \"all\"\n    \
+          \        paper_list = []\n            multi_author_bypass = True\n\n   \
+          \ return {\n        \"intent\": intent,\n        \"paper_list\": paper_list,\n\
+          \        \"paper_count\": 0 if multi_author_bypass else len(paper_list),\n\
+          \        \"rewritten_query\": rw,\n        \"list_mode\": list_mode,\n \
+          \       \"collaboration_mode\": collaboration_mode,\n    }\n"
         code_language: python3
         isInIteration: false
         isInLoop: false
