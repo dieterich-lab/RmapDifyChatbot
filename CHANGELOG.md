@@ -29,6 +29,7 @@
 - Top pair: **Mark Helm + Yuri Motorin** (10 papers)
 - Helm + Motorin: 11 shared papers; Helm + Dieterich: 2 shared papers
 - All collaboration queries verified live in published app
+- **EU AI Act Article 50 Compliance**: Opening statement (Art. 50(1)) + machine-readable watermark `<!-- AI_GENERATED_CONTENT_RMAP -->` on all AI-generated output (Art. 50(2)). Deployed in `final_answer_sanitizer.py` and Dify `opening_statement`.
 
 ## [0.4.11] - 2026-07-22
 
