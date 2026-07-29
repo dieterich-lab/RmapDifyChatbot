@@ -327,6 +327,34 @@ def main(router_text=None, conversation_memory=None, sys_query=None):
             paper_list = []
             multi_author_bypass = True
 
+    # ── "What else" follow-up guard ────────────────────────────
+    # Detects "what else did X publish?" follow-up queries.
+    # The LLM Router (qwen2.5:14b) ignores the prompt rule for this,
+    # so we override at code level. Extracts author from conversation.memory
+    # (previous turn) for pronoun queries, or uses explicit name.
+    if sys_query:
+        q = str(sys_query).strip().lower()
+        is_what_else = (
+            q.startswith("what else ")
+            or q.startswith("anything else ")
+            or "what else has " in q
+            or "what else did " in q
+        )
+        if is_what_else and mem:
+            # Try to extract author from conversation.memory (previous turn)
+            prev_authors = set()
+            for item in mem:
+                if isinstance(item, dict):
+                    a = str(item.get("authors", "")).strip()
+                    if a:
+                        # Take unique authors (usually just one if prev query was author-filtered)
+                        prev_authors.add(a)
+            if prev_authors:
+                # Use the author(s) from the previous turn
+                intent = "metadata_list"
+                paper_list = [{"authors": list(prev_authors)[0], "title": "", "year": "", "journal": ""}]
+            # else: fall through to router's classification (no memory to work with)
+
     return {
         "intent": intent,
         "paper_list": paper_list,

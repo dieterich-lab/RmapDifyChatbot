@@ -939,14 +939,14 @@ workflow:
           \    paper_list=None,\n    list_mode=None,\n    collaboration_mode=None,\n\
           \    api_key_input=None,\n    dataset_id_input=None,\n):\n    api_base =\
           \ (os.getenv(\"DIFY_API_URL\") or \"http://rmap-chatbot-demo-dify/v1\").rstrip(\n\
-          \        \"/\"\n    )\n    dataset_id = (\n        dataset_id_input\n  \
-          \      or os.getenv(\"DIFY_DATASET_ID\")\n        or \"\"\n    )\n    api_key\
-          \ = api_key_input or os.getenv(\"DIFY_API_KEY\") or \"\"\n\n    if not _is_set(api_base)\
-          \ or not _is_set(dataset_id) or not _is_set(api_key):\n        return {\n\
-          \            \"result\": (\n                \"Dify API Konfiguration unvollstaendig.\
-          \ \"\n                \"Erwarte DIFY_API_URL, DIFY_DATASET_ID und DIFY_API_KEY.\"\
-          \n            )\n        }\n\n    # Extract filter values from paper_list\
-          \ if passed (Parse Router Output)\n    if isinstance(paper_list, list) and\
+          \        \"/\"\n    )\n    dataset_id = dataset_id_input or os.getenv(\"\
+          DIFY_DATASET_ID\") or \"\"\n    api_key = api_key_input or os.getenv(\"\
+          DIFY_API_KEY\") or \"\"\n\n    if not _is_set(api_base) or not _is_set(dataset_id)\
+          \ or not _is_set(api_key):\n        return {\n            \"result\": (\n\
+          \                \"Dify API Konfiguration unvollstaendig. \"\n         \
+          \       \"Erwarte DIFY_API_URL, DIFY_DATASET_ID und DIFY_API_KEY.\"\n  \
+          \          )\n        }\n\n    # Extract filter values from paper_list if\
+          \ passed (Parse Router Output)\n    if isinstance(paper_list, list) and\
           \ len(paper_list) > 0:\n        first = paper_list[0]\n        if isinstance(first,\
           \ dict):\n            if not _is_set(year):\n                year = first.get(\"\
           year\", \"\")\n            if not _is_set(journal):\n                journal\
@@ -1615,28 +1615,35 @@ workflow:
             \ method) → \"content_summary\", paper_list: \"use_memory\"\n- \"Who has\
             \ collaborated the most?\" / \"Who published together?\" / \"Co-authors\
             \ of X?\" / \"Which co-authors has X published with?\" → \"metadata_list\"\
-            \n\n=== paper_list RULES ===\n\nFor \"knowledge_retrieval\", \"author_lookup\"\
-            , \"entity_lookup\": paper_list MUST be [].\nFor \"metadata_list\" and\
-            \ \"content_summary\": follow the same rules as before.\n\nFOR NEW QUERIES\
-            \ (conversation.memory is empty or irrelevant):\n  → paper_list = SEARCH\
-            \ CONSTRAINTS for the database lookup.\n  Examples:\n  - \"papers by Christoph\
-            \ Dieterich\" → [{\"authors\": \"Christoph Dieterich\"}]\n  - \"papers\
-            \ about RNA from 2024\" → [{\"title\": \"RNA\", \"year\": \"2024\"}]\n\
-            \nFOR FOLLOW-UP QUERIES (conversation.memory has papers AND query references\
-            \ them):\n  → paper_list = the STRING \"use_memory\". The downstream parser\
-            \ will fill in the actual papers.\n  The query contains pronouns or references\
-            \ to prior turns.\n\nCRITICAL: \"Papers by <name>\" / \"Find papers by\
-            \ <name>\" is ALWAYS a NEW metadata_list query. Even if conversation.memory\
-            \ has papers, do NOT use \"use_memory\" for these. They are fresh author\
-            \ searches, NOT follow-up refinements.\n\nFor \"metadata_list\": empty\
-            \ paper_list IS VALID (means all papers / all authors).\nFor \"content_summary\"\
-            : paper_list MUST NOT be empty. If you cannot determine which papers to\
-            \ summarize, use \"knowledge_retrieval\" instead.\n\n=== REWRITTEN QUERY\
-            \ RULES ===\n\n- Resolve pronouns: \"them\" → \"the papers from the previous\
-            \ turn\".\n- For author_lookup and entity_lookup: keep the original query\
-            \ as-is (it will be used for KR search).\n- Keep original language and\
-            \ intent.\n\nOutput ONLY the JSON. No <think> tags, no explanations, no\
-            \ markdown fences."
+            \n- \"What else did <pronoun/name> publish?\" / \"What else has <name>\
+            \ published?\" / \"Anything else by <name>?\" → \"metadata_list\"\n  →\
+            \ paper_list: [{\"authors\": \"<name from previous turn or explicit>\"\
+            }] with NO extra filters (no year, no journal).\n  → If a pronoun (he/she/they):\
+            \ extract the author from the conversation context (previous turn).\n\
+            \  → If a name is explicitly given: use that name.\n  → This is a NEW\
+            \ metadata_list query, NOT \"use_memory\". It searches the full dataset\
+            \ for ALL papers by that author.\n\n=== paper_list RULES ===\n\nFor \"\
+            knowledge_retrieval\", \"author_lookup\", \"entity_lookup\": paper_list\
+            \ MUST be [].\nFor \"metadata_list\" and \"content_summary\": follow the\
+            \ same rules as before.\n\nFOR NEW QUERIES (conversation.memory is empty\
+            \ or irrelevant):\n  → paper_list = SEARCH CONSTRAINTS for the database\
+            \ lookup.\n  Examples:\n  - \"papers by Christoph Dieterich\" → [{\"authors\"\
+            : \"Christoph Dieterich\"}]\n  - \"papers about RNA from 2024\" → [{\"\
+            title\": \"RNA\", \"year\": \"2024\"}]\n\nFOR FOLLOW-UP QUERIES (conversation.memory\
+            \ has papers AND query references them):\n  → paper_list = the STRING\
+            \ \"use_memory\". The downstream parser will fill in the actual papers.\n\
+            \  The query contains pronouns or references to prior turns.\n\nCRITICAL:\
+            \ \"Papers by <name>\" / \"Find papers by <name>\" is ALWAYS a NEW metadata_list\
+            \ query. Even if conversation.memory has papers, do NOT use \"use_memory\"\
+            \ for these. They are fresh author searches, NOT follow-up refinements.\n\
+            \nFor \"metadata_list\": empty paper_list IS VALID (means all papers /\
+            \ all authors).\nFor \"content_summary\": paper_list MUST NOT be empty.\
+            \ If you cannot determine which papers to summarize, use \"knowledge_retrieval\"\
+            \ instead.\n\n=== REWRITTEN QUERY RULES ===\n\n- Resolve pronouns: \"\
+            them\" → \"the papers from the previous turn\".\n- For author_lookup and\
+            \ entity_lookup: keep the original query as-is (it will be used for KR\
+            \ search).\n- Keep original language and intent.\n\nOutput ONLY the JSON.\
+            \ No <think> tags, no explanations, no markdown fences."
         reasoning_format: separated
         selected: false
         structured_output:
@@ -1958,10 +1965,29 @@ workflow:
           \         break\n\n            collaboration_mode = (\n                dual_target\
           \ if dual_target else (target if target else \"all\")\n            )\n \
           \           paper_list = []\n            multi_author_bypass = True\n\n\
-          \    return {\n        \"intent\": intent,\n        \"paper_list\": paper_list,\n\
-          \        \"paper_count\": 0 if multi_author_bypass else len(paper_list),\n\
-          \        \"rewritten_query\": rw,\n        \"list_mode\": list_mode,\n \
-          \       \"collaboration_mode\": collaboration_mode,\n    }\n"
+          \    # ── \"What else\" follow-up guard ────────────────────────────\n \
+          \   # Detects \"what else did X publish?\" follow-up queries.\n    # The\
+          \ LLM Router (qwen2.5:14b) ignores the prompt rule for this,\n    # so we\
+          \ override at code level. Extracts author from conversation.memory\n   \
+          \ # (previous turn) for pronoun queries, or uses explicit name.\n    if\
+          \ sys_query:\n        q = str(sys_query).strip().lower()\n        is_what_else\
+          \ = (\n            q.startswith(\"what else \")\n            or q.startswith(\"\
+          anything else \")\n            or \"what else has \" in q\n            or\
+          \ \"what else did \" in q\n        )\n        if is_what_else and mem:\n\
+          \            # Try to extract author from conversation.memory (previous\
+          \ turn)\n            prev_authors = set()\n            for item in mem:\n\
+          \                if isinstance(item, dict):\n                    a = str(item.get(\"\
+          authors\", \"\")).strip()\n                    if a:\n                 \
+          \       # Take unique authors (usually just one if prev query was author-filtered)\n\
+          \                        prev_authors.add(a)\n            if prev_authors:\n\
+          \                # Use the author(s) from the previous turn\n          \
+          \      intent = \"metadata_list\"\n                paper_list = [{\"authors\"\
+          : list(prev_authors)[0], \"title\": \"\", \"year\": \"\", \"journal\": \"\
+          \"}]\n            # else: fall through to router's classification (no memory\
+          \ to work with)\n\n    return {\n        \"intent\": intent,\n        \"\
+          paper_list\": paper_list,\n        \"paper_count\": 0 if multi_author_bypass\
+          \ else len(paper_list),\n        \"rewritten_query\": rw,\n        \"list_mode\"\
+          : list_mode,\n        \"collaboration_mode\": collaboration_mode,\n    }\n"
         code_language: python3
         isInIteration: false
         isInLoop: false

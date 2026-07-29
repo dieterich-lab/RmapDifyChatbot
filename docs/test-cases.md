@@ -342,6 +342,25 @@ Ends with: *"Insufficient context for other modifications."*
 
 ---
 
+### 21. "Papers by Christoph Dieterich from 2023" → "What else did he publish?"
+
+- **Date tested:** 2026-07-29
+- **Intent (Turn 1):** `metadata_list`
+- **Intent (Turn 2):** `metadata_list` (re-query with same author, no year filter)
+- **Status:** ⚠️ Fails – routes as broad query (lists all 83 papers)
+
+**Turn 1:** Returns 3 papers (PEPseq, Queuosine detection, Adaptive sampling) ✅
+
+**Turn 2:** Returns "Total papers in dataset: 83" ❌
+
+**Expected Turn 2:** The remaining 5 Dieterich papers from other years (2024: APOBEC2, m6A decay, m6A detection; 2025: RMaP challenge, Sci-ModoM).
+
+**Root cause:** Router has no rule for "what else" → defaults to broad query. The LLM conversation context already contains the full Turn 1 history (including the author name), so the fix is prompt engineering: add a "what else" → metadata_list re-query rule.
+
+**Fix planned:** Router prompt rule: "What else did <pronoun/name> publish?" → `metadata_list` with author from previous turn (pronoun) or explicit name.
+
+---
+
 ## Test Environment
 
 - **App ID:** `<your-app-id>`
