@@ -1,6 +1,6 @@
 # RMAP Chatbot – Feature Roadmap & Analysis
 
-> Stand: 2026-07-28 · v0.4.15 · App `<your-app-id>` · Model `qwen2.5:14b` · Embedding `nomic-embed-text-v2-moe` · 20 Test Cases
+> Stand: 2026-07-29 · v0.4.16 · App `<your-app-id>` · Model `qwen2.5:14b` · Embedding `nomic-embed-text-v2-moe` · 20 Test Cases
 
 ## Übersicht
 
@@ -43,7 +43,7 @@
 | `Mark Helm` | `metadata_list` ✅ | `metadata_list` ✅ |
 | `Helm, Mark` | `author_lookup` ❌ | `metadata_list` ✅ |
 | `M. Helm` | `author_lookup` ❌ | `metadata_list` ✅ |
-| `Dieterich` | `content_summary` ❌ | `metadata_li|
+| `Dieterich` | `content_summary` ❌ | `metadata_list` ✅ |
 
 ---
 
@@ -56,7 +56,7 @@
 | 1 | **H100 Provider Config + 35B Regression** | 🔴 | Behebt #5 (m6A-Recall), verbessert `author_lookup` Recall | 2h | Models gepullt, YAML fehlt |
 | 2 | **qwen3-embedding Evaluation** | 🟡 | Bessere Retrieval-Rankings (miCLIP/MeRIP) | 3h | Analog zu bge-m3 Test (v0.4.14) |
 | 3 | **#16 Collaboration Analysis** | 🟢 | Co-Author pair frequencies | ✅ Done | ✅ Implemented (v0.4.15) |
-| 4 | **Conversation Memory Expansion** | 🟢 | Stabilere Multi-Turn ("What else did she publish?") | 4h | Memory aktuell nur Papers |
+| 4 | **Prompt-Tuning: "what else" re-query** | 🟢 | "What else did X publish?" → metadata_list re-query | 30min | Memory expansion not needed (Dify context suffices) |
 | 5 | **🔬 Abstract Parent-Child Chunking** | 🔵 | Bessere Retrieval-Rankings durch semantisches Chunking | >2d | Preprocessing-Pipeline nötig |
 | – | **Future computation modes** | 🔵 | `publication_timeline`, `journal_distribution`, `author_productivity` | je 2–4h | Nach Collaboration-Pattern |
 
