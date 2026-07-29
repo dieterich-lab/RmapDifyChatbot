@@ -1,6 +1,6 @@
 # RMAP Chatbot – Feature Roadmap & Analysis
 
-> Stand: 2026-07-29 · v0.4.16 · App `<your-app-id>` · Model `qwen2.5:14b` · Embedding `nomic-embed-text-v2-moe` · 20 Test Cases
+> Stand: 2026-07-29 · v0.4.16 · App `<your-app-id>` · Model `qwen2.5:14b` (A2) · H100 testing `qwen3.5:35b` / `qwen3:32b` · Embedding `nomic-embed-text-v2-moe`
 
 ## Übersicht
 
@@ -20,7 +20,7 @@
 | 2 | `content_summary` | → Summarize them | ✅ Grounded | – |
 | 3 | `knowledge_retrieval` | What is m6A? | ✅ citations correct | v0.4.7 |
 | 4 | `author_lookup` | Who worked on tRNA? | ✅ quotes + authors correct | v0.4.7 |
-| 5 | `entity_lookup` | Which RNA mods most studied? | ⚠️ 5 entities, m6A missing | – |
+| 5 | `entity_lookup` | Which RNA mods most studied? | ⚠️ 5 entities, m6A missing (H100 testing pending) | – |
 | 6–9 | `metadata_list` | Tuorto, Ketting, Höbartner, Saunders | ✅ | v0.4.6 |
 | 10 | `metadata_list` | Find all research papers | ✅ LLM-native | v0.4.6 |
 | 11 | `metadata_list` | List all researchers | ✅ LLM-native | v0.4.6 |
@@ -60,19 +60,47 @@
 | 5 | **🔬 Abstract Parent-Child Chunking** | 🔵 | Bessere Retrieval-Rankings durch semantisches Chunking | >2d | Preprocessing-Pipeline nötig |
 | – | **Future computation modes** | 🔵 | `publication_timeline`, `journal_distribution`, `author_productivity` | je 2–4h | Nach Collaboration-Pattern |
 
-### 🔴 Priority 1 — H100 LLM Upgrade
+### 🔴 Priority 1 — H100 LLM Migration (IN PROGRESS, 2026-07-29)
 
-**Goal**: qwen2.5:14b (A2, 16 GB) → qwen3.5:35b (H100, 94 GB) for better comprehensiveness and retrieval quality.
+**Goal**: qwen2.5:14b (A2, 16 GB) → larger models on H100 (94 GB) for better quality.
 
-| Stage | Model | Size | VRAM | Focus |
-|-------|-------|------|------|-------|
-| 1 | `qwen3.5:35b` | 24 GB | ~30 GB (32K ctx) | Baseline: `entity_lookup` m6A-Recall (#5), `author_lookup` Recall |
-| 2 | `qwen3.5:122b` | 81 GB | ~90 GB (8K ctx) | Max quality, needs careful context-tuning |
-| 3 | `qwen3-embedding` | ~8 GB | – | ~4× nomic. Method-level concepts (miCLIP, MeRIP) |
+**Infrastructure**: Ollama on `gpu-g5-1:21434`. Models pulled, Dify provider configured per-model.
 
-**Infrastructure**: Ollama on H100 (gpu-g5-1), port 21434. Models already pulled and registered in Dify.
+#### H100 Model Inventory (2026-07-29)
 
-**Next**: Configure H100 provider in DSL YAML → full 20-case regression with 35B.
+| Model | Size | Thinking? | Ollama Direct | Dify Draft | Dify Runtime | Verdict |
+|-------|------|-----------|---------------|------------|-------------|--------|
+| `qwen3.5:35b` | 24 GB | ✅ Yes | ✅ 404-763 chars, `finish=stop` | ❌ 300s timeout, 0 chars | ❌ HTTP 400 | **Blocked by Dify** |
+| `qwen3:32b` | 20 GB | ✅ Yes | ✅ 1924 chars, `finish=stop` | ⚠️ Once worked, now ❌ | ❌ HTTP 400 | **Blocked by Dify** |
+| `qwen3:30b` | 19 GB | ✅ Yes | ❌ `<think>` tags in content | — | — | Thinking model |
+| `qwen3:14b` | 9 GB | ✅ Yes | ❌ `<think>` tags in content | — | — | Thinking model |
+| `qwen2.5:14b` | 9 GB | ❌ No | ✅ Works | — | — | **Fallback (2.3-3.6× faster)** |
+
+#### Key Findings
+
+1. **Thinking models work via Ollama directly** — both `qwen3.5:35b` and `qwen3:32b` produce clean `message.content` via OpenAI-compatible endpoint with `max_tokens≥4096`. Thinking is internal; content is delivered without `<think>` tags.
+2. **Thinking overhead is massive** — the models think about EVERY chunk, EVERY author list, EVERY paper title in the KR context. With 11 chunks (typical m6A query), thinking consumes 2000-8000 tokens before producing output. `max_tokens` must be ≥8192 for KR queries.
+3. **Dify blocks thinking models** — both draft and runtime APIs return 0 chars or HTTP 400. Suspected causes: Dify's Ollama provider timeout (<300s), `max_tokens` clamping, or streaming handler incompatibility with thinking model response format.
+4. **`enable_thinking: false` is ignored** — Ollama does not respect this parameter for qwen3 models.
+5. **`qwen2.5:14b` on H100: 2.3-3.6× faster** than A2 (per `docs/timing.md`). No quality improvement (same model), but significant latency reduction.
+
+#### Test Results (qwen3.5:35b, max_tokens=16384, via Dify Runtime)
+
+| # | Query | Time | Status | Notes |
+|---|-------|------|--------|-------|
+| 1 | Papers by Christoph Dieterich | 79s | ✅ | 8 papers, 3117 chars |
+| 3 | What is m6A? | 243s | ❌ | 642-char fallback |
+| 5 | Which RNA mods most studied? | 222s | ❌ | 642-char fallback |
+| 16 | Who has collaborated the most? | 62s | ✅ | 3253 pairs, 7248 chars |
+
+> #1 and #16 work because they use Dataset API (no LLM thinking overhead). #3 and #5 fail because the KR Extraction LLM's thinking consumes all tokens before producing output.
+
+#### Next Steps
+
+1. **Debug Dify integration** — find why thinking models are blocked. Check Dify server logs, Ollama provider timeout settings, and `max_tokens` passthrough.
+2. **Quality comparison** — once Dify works, test all 20 cases with `qwen3.5:35b` and `qwen3:32b`, focusing on entity recall (#5) and author recall (#4).
+3. **Alternative: direct Ollama benchmark** — if Dify remains broken, inject real KR chunks into Ollama API calls and compare output quality between models.
+4. **Fallback: `qwen2.5:14b` @ H100** — deploy for latency reduction (2.3-3.6×) while debugging larger models.
 
 ### 🟡 Priority 2 — Planned Extensions
 
