@@ -467,7 +467,7 @@ workflow:
             num_ctx: 65536
             temperature: 0
           mode: chat
-          name: qwen:3.5b:35b
+          name: qwen3.5:35b
           provider: langgenius/ollama/ollama
         prompt_template:
         - id: 400aef06-66bf-4730-a1f4-3dd418d2d48e
@@ -1470,7 +1470,7 @@ workflow:
             num_ctx: 32768
             temperature: 0
           mode: chat
-          name: qwen:3.5b:35b
+          name: qwen3.5:35b
           provider: langgenius/ollama/ollama
         prompt_template:
         - id: b9d22b40-75cf-5841-a2e5-4ee428e3d59f
@@ -1550,7 +1550,7 @@ workflow:
             max_tokens: 4096
             temperature: 0
           mode: chat
-          name: qwen:3.5b:35b
+          name: qwen3.5:35b
           provider: langgenius/ollama/ollama
         prompt_template:
         - id: unified-router-prompt
@@ -1818,7 +1818,7 @@ workflow:
           \     paper_list.append(cleaned)\n\n    # ── Cap papers for content_summary\
           \ to avoid context overflow ──\n    # Full paper texts average ~11K chars\
           \ each; 8 papers ≈ 48K chars ≈ 12K tokens\n    # which fits comfortably\
-          \ in the Summary LLM's 65K context window and\n    # keeps A2 (qwen:3.5b:35b)\
+          \ in the Summary LLM's 65K context window and\n    # keeps A2 (qwen3.5:35b)\
           \ response time under 2 minutes.\n    MAX_PAPERS_FOR_SUMMARY = 8\n    if\
           \ intent == \"content_summary\" and len(paper_list) > MAX_PAPERS_FOR_SUMMARY:\n\
           \        paper_list = paper_list[:MAX_PAPERS_FOR_SUMMARY]\n\n    rw = str(obj.get(\"\
@@ -1893,7 +1893,7 @@ workflow:
           \ bypass: skip Metadata LLM ────────────────────\n    # For metadata_list\
           \ queries with multiple distinct authors (comma-separated\n    # or split\
           \ across paper_list entries), metadata_query produces pre-formatted\n  \
-          \  # output. The Metadata LLM (qwen:3.5b:35b) cannot reliably pass through\n\
+          \  # output. The Metadata LLM (qwen3.5:35b) cannot reliably pass through\n\
           \    # OR-matched results. Setting paper_count=0 routes through the Metadata\
           \ LLM\n    # Bypass directly to Final Answer Sanitizer, which passes result_text\
           \ through.\n    multi_author_bypass = False\n    if intent == \"metadata_list\"\
@@ -1967,7 +1967,7 @@ workflow:
           \           paper_list = []\n            multi_author_bypass = True\n\n\
           \    # ── \"What else\" follow-up guard ────────────────────────────\n \
           \   # Detects \"what else did X publish?\" follow-up queries.\n    # The\
-          \ LLM Router (qwen:3.5b:35b) ignores the prompt rule for this,\n    # so we\
+          \ LLM Router (qwen3.5:35b) ignores the prompt rule for this,\n    # so we\
           \ override at code level. Extracts author from conversation.memory\n   \
           \ # (previous turn) for pronoun queries, or uses explicit name.\n    if\
           \ sys_query:\n        q = str(sys_query).strip().lower()\n        is_what_else\
@@ -2206,7 +2206,7 @@ workflow:
             max_tokens: 4000
             temperature: 0
           mode: chat
-          name: qwen:3.5b:35b
+          name: qwen3.5:35b
           provider: langgenius/ollama/ollama
         prompt_template:
         - id: author-extraction-prompt
@@ -2310,7 +2310,7 @@ workflow:
             max_tokens: 4000
             temperature: 0
           mode: chat
-          name: qwen:3.5b:35b
+          name: qwen3.5:35b
           provider: langgenius/ollama/ollama
         prompt_template:
         - id: entity-extraction-prompt
@@ -2380,7 +2380,7 @@ workflow:
             max_tokens: 4000
             temperature: 0
           mode: chat
-          name: qwen:3.5b:35b
+          name: qwen3.5:35b
           provider: langgenius/ollama/ollama
         prompt_template:
         - id: kr-extraction-prompt
