@@ -10,7 +10,7 @@ RmapDifyChatbot is a Dify-based academic literature assistant for the RMaP proje
 2. **84 Papers** in dataset, all with PubMed/CrossRef metadata
 3. **All Prompt Fixes** (v0.4.6–v0.4.16): Quote, Count, Group-by, Find-by-name, Citation, Cross-Contamination, HEK, Name-Format, Author-Display, Umlaut, Multi-Author-OR+LLM-Bypass, Two-Turn-Memory, Code-Guard, Collaboration, EU AI Act
 4. **top_k: 100**, Hybrid **0.7/0.3**, **qwen2.5:14b** (A2 16GB VRAM), 23 Nodes, 28 Edges
-5. **20 Test Cases**: ✅ 19 · ⚠️ 1 · ❌ 0 (Regression 2026-07-27)
+5. **20 Test Cases**: ✅ 19 · ⚠️ 2 · ❌ 0 (Regression 2026-07-29)
 6. **EU AI Act Art. 50 Compliant 🇪🇺**: Opening statement (Art. 50(1)) + machine-readable watermark `<!-- AI_GENERATED_CONTENT_RMAP -->` on all AI-generated text (Art. 50(2))
 
 ---

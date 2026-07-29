@@ -352,7 +352,14 @@ def main(router_text=None, conversation_memory=None, sys_query=None):
             if prev_authors:
                 # Use the author(s) from the previous turn
                 intent = "metadata_list"
-                paper_list = [{"authors": list(prev_authors)[0], "title": "", "year": "", "journal": ""}]
+                paper_list = [
+                    {
+                        "authors": list(prev_authors)[0],
+                        "title": "",
+                        "year": "",
+                        "journal": "",
+                    }
+                ]
             # else: fall through to router's classification (no memory to work with)
 
     return {

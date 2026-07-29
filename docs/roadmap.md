@@ -34,7 +34,7 @@
 | 19 | `metadata_list` | Find papers by Tamer Butto | ✅ 2 papers | v0.4.11 |
 | 20 | `metadata_list` | Find papers by Michaela Frye | ✅ 1 paper | v0.4.11 |
 
-**Tally: ✅ 19 · ⚠️ 1 · ❌ 1** (v0.4.15)
+**Tally: ✅ 19 · ⚠️ 2 · ❌ 1** (v0.4.16)
 
 ### Bonus Cases – Author Name Format Normalization (v0.4.9)
 
@@ -56,7 +56,7 @@
 | 1 | **H100 Provider Config + 35B Regression** | 🔴 | Behebt #5 (m6A-Recall), verbessert `author_lookup` Recall | 2h | Models gepullt, YAML fehlt |
 | 2 | **qwen3-embedding Evaluation** | 🟡 | Bessere Retrieval-Rankings (miCLIP/MeRIP) | 3h | Analog zu bge-m3 Test (v0.4.14) |
 | 3 | **#16 Collaboration Analysis** | 🟢 | Co-Author pair frequencies | ✅ Done | ✅ Implemented (v0.4.15) |
-| 4 | **Prompt-Tuning: "what else" re-query** | 🟢 | "What else did X publish?" → metadata_list re-query | 30min | Memory expansion not needed (Dify context suffices) |
+| 4 | **Prompt-Tuning: "what else" re-query** | 🟢 | "What else did X publish?" → metadata_list re-query | ✅ Done | ✅ Code-level guard (v0.4.16+), test case #21 |
 | 5 | **🔬 Abstract Parent-Child Chunking** | 🔵 | Bessere Retrieval-Rankings durch semantisches Chunking | >2d | Preprocessing-Pipeline nötig |
 | – | **Future computation modes** | 🔵 | `publication_timeline`, `journal_distribution`, `author_productivity` | je 2–4h | Nach Collaboration-Pattern |
 

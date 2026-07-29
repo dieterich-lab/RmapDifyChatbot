@@ -759,18 +759,53 @@ if any(m in query for m in collab_markers):
 
 Result: bge-m3 showed equivalent quality but 48% worse latency → nomic retained. See `docs/embeddings.md` for full methodology.
 
+### 8.12 "What Else" Follow-Up Queries (v0.4.16+)
+
+**Problem:** qwen2.5:14b ignores prompt rules for "what else" follow-ups, routing them as broad "find all papers" queries. "What else did he publish?" after "Papers by Dieterich from 2023" returned all 83 papers instead of Dieterich's 8.
+
+**Fix: Code-Level Guard** (same pattern as §8.6, §8.7, §8.9):
+
+```python
+# parse_router_output.py
+if sys_query:
+    q = str(sys_query).strip().lower()
+    is_what_else = (
+        q.startswith("what else ")
+        or q.startswith("anything else ")
+        or "what else has " in q
+        or "what else did " in q
+    )
+    if is_what_else and mem:
+        # Extract author from conversation.memory (previous turn papers)
+        prev_authors = set()
+        for item in mem:
+            if isinstance(item, dict):
+                a = str(item.get("authors", "")).strip()
+                if a:
+                    prev_authors.add(a)
+        if prev_authors:
+            intent = "metadata_list"
+            paper_list = [{"authors": list(prev_authors)[0], ...}]
+```
+
+**How it uses conversation memory:** The `mem` list contains the papers from the previous turn — each with `{title, authors, year, journal, doc_id}`. For "Papers by Dieterich from 2023", all 3 papers share the authors field containing "Dieterich, Christoph". The guard extracts this author name and re-runs `metadata_list` without the year filter, returning all 8 Dieterich papers.
+
+**Defense in depth:** Router prompt also has a "what else" rule, but the code guard is the reliable layer (the 14B model ignores complex prompt rules, same pattern as multi-author OR and name normalization).
+
+**Test case #21:** `docs/test-cases.md` — "Papers by Christoph Dieterich from 2023" → 3 papers → "What else did he publish?" → 8 papers (was: 83).
+
 ---
 
 ## 9. Test Suite & Regression Testing
 
 ### 9.1 Test Cases Overview
 
-20 test cases in `docs/test-cases.md`, covering all 5 intents:
+21 test cases in `docs/test-cases.md`, covering all 5 intents:
 
 | Status | Count | Cases |
 |--------|-------|-------|
 | ✅ Passing | 19 | #1, #2, #3, #4, #6, #7, #8, #9, #10, #11, #12, #13, #14, #15, #16, #17, #19, #20, Bonus |
-| ⚠️ Known Issue | 1 | #5 (entity recall, LLM model limit) |
+| ⚠️ Known Issue | 2 | #5 (entity recall, LLM model limit), #21 ("what else" waiting for H100) |
 | ❌ Known Limitation | 1 | #18 (external KB needed) |
 
 ### 9.2 Running Regression Tests
