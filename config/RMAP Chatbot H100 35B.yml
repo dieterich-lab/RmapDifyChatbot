@@ -1,0 +1,2507 @@
+app:
+  description: ''
+  icon: 🤖
+  icon_background: '#D1E9FF'
+  icon_type: emoji
+  mode: advanced-chat
+  name: RMAP Chatbot Iterative Retrieval
+  use_icon_as_answer_icon: false
+dependencies:
+- current_identifier: null
+  type: marketplace
+  value:
+    marketplace_plugin_unique_identifier: langgenius/ollama:1.0.0@ae50a2db261bffa7289677f2b0a60e60762ceb187b602113b72425ccbe772dc3
+    version: null
+kind: app
+version: 0.6.0
+workflow:
+  conversation_variables:
+  - description: Resolved papers for follow-up summarize turns
+    id: b4d4ec69-f935-44c9-9d24-5156f6913064
+    name: memory
+    selector:
+    - conversation
+    - memory
+    value: []
+    value_type: array[object]
+  environment_variables:
+  - description: ''
+    id: 59f33b89-8249-4e27-8d92-99026ed5c434
+    name: DIFY_API_KEY
+    selector:
+    - env
+    - DIFY_API_KEY
+    value: dataset-<your-dataset-key>
+    value_type: string
+  - description: ''
+    id: 01298697-9219-4423-bc87-f65e3fde14d7
+    name: DIFY_DATASET_ID
+    selector:
+    - env
+    - DIFY_DATASET_ID
+    value: <your-dataset-id>
+    value_type: string
+  features:
+    file_upload:
+      allowed_file_extensions:
+      - .JPG
+      - .JPEG
+      - .PNG
+      - .GIF
+      - .WEBP
+      - .SVG
+      allowed_file_types:
+      - image
+      allowed_file_upload_methods:
+      - local_file
+      - remote_url
+      enabled: false
+      fileUploadConfig:
+        attachment_image_file_size_limit: 2
+        audio_file_size_limit: 50
+        batch_count_limit: 5
+        file_size_limit: 50
+        file_upload_limit: 20
+        image_file_batch_limit: 10
+        image_file_size_limit: 10
+        single_chunk_attachment_limit: 10
+        video_file_size_limit: 100
+        workflow_file_upload_limit: 10
+      image:
+        enabled: false
+        number_limits: 3
+        transfer_methods:
+        - local_file
+        - remote_url
+      number_limits: 3
+    opening_statement: Hello, I am the RMaP Copilot. I am an AI system based on Large
+      Language Models (LLMs). I assist with searching and summarising RMaP publications.
+      Please always verify my answers against the cited original documents. (EU AI
+      Act Art. 50(1))
+    retriever_resource:
+      enabled: false
+    sensitive_word_avoidance:
+      enabled: false
+    speech_to_text:
+      enabled: false
+    suggested_questions: []
+    suggested_questions_after_answer:
+      enabled: false
+    text_to_speech:
+      enabled: false
+      language: ''
+      voice: ''
+  graph:
+    edges:
+    - data:
+        isInIteration: true
+        isInLoop: false
+        iteration_id: '1778676584534'
+        sourceType: iteration-start
+        targetType: code
+      id: 1778676584534start-source-1778800001025-target
+      source: 1778676584534start
+      sourceHandle: source
+      target: '1778800001025'
+      targetHandle: target
+      type: custom
+    - data:
+        isInLoop: false
+        sourceType: iteration
+        targetType: code
+      id: 1778676584534-source-1778800001029-target
+      source: '1778676584534'
+      sourceHandle: source
+      target: '1778800001029'
+      targetHandle: target
+      type: custom
+    - data:
+        isInLoop: false
+        sourceType: code
+        targetType: assigner
+      id: 1778800001002-source-1778800001003-target
+      source: '1778800001002'
+      sourceHandle: source
+      target: '1778800001003'
+      targetHandle: target
+      type: custom
+    - data:
+        isInLoop: false
+        sourceType: code
+        targetType: assigner
+      id: 1778800001029-source-1778800001030-target
+      source: '1778800001029'
+      sourceHandle: source
+      target: '1778800001030'
+      targetHandle: target
+      type: custom
+    - data:
+        isInLoop: false
+        sourceType: code
+        targetType: code
+      id: 17786780698570-source-1778800001002-target
+      source: '17786780698570'
+      sourceHandle: source
+      target: '1778800001002'
+      targetHandle: target
+      type: custom
+    - data:
+        isInLoop: false
+        sourceType: assigner
+        targetType: llm
+      id: 1778800001030-source-17785945324000-target
+      source: '1778800001030'
+      sourceHandle: source
+      target: '17785945324000'
+      targetHandle: target
+      type: custom
+    - data:
+        isInLoop: false
+        sourceType: llm
+        targetType: code
+      id: 1778800001027-source-1778800001013-target
+      source: '1778800001027'
+      sourceHandle: source
+      target: '1778800001013'
+      targetHandle: target
+      type: custom
+    - data:
+        isInLoop: false
+        sourceType: llm
+        targetType: code
+      id: 17785945324000-source-1778800001013-target
+      selected: false
+      source: '17785945324000'
+      sourceHandle: source
+      target: '1778800001013'
+      targetHandle: target
+      type: custom
+    - data:
+        isInLoop: false
+        sourceType: code
+        targetType: answer
+      id: 1778800001013-source-17785946070360-target
+      source: '1778800001013'
+      sourceHandle: source
+      target: '17785946070360'
+      targetHandle: target
+      type: custom
+    - data:
+        isInLoop: false
+        sourceType: start
+        targetType: llm
+      id: 1711528914102-source-1778800001031-target
+      selected: false
+      source: '1711528914102'
+      sourceHandle: source
+      target: '1778800001031'
+      targetHandle: target
+      type: custom
+    - data:
+        isInLoop: false
+        sourceType: if-else
+        targetType: code
+      id: 1778800001032-metadata_list-17786780698570-target
+      source: '1778800001032'
+      sourceHandle: metadata_list
+      target: '17786780698570'
+      targetHandle: target
+      type: custom
+    - data:
+        isInLoop: false
+        sourceType: if-else
+        targetType: iteration
+      id: 1778800001032-content_summary-1778676584534-target
+      source: '1778800001032'
+      sourceHandle: content_summary
+      target: '1778676584534'
+      targetHandle: target
+      type: custom
+    - data:
+        isInLoop: false
+        sourceType: llm
+        targetType: code
+      id: 1778800001031-source-1778800001033-target
+      selected: false
+      source: '1778800001031'
+      sourceHandle: source
+      target: '1778800001033'
+      targetHandle: target
+      type: custom
+    - data:
+        isInLoop: false
+        sourceType: code
+        targetType: if-else
+      id: 1778800001033-source-1778800001032-target
+      source: '1778800001033'
+      sourceHandle: source
+      target: '1778800001032'
+      targetHandle: target
+      type: custom
+    - data:
+        isInLoop: false
+        sourceType: knowledge-retrieval
+        targetType: code
+      id: 17785930638200-source-1778800001036-target
+      source: '17785930638200'
+      sourceHandle: source
+      target: '1778800001036'
+      targetHandle: target
+      type: custom
+    - data:
+        isInLoop: false
+        sourceType: code
+        targetType: if-else
+      id: 1778800001036-source-1778800001039-target
+      source: '1778800001036'
+      sourceHandle: source
+      target: '1778800001039'
+      targetHandle: target
+      type: custom
+    - data:
+        isInLoop: false
+        sourceType: if-else
+        targetType: llm
+      id: 1778800001039-author_lookup-1778800001034-target
+      source: '1778800001039'
+      sourceHandle: author_lookup
+      target: '1778800001034'
+      targetHandle: target
+      type: custom
+    - data:
+        isInLoop: false
+        sourceType: if-else
+        targetType: llm
+      id: 1778800001039-entity_lookup-1778800001037-target
+      source: '1778800001039'
+      sourceHandle: entity_lookup
+      target: '1778800001037'
+      targetHandle: target
+      type: custom
+    - data:
+        isInLoop: false
+        sourceType: if-else
+        targetType: llm
+      id: 1778800001039-else-1778800001038-target
+      source: '1778800001039'
+      sourceHandle: 'false'
+      target: '1778800001038'
+      targetHandle: target
+      type: custom
+    - data:
+        isInLoop: false
+        sourceType: llm
+        targetType: code
+      id: 1778800001034-source-1778800001013-target
+      source: '1778800001034'
+      sourceHandle: source
+      target: '1778800001013'
+      targetHandle: target
+      type: custom
+    - data:
+        isInLoop: false
+        sourceType: llm
+        targetType: code
+      id: 1778800001037-source-1778800001013-target
+      source: '1778800001037'
+      sourceHandle: source
+      target: '1778800001013'
+      targetHandle: target
+      type: custom
+    - data:
+        isInLoop: false
+        sourceType: llm
+        targetType: code
+      id: 1778800001038-source-1778800001013-target
+      source: '1778800001038'
+      sourceHandle: source
+      target: '1778800001013'
+      targetHandle: target
+      type: custom
+    - data:
+        isInLoop: false
+        sourceType: if-else
+        targetType: knowledge-retrieval
+      id: 1778800001032-else-17785930638200-target
+      source: '1778800001032'
+      sourceHandle: 'false'
+      target: '17785930638200'
+      targetHandle: target
+      type: custom
+    - data:
+        isInLoop: false
+        sourceType: if-else
+        targetType: knowledge-retrieval
+      id: 1778800001032-author_lookup-17785930638200-target
+      source: '1778800001032'
+      sourceHandle: author_lookup
+      target: '17785930638200'
+      targetHandle: target
+      type: custom
+    - data:
+        isInLoop: false
+        sourceType: if-else
+        targetType: knowledge-retrieval
+      id: 1778800001032-entity_lookup-17785930638200-target
+      source: '1778800001032'
+      sourceHandle: entity_lookup
+      target: '17785930638200'
+      targetHandle: target
+      type: custom
+    - data:
+        isInLoop: false
+        sourceType: assigner
+        targetType: if-else
+      id: 1778800001003-source-1778800001040-target
+      source: '1778800001003'
+      sourceHandle: source
+      target: '1778800001040'
+      targetHandle: target
+      type: custom
+    - data:
+        isInLoop: false
+        sourceType: if-else
+        targetType: llm
+      id: 1778800001040-set-1778800001027-target
+      source: '1778800001040'
+      sourceHandle: set
+      target: '1778800001027'
+      targetHandle: target
+      type: custom
+    - data:
+        isInLoop: false
+        sourceType: if-else
+        targetType: code
+      id: 1778800001040-false-1778800001013-target
+      source: '1778800001040'
+      sourceHandle: 'false'
+      target: '1778800001013'
+      targetHandle: target
+      type: custom
+    nodes:
+    - data:
+        desc: The user's question comes in here.
+        selected: false
+        title: Start
+        type: start
+        variables: []
+      height: 100
+      id: '1711528914102'
+      position:
+        x: -1479.2766666643752
+        y: 3002.861688967774
+      positionAbsolute:
+        x: -1479.2766666643752
+        y: 3002.861688967774
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 242
+    - data:
+        dataset_ids:
+        - 5a231cec-21bf-40b9-86c8-87b9d01bca74
+        isInIteration: false
+        isInLoop: false
+        metadata_filtering_conditions:
+          conditions: []
+          logical_operator: or
+        metadata_filtering_mode: manual
+        metadata_model_config:
+          completion_params:
+            temperature: 0.7
+          mode: chat
+          name: gpt-oss
+          provider: langgenius/ollama/ollama
+        multiple_retrieval_config:
+          reranking_enable: false
+          reranking_mode: weighted_score
+          score_threshold: 0.2
+          top_k: 100
+          weights:
+            keyword_setting:
+              keyword_weight: 0.3
+            vector_setting:
+              embedding_model_name: ' nomic-embed-text-v2-moe'
+              embedding_provider_name: langgenius/ollama/ollama
+              vector_weight: 0.7
+            weight_type: customized
+        query_attachment_selector: []
+        query_variable_selector:
+        - sys
+        - query
+        retrieval_mode: multiple
+        selected: true
+        title: Knowledge Retrieval
+        type: knowledge-retrieval
+      height: 89
+      id: '17785930638200'
+      position:
+        x: -1072.0495596626015
+        y: 3681.1329167788017
+      positionAbsolute:
+        x: -1072.0495596626015
+        y: 3681.1329167788017
+      selected: true
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 241
+    - data:
+        context:
+          enabled: false
+          variable_selector: []
+        isInIteration: false
+        isInLoop: false
+        memory:
+          query_prompt_template: '{{#sys.query#}}'
+          role_prefix:
+            assistant: ''
+            user: ''
+          window:
+            enabled: false
+            size: 50
+        model:
+          completion_params:
+            max_tokens: 4000
+            num_ctx: 65536
+            temperature: 0
+          mode: chat
+          name: qwen:3.5b:35b
+          provider: langgenius/ollama/ollama
+        prompt_template:
+        - id: 400aef06-66bf-4730-a1f4-3dd418d2d48e
+          reasoning_format: separated
+          role: system
+          text: "You are an academic literature assistant.\n\nThe context below contains\
+            \ raw text excerpts of one or more papers, each tagged with a header \
+            \ === <title> (<year>, <journal>) — <authors> ===.\n\nContext:\n{{#1778676584534.output#}}\n\
+            \nRequested paper identities (authoritative order):\n{{#1778800001033.paper_list#}}\n\
+            \nResponse policy:\n- **Global synthesis** first: 3–5 sentences comparing\
+            \ and contrasting themes across all papers.\n- Then, for each paper in\
+            \ numbered order:\n  - Header: **N. <full title>**\n  - Exactly 3 bullet\
+            \ points (method / key finding / implication), each at most 2 short sentences.\n\
+            \  - If a paper's text is missing or says \"Insufficient textual context\"\
+            , still emit the header and write: *Insufficient textual context — only\
+            \ metadata available.*\n  - STRICT GROUNDING GUARD: Do NOT fabricate methods\
+            \ or findings absent from the provided text.\n\nGeneral rules:\n- Answer\
+            \ in the same language as the user.\n- Output final answer text only.\
+            \ No <think> tags or hidden reasoning.\n- If context includes errors,\
+            \ explain clearly and suggest one concrete reformulation."
+        reasoning_format: separated
+        selected: false
+        title: Summary LLM
+        type: llm
+        vision:
+          enabled: false
+      height: 87
+      id: '17785945324000'
+      position:
+        x: 209.4752276329641
+        y: 3588.177616057657
+      positionAbsolute:
+        x: 209.4752276329641
+        y: 3588.177616057657
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 241
+    - data:
+        answer: '{{#1778800001013.cleaned_text#}}'
+        desc: Send the final response back to the user.
+        isInIteration: false
+        isInLoop: false
+        selected: false
+        title: Answer
+        type: answer
+        variables: []
+      height: 145
+      id: '17785946070360'
+      position:
+        x: 1053.623854638876
+        y: 3674.1063364780684
+      positionAbsolute:
+        x: 1053.623854638876
+        y: 3674.1063364780684
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 241
+    - data:
+        code: "import re\n\n\ndef _strip_think(text):\n    cleaned = str(text or \"\
+          \")\n    cleaned = re.sub(r\"<think>.*?</think>\", \"\", cleaned, flags=re.S\
+          \ | re.I)\n    cleaned = re.sub(r\"<think>.*$\", \"\", cleaned, flags=re.S\
+          \ | re.I)\n    return cleaned.strip()\n\n\ndef main(**kwargs):\n    parts\
+          \ = []\n    for key in (\n        \"extraction_text\",\n        \"entity_text\"\
+          ,\n        \"summary_text\",\n        \"knowledge_text\",\n        \"metadata_text\"\
+          ,\n    ):\n        text = kwargs.get(key)\n        if text:\n          \
+          \  cleaned = _strip_think(text)\n            if cleaned:\n             \
+          \   parts.append(cleaned)\n\n    # Fallback: use result_text from Metadata\
+          \ Query only if no meaningful LLM output\n    rt = kwargs.get(\"result_text\"\
+          )\n    if rt:\n        cleaned = _strip_think(rt)\n        is_meaningful\
+          \ = (\n            cleaned\n            and len(cleaned) > 50\n        \
+          \    and \"Insufficient context\" not in cleaned\n            and \"Keine\
+          \ Dokumente gefunden\" not in cleaned\n        )\n        # Check if all\
+          \ LLM outputs are weak (empty, short, or negative)\n        _WEAK_MARKERS\
+          \ = [\n            \"Insufficient\",\n            \"Keine Dokumente\",\n\
+          \            \"cannot determine\",\n            \"cannot answer\",\n   \
+          \         \"no relevant\",\n            \"does not contain\",\n        \
+          \    \"does not provide\",\n            \"not found\",\n            \"not\
+          \ available\",\n            \"unable to\",\n            \"I could not\"\
+          ,\n            \"I cannot\",\n        ]\n\n        def _is_weak(text):\n\
+          \            t = text.strip()\n            if len(t) < 40:\n           \
+          \     return True\n            t_lower = t.lower()\n            return any(m.lower()\
+          \ in t_lower for m in _WEAK_MARKERS)\n\n        # If no LLM parts OR all\
+          \ LLM parts are weak, use result_text\n        if is_meaningful and (not\
+          \ parts or all(_is_weak(p) for p in parts)):\n            parts = [cleaned]\
+          \  # Replace, don't append\n        elif not parts and cleaned:\n      \
+          \      parts.append(cleaned)\n    merged = \"\\n\\n\".join(parts).strip()\n\
+          \    if not merged:\n        merged = (\n            \"I could not generate\
+          \ a meaningful answer for your query. \"\n            \"This may be because\
+          \ the search was too broad or did not match any documents.\\n\\n\"\n   \
+          \         \"Suggestions:\\n\"\n            \"- For paper listings: try 'Papers\
+          \ by <author name>' or 'Papers from <year>'\\n\"\n            \"- For topic\
+          \ searches: try 'What is m6A?' or 'Which methods detect RNA modifications?'\\\
+          n\"\n            \"- For author lookups: try 'Who has worked on tRNA modifications?'\\\
+          n\"\n            \"- For entity lookups: try 'Which RNA modifications are\
+          \ most studied?'\"\n        )\n\n    # ── EU AI Act Article 50(2): AI-generated\
+          \ content watermark ──\n    # Human-readable disclaimer + machine-readable\
+          \ HTML comment.\n    # The HTML comment survives Markdown rendering and\
+          \ is detectable\n    # in raw API payloads, fulfilling the \"machine-readable\
+          \ format\"\n    # requirement until the EU Code of Practice defines a standard.\n\
+          \    if merged:\n        merged += (\n            \"\\n\\n---\\n\"\n   \
+          \         \"*Disclaimer (EU AI Act Art. 50): \"\n            \"This text\
+          \ was synthetically generated by an AI system \"\n            \"(RMaP Copilot\
+          \ via Dify/Ollama). \"\n            \"Please verify against cited sources.*\
+          \ \"\n            \"<!-- AI_GENERATED_CONTENT_RMAP -->\"\n        )\n\n\
+          \    return {\"cleaned_text\": merged}\n"
+        code_language: python3
+        isInIteration: false
+        isInLoop: false
+        outputs:
+          cleaned_text:
+            children: null
+            type: string
+        selected: false
+        title: Final Answer Sanitizer
+        type: code
+        variables:
+        - value_selector:
+          - '1778800001027'
+          - text
+          value_type: string
+          variable: metadata_text
+        - value_selector:
+          - '17785945324000'
+          - text
+          value_type: string
+          variable: summary_text
+        - value_selector:
+          - '1778800001034'
+          - text
+          value_type: string
+          variable: extraction_text
+        - value_selector:
+          - '1778800001037'
+          - text
+          value_type: string
+          variable: entity_text
+        - value_selector:
+          - '1778800001038'
+          - text
+          value_type: string
+          variable: knowledge_text
+        - value_selector:
+          - '17786780698570'
+          - result_text
+          value_type: string
+          variable: result_text
+      height: 51
+      id: '1778800001013'
+      position:
+        x: 774.0487599774854
+        y: 3674.1063364780684
+      positionAbsolute:
+        x: 774.0487599774854
+        y: 3674.1063364780684
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 241
+    - data:
+        error_handle_mode: terminated
+        flatten_output: false
+        height: 152
+        is_parallel: false
+        iterator_input_type: array[object]
+        iterator_selector:
+        - '1778800001033'
+        - paper_list
+        output_selector:
+        - '1778800001025'
+        - paper_context
+        output_type: array[string]
+        parallel_nums: 10
+        selected: false
+        start_node_id: 1778676584534start
+        title: Paper Iterator
+        type: iteration
+        width: 434
+      height: 152
+      id: '1778676584534'
+      position:
+        x: -1120.6146341682265
+        y: 3469.4812241425457
+      positionAbsolute:
+        x: -1120.6146341682265
+        y: 3469.4812241425457
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 434
+    - data:
+        desc: ''
+        isInIteration: true
+        selected: false
+        title: ''
+        type: iteration-start
+      draggable: false
+      height: 48
+      id: 1778676584534start
+      parentId: '1778676584534'
+      position:
+        x: 24
+        y: 68
+      positionAbsolute:
+        x: -1096.6146341682265
+        y: 3537.4812241425457
+      selectable: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom-iteration-start
+      width: 44
+    - data:
+        code: "import json\nimport os\nimport re\nfrom urllib.error import HTTPError,\
+          \ URLError\nfrom urllib.parse import urlencode\nfrom urllib.request import\
+          \ Request, urlopen\n\nCODE_VERSION = \"metadata_query_v2026-07-15_broad-query-fix\"\
+          \n\n_EMPTY_TOKENS = {\n    \"\",\n    \"null\",\n    \"none\",\n    \"unknown\"\
+          ,\n    \"n/a\",\n    \"na\",\n    \"[]\",\n    \"{}\",\n    \"-\",\n}\n\n\
+          \ndef _is_set(value) -> bool:\n    if value is None:\n        return False\n\
+          \    if isinstance(value, (int, float)) and value == 0:\n        return\
+          \ False\n    if isinstance(value, list):\n        return any(_is_set(item)\
+          \ for item in value)\n    if isinstance(value, dict):\n        return any(_is_set(v)\
+          \ for v in value.values())\n    text = str(value).strip()\n    return text.lower()\
+          \ not in _EMPTY_TOKENS\n\n\ndef _normalize_text(value) -> str:\n    if value\
+          \ is None:\n        return \"\"\n    text = str(value).strip()\n    return\
+          \ \"\" if text.lower() in _EMPTY_TOKENS else text\n\n\ndef _to_string_list(value)\
+          \ -> list[str]:\n    if value is None:\n        return []\n    if isinstance(value,\
+          \ list):\n        return [_normalize_text(v) for v in value if _is_set(v)]\n\
+          \    if isinstance(value, dict):\n        candidates = []\n        for key\
+          \ in (\"value\", \"name\", \"author\", \"authors\", \"text\"):\n       \
+          \     if key in value:\n                entry = value.get(key)\n       \
+          \         if isinstance(entry, list):\n                    candidates.extend(_to_string_list(entry))\n\
+          \                elif _is_set(entry):\n                    norm = _normalize_text(entry)\n\
+          \                    if norm:\n                        candidates.append(norm)\n\
+          \        if candidates:\n            return candidates\n        return [_normalize_text(v)\
+          \ for v in value.values() if _is_set(v)]\n    if _is_set(value):\n     \
+          \   normalized = _normalize_text(value)\n        return [normalized] if\
+          \ normalized else []\n    return []\n\n\ndef _author_variants(author: str)\
+          \ -> list[str]:\n    text = \" \".join(str(author).strip().split())\n  \
+          \  if not text:\n        return []\n\n    variants = [text]\n\n    # Normalize\
+          \ \"Last, First\" → \"First Last\"\n    if \",\" in text:\n        comma_parts\
+          \ = [p.strip() for p in text.split(\",\", 1)]\n        if len(comma_parts)\
+          \ == 2 and comma_parts[0] and comma_parts[1]:\n            variants.append(f\"\
+          {comma_parts[1]} {comma_parts[0]}\")\n\n    parts = text.split(\" \")\n\
+          \    if len(parts) >= 2:\n        first = parts[0].strip(\".,;\")\n    \
+          \    last = parts[-1].strip(\".,;\")\n        if first and last:\n     \
+          \       variants.append(f\"{first[0]}. {last}\")\n            variants.append(f\"\
+          {first[0]} {last}\")\n            variants.append(last)\n\n    # Always\
+          \ add just the last word as a variant (handles \"Dieterich\", \"Helm\" etc.)\n\
+          \    if parts:\n        last_word = parts[-1].strip(\".,;\")\n        if\
+          \ last_word and last_word.lower() not in {v.lower() for v in variants}:\n\
+          \            variants.append(last_word)\n\n    seen = set()\n    deduped\
+          \ = []\n    for item in variants:\n        key = item.lower()\n        if\
+          \ key in seen:\n            continue\n        seen.add(key)\n        deduped.append(item)\n\
+          \n    # Umlaut normalization: add both ö→oe AND ö→o variants\n    # PubMed\
+          \ strips umlauts (ö→o), German expansion uses oe (ö→oe)\n    umlaut_expand\
+          \ = str.maketrans(\n        {\"ö\": \"oe\", \"ü\": \"ue\", \"ä\": \"ae\"\
+          , \"ß\": \"ss\", \"Ö\": \"Oe\", \"Ü\": \"Ue\", \"Ä\": \"Ae\"}\n    )\n \
+          \   umlaut_strip = str.maketrans(\n        {\"ö\": \"o\", \"ü\": \"u\",\
+          \ \"ä\": \"a\", \"ß\": \"ss\", \"Ö\": \"O\", \"Ü\": \"U\", \"Ä\": \"A\"\
+          }\n    )\n    extra = []\n    for item in deduped:\n        expanded = item.translate(umlaut_expand)\n\
+          \        if expanded.lower() not in seen:\n            extra.append(expanded)\n\
+          \        stripped = item.translate(umlaut_strip)\n        if stripped.lower()\
+          \ not in seen and stripped.lower() != expanded.lower():\n            extra.append(stripped)\n\
+          \    deduped.extend(extra)\n\n    return deduped\n\n\ndef _build_headers(api_key:\
+          \ str) -> dict:\n    return {\n        \"Authorization\": f\"Bearer {api_key}\"\
+          ,\n        \"Content-Type\": \"application/json\",\n    }\n\n\ndef _run_json_get(\n\
+          \    url: str, headers: dict, timeout: int = 30\n) -> tuple[dict, str |\
+          \ None]:\n    request = Request(url=url, headers=headers, method=\"GET\"\
+          )\n    try:\n        with urlopen(request, timeout=timeout) as response:\n\
+          \            body = response.read().decode(\"utf-8\", errors=\"replace\"\
+          )\n            status = response.getcode()\n    except HTTPError as exc:\n\
+          \        body = exc.read().decode(\"utf-8\", errors=\"replace\")\n     \
+          \   return {}, f\"Dify API Error {exc.code}: {body}\"\n    except URLError\
+          \ as exc:\n        return {}, f\"Verbindungsfehler zur Dify API: {exc}\"\
+          \n    except Exception as exc:\n        return {}, f\"Unbekannter Dify API-Fehler:\
+          \ {exc}\"\n\n    if status != 200:\n        return {}, f\"Dify API Error\
+          \ {status}: {body}\"\n\n    try:\n        return json.loads(body), None\n\
+          \    except ValueError:\n        return {}, f\"Ungueltige JSON-Antwort:\
+          \ {body}\"\n\n\ndef _extract_items(payload: dict) -> list[dict]:\n    if\
+          \ isinstance(payload, dict):\n        if isinstance(payload.get(\"data\"\
+          ), list):\n            return payload.get(\"data\", [])\n        if isinstance(payload.get(\"\
+          documents\"), list):\n            return payload.get(\"documents\", [])\n\
+          \    return []\n\n\ndef _metadata_to_dict(detail: dict) -> dict[str, str]:\n\
+          \    result = {}\n    for item in detail.get(\"doc_metadata\", []) or []:\n\
+          \        name = str((item or {}).get(\"name\") or \"\").strip().lower()\n\
+          \        value = (item or {}).get(\"value\")\n        if name:\n       \
+          \     result[name] = \"\" if value is None else str(value).strip()\n   \
+          \ return result\n\n\ndef _matches_filters(meta: dict[str, str], year, authors,\
+          \ journal, title) -> bool:\n    meta_year = _normalize_text(meta.get(\"\
+          year\", \"\"))\n    meta_authors = _normalize_text(meta.get(\"authors\"\
+          , \"\"))\n    meta_journal = _normalize_text(meta.get(\"journal\", \"\"\
+          ))\n    meta_title = _normalize_text(meta.get(\"title\", \"\"))\n\n    year_text\
+          \ = _normalize_text(year)\n    journal_text = _normalize_text(journal)\n\
+          \    title_text = _normalize_text(title)\n\n    if _is_set(year_text) and\
+          \ year_text.lower() != meta_year.lower():\n        return False\n\n    if\
+          \ _is_set(journal_text) and journal_text.lower() not in meta_journal.lower():\n\
+          \        return False\n\n    if _is_set(title_text) and title_text.lower()\
+          \ not in meta_title.lower():\n        return False\n\n    author_inputs\
+          \ = _to_string_list(authors)\n\n    # Multi-author OR matching: if any input\
+          \ contains commas, split and OR-match\n    has_multi = any(\",\" in a for\
+          \ a in author_inputs)\n    if has_multi:\n        all_names = []\n     \
+          \   for a in author_inputs:\n            for part in a.split(\",\"):\n \
+          \               part = part.strip()\n                if part:\n        \
+          \            all_names.append(part)\n        # Paper matches if ANY of the\
+          \ comma-separated names match\n        for name in all_names:\n        \
+          \    variants = [v.lower() for v in _author_variants(name)]\n          \
+          \  if any(v in meta_authors.lower() for v in variants):\n              \
+          \  break  # matched this name\n            last_name = name.strip().split()[-1].strip(\"\
+          .,;\").lower()\n            if last_name and last_name in meta_authors.lower():\n\
+          \                break  # matched via last name\n        else:\n       \
+          \     return False  # no name matched\n    else:\n        # Single-author:\
+          \ all must match (AND logic, typically just one)\n        for author in\
+          \ author_inputs:\n            variants = [v.lower() for v in _author_variants(author)]\n\
+          \            if not any(v in meta_authors.lower() for v in variants):\n\
+          \                # Last resort: extract just the last name and check again.\n\
+          \                # Handles \"Chr. Dieterich\" vs \"Christoph Dieterich\"\
+          \ where\n                # the first name abbreviation doesn't match.\n\
+          \                last_name = author.strip().split()[-1].strip(\".,;\").lower()\n\
+          \                if not last_name or last_name not in meta_authors.lower():\n\
+          \                    return False\n\n    return True\n\n\ndef _sanitize_year_filter(value)\
+          \ -> str:\n    text = _normalize_text(value)\n    if not text:\n       \
+          \ return \"\"\n    return text if re.fullmatch(r\"(19|20)\\d{2}\", text)\
+          \ else \"\"\n\n\ndef _sanitize_free_text_filter(value, max_len: int = 120)\
+          \ -> str:\n    text = _normalize_text(value)\n    if not text:\n       \
+          \ return \"\"\n    if len(text) > max_len:\n        return \"\"\n    if\
+          \ \"?\" in text:\n        return \"\"\n    lower = text.lower()\n    noisy_markers\
+          \ = [\"which documents\", \"co-authored\", \"co-authored by\", \"authored\
+          \ by\"]\n    if any(marker in lower for marker in noisy_markers):\n    \
+          \    return \"\"\n    return text\n\n\ndef _collect_documents(\n    api_base:\
+          \ str, dataset_id: str, headers: dict\n) -> tuple[list[dict], list[str]]:\n\
+          \    errors = []\n    docs = []\n\n    all_items = []\n    for page in range(1,\
+          \ 21):\n        q = urlencode({\"page\": page, \"limit\": 100})\n      \
+          \  list_url = f\"{api_base}/datasets/{dataset_id}/documents?{q}\"\n    \
+          \    payload, err = _run_json_get(list_url, headers=headers)\n        if\
+          \ err:\n            if page == 1:\n                return [], [err]\n  \
+          \          break\n\n        items = _extract_items(payload)\n        if\
+          \ not items:\n            break\n        all_items.extend(items)\n     \
+          \   if len(items) < 100:\n            break\n\n    for item in all_items:\n\
+          \        doc_id = str((item or {}).get(\"id\") or \"\").strip()\n      \
+          \  if not doc_id:\n            continue\n\n        detail_url = f\"{api_base}/datasets/{dataset_id}/documents/{doc_id}?{urlencode({'metadata':\
+          \ 'all'})}\"\n        detail, detail_err = _run_json_get(detail_url, headers=headers)\n\
+          \        if detail_err:\n            errors.append(f\"Dokument {doc_id}:\
+          \ {detail_err}\")\n            continue\n\n        meta = _metadata_to_dict(detail)\n\
+          \        docs.append(\n            {\n                \"id\": doc_id,\n\
+          \                \"title\": meta.get(\"title\") or str(detail.get(\"name\"\
+          ) or \"\").strip(),\n                \"authors\": meta.get(\"authors\",\
+          \ \"\"),\n                \"year\": meta.get(\"year\", \"\"),\n        \
+          \        \"journal\": meta.get(\"journal\", \"\"),\n            }\n    \
+          \    )\n\n    return docs, errors\n\n\ndef _render_result(\n    matches:\
+          \ list[dict], total_docs: int, is_multi_author: bool = False\n) -> str:\n\
+          \    MAX_RESULTS = 30  # Dify array output limit\n    if not matches:\n\
+          \        return (\n            \"Keine Dokumente gefunden.\\n\"\n      \
+          \      \"Tipps:\\n\"\n            \"- Autor:innen-Namen ausschreiben (z.B.\
+          \ 'Christoph Dieterich')\\n\"\n            \"- Nachname allein reicht oft\
+          \ (z.B. 'Dieterich')\\n\"\n            \"- Jahr als vierstellige Zahl angeben\
+          \ (z.B. '2024')\\n\"\n            f\"Code-Version: {CODE_VERSION}; Dokumente\
+          \ geprueft: {total_docs}; Treffer: 0\"\n        )\n\n    truncated = len(matches)\
+          \ > MAX_RESULTS\n    display_docs = matches[:MAX_RESULTS] if truncated else\
+          \ matches\n\n    # For multi-author queries: pre-format the output to look\
+          \ like LLM output,\n    # so the downstream Metadata LLM just passes it\
+          \ through verbatim.\n    if is_multi_author:\n        lines = [f\"{len(matches)}\
+          \ papers\", \"\"]\n        for idx, doc in enumerate(matches, start=1):\n\
+          \            lines.append(f\"{idx}. **{doc['title']}**\")\n            if\
+          \ doc.get(\"authors\"):\n                lines.append(f\"   - Authors: {doc['authors']}\"\
+          )\n            if doc.get(\"year\"):\n                lines.append(f\" \
+          \  - Year: {doc['year']}\")\n            if doc.get(\"journal\"):\n    \
+          \            lines.append(f\"   - Journal: {doc['journal']}\")\n       \
+          \     lines.append(\"\")\n        # No cap for multi-author: the Metadata\
+          \ LLM is bypassed, so no context limit.\n        # Final Answer Sanitizer\
+          \ passes result_text through verbatim.\n        if len(matches) > MAX_RESULTS:\n\
+          \            lines.append(\n                f\"(Showing all {len(matches)}\
+          \ results. \"\n                \"Refine your query with additional filters\
+          \ for a narrower list.)\"\n            )\n        return \"\\n\".join(lines)\n\
+          \n    # Standard format for single-author / non-multi queries\n    lines\
+          \ = []\n    for idx, doc in enumerate(display_docs, start=1):\n        lines.append(\n\
+          \            f\"{idx}. {doc['title']} | {doc['authors']} | {doc['year']}\
+          \ | {doc['journal']} | {doc.get('id', '')}\"\n        )\n    header = (\n\
+          \        f\"Code-Version: {CODE_VERSION}; Dokumente geprueft: {total_docs};\
+          \ \"\n        f\"Treffer: {len(matches)}\"\n    )\n    result = header +\
+          \ \"\\n\" + \"\\n\".join(lines)\n    if truncated:\n        result += (\n\
+          \            f\"\\n\\n(Es werden nur die ersten {MAX_RESULTS} von {len(matches)}\
+          \ Ergebnissen angezeigt. \"\n            \"Bitte die Suche mit einem Autor:innen-Namen,\
+          \ Jahr oder Journal einschränken.)\"\n        )\n    return result\n\n\n\
+          def _compute_collaborations(\n    docs: list[dict], target_author: str =\
+          \ \"\"\n) -> tuple[str, str]:\n    \"\"\"Compute co-author pairs from paper\
+          \ metadata.\n\n    If target_author is set, filter to pairs involving that\
+          \ author.\n    Returns (result_text, intent_hint) for LLM-bypass output.\n\
+          \    \"\"\"\n    from collections import Counter\n\n    pair_counts: Counter\
+          \ = Counter()\n    pair_papers: dict[tuple, set] = {}  # (author_a, author_b)\
+          \ -> set of paper titles\n\n    for doc in docs:\n        author_str = doc.get(\"\
+          authors\", \"\")\n        if not author_str:\n            continue\n   \
+          \     # Authors are \"LastName1, FirstName1, LastName2, FirstName2, ...\"\
+          \n        # Group every 2 items: (LastName, FirstName) → \"FirstName LastName\"\
+          \n        raw = [a.strip() for a in author_str.split(\",\") if a.strip()]\n\
+          \        # If odd count, skip last (malformed)\n        if len(raw) % 2\
+          \ != 0:\n            raw = raw[:-1]\n        names = []\n        for i in\
+          \ range(0, len(raw), 2):\n            last, first = raw[i], raw[i + 1]\n\
+          \            # Normalize: \"FirstName LastName\"\n            names.append(f\"\
+          {first} {last}\")\n        if len(names) < 2:\n            continue\n\n\
+          \        title = doc.get(\"title\", \"Unknown\")\n        for i in range(len(names)):\n\
+          \            for j in range(i + 1, len(names)):\n                a, b =\
+          \ names[i], names[j]\n                # Normalize: alphabetical order for\
+          \ consistent keys\n                key = (min(a, b, key=str.lower), max(a,\
+          \ b, key=str.lower))\n                pair_counts[key] += 1\n          \
+          \      if key not in pair_papers:\n                    pair_papers[key]\
+          \ = set()\n                pair_papers[key].add(title)\n\n    # Filter by\
+          \ target author(s) if specified.\n    # Single author: \"Mark Helm\" → match\
+          \ pairs containing \"mark helm\".\n    # Dual author (pipe-separated): \"\
+          Mark Helm|Yuri Motorin\" → match exact pair.\n    target_authors = []\n\
+          \    if target_author:\n        if \"|\" in target_author:\n           \
+          \ target_authors = [a.strip() for a in target_author.split(\"|\") if a.strip()]\n\
+          \        else:\n            target_authors = [target_author]\n\n    if len(target_authors)\
+          \ == 2:\n        # Dual-author: show papers they co-authored together\n\
+          \        a1, a2 = target_authors\n        a1_lower, a2_lower = a1.lower(),\
+          \ a2.lower()\n        pair_counts = Counter(\n            {\n          \
+          \      k: v\n                for k, v in pair_counts.items()\n         \
+          \       if (a1_lower in k[0].lower() and a2_lower in k[1].lower())\n   \
+          \             or (a2_lower in k[0].lower() and a1_lower in k[1].lower())\n\
+          \            }\n        )\n        pair_papers = {\n            k: v\n \
+          \           for k, v in pair_papers.items()\n            if (a1_lower in\
+          \ k[0].lower() and a2_lower in k[1].lower())\n            or (a2_lower in\
+          \ k[0].lower() and a1_lower in k[1].lower())\n        }\n    elif len(target_authors)\
+          \ == 1:\n        target_lower = target_authors[0].lower()\n        pair_counts\
+          \ = Counter(\n            {\n                k: v\n                for k,\
+          \ v in pair_counts.items()\n                if target_lower in k[0].lower()\
+          \ or target_lower in k[1].lower()\n            }\n        )\n        pair_papers\
+          \ = {\n            k: v\n            for k, v in pair_papers.items()\n \
+          \           if target_lower in k[0].lower() or target_lower in k[1].lower()\n\
+          \        }\n\n    if not pair_counts:\n        return (\n            \"\
+          Keine Kollaborationen gefunden. \"\n            \"Der Datensatz enthält\
+          \ möglicherweise zu wenige Papers mit \"\n            \"mehreren Autoren\
+          \ für eine aussagekräftige Analyse.\"\n        ), \"\"\n\n    top = pair_counts.most_common(20)\n\
+          \    total_pairs = len(pair_counts)\n    total_papers_with_pairs = len(\n\
+          \        [d for d in docs if len(d.get(\"authors\", \"\").split(\",\"))\
+          \ >= 2]\n    )\n\n    lines = [\n        f\"Co-Author Collaboration Analysis\"\
+          ,\n        f\"\",\n        f\"Dataset: {len(docs)} papers, {total_papers_with_pairs}\
+          \ with ≥2 authors\",\n        f\"Unique co-author pairs found: {total_pairs}\"\
+          ,\n    ]\n\n    if len(target_authors) == 2:\n        a1, a2 = target_authors\n\
+          \        lines.insert(1, f\"Joint papers: {a1} + {a2}\")\n        if pair_counts:\n\
+          \            total_papers_count = sum(pair_counts.values())\n          \
+          \  lines.append(f\"Shared papers: {total_papers_count}\")\n        lines.append(f\"\
+          \")\n        # Dual-author: show ALL shared papers, not pairs\n        all_shared\
+          \ = set()\n        for papers in pair_papers.values():\n            all_shared\
+          \ |= papers\n        if all_shared:\n            for idx, paper in enumerate(sorted(all_shared),\
+          \ 1):\n                lines.append(f\"{idx}. {paper}\")\n            lines.append(f\"\
+          \")\n    elif len(target_authors) == 1:\n        lines.insert(1, f\"Collaborator:\
+          \ {target_authors[0]}\")\n        lines.append(f\"\")\n    else:\n     \
+          \   lines.append(f\"\")\n        lines.append(f\"Top 20 most frequent co-author\
+          \ pairs:\")\n        lines.append(f\"\")\n\n    # Render pair list (skip\
+          \ for dual-author — already shown as paper list)\n    if len(target_authors)\
+          \ != 2:\n        for idx, (key, count) in enumerate(top, start=1):\n   \
+          \         a, b = key\n            papers = pair_papers.get(key, set())\n\
+          \            paper_list = \"; \".join(sorted(papers)[:3])\n            if\
+          \ len(papers) > 3:\n                paper_list += f\" (+{len(papers) - 3}\
+          \ more)\"\n            lines.append(\n                f\"{idx}. **{a}**\
+          \ + **{b}** — {count} paper{'s' if count > 1 else ''}\"\n            )\n\
+          \            lines.append(f\"   Papers: {paper_list}\")\n            lines.append(f\"\
+          \")\n\n    # Future computation modes (not yet implemented):\n    # - publication_timeline:\
+          \ papers grouped by year\n    # - journal_distribution: papers grouped by\
+          \ journal\n    # - author_productivity: paper count per author\n    # -\
+          \ topic_clustering: title-based keyword co-occurrence\n    intent_hint =\
+          \ \"collaboration\"\n\n    return \"\\n\".join(lines), intent_hint\n\n\n\
+          def main(\n    year=None,\n    authors=None,\n    journal=None,\n    title=None,\n\
+          \    paper_list=None,\n    list_mode=None,\n    collaboration_mode=None,\n\
+          \    api_key_input=None,\n    dataset_id_input=None,\n):\n    api_base =\
+          \ (os.getenv(\"DIFY_API_URL\") or \"http://rmap-chatbot-demo-dify/v1\").rstrip(\n\
+          \        \"/\"\n    )\n    dataset_id = dataset_id_input or os.getenv(\"\
+          DIFY_DATASET_ID\") or \"\"\n    api_key = api_key_input or os.getenv(\"\
+          DIFY_API_KEY\") or \"\"\n\n    if not _is_set(api_base) or not _is_set(dataset_id)\
+          \ or not _is_set(api_key):\n        return {\n            \"result\": (\n\
+          \                \"Dify API Konfiguration unvollstaendig. \"\n         \
+          \       \"Erwarte DIFY_API_URL, DIFY_DATASET_ID und DIFY_API_KEY.\"\n  \
+          \          )\n        }\n\n    # Extract filter values from paper_list if\
+          \ passed (Parse Router Output)\n    if isinstance(paper_list, list) and\
+          \ len(paper_list) > 0:\n        first = paper_list[0]\n        if isinstance(first,\
+          \ dict):\n            if not _is_set(year):\n                year = first.get(\"\
+          year\", \"\")\n            if not _is_set(journal):\n                journal\
+          \ = first.get(\"journal\", \"\")\n            if not _is_set(title):\n \
+          \               title = first.get(\"title\", \"\")\n        # Collect authors\
+          \ from ALL entries (supports multi-name OR queries\n        # where parse_router_output\
+          \ splits \"X, Y\" into separate entries)\n        if not _is_set(authors):\n\
+          \            all_authors = []\n            for entry in paper_list:\n  \
+          \              if isinstance(entry, dict):\n                    a = (entry.get(\"\
+          authors\") or \"\").strip()\n                    if a:\n               \
+          \         all_authors.append(a)\n            if all_authors:\n         \
+          \       authors = \", \".join(all_authors)\n\n    headers = _build_headers(str(api_key).strip())\n\
+          \    docs, errors = _collect_documents(str(api_base), str(dataset_id).strip(),\
+          \ headers)\n\n    # ── Collaboration Analysis Mode ─────────────────────────────────\n\
+          \    # Detects queries like \"who has collaborated the most?\", \"collaboration\
+          \ network\",\n    # \"co-authors of X\". Returns co-author pair frequencies,\
+          \ bypasses LLM.\n    if _is_set(collaboration_mode):\n        target = str(collaboration_mode).strip()\n\
+          \        target_author = (\n            target if target.lower() not in\
+          \ (\"true\", \"1\", \"yes\", \"all\") else \"\"\n        )\n        result_text,\
+          \ intent_hint = _compute_collaborations(docs, target_author)\n        result_lines\
+          \ = result_text.split(\"\\n\") if result_text else []\n        if len(result_lines)\
+          \ > 30:\n            result_lines = result_lines[:30]\n        return {\n\
+          \            \"result\": result_lines,\n            \"result_text\": result_text,\n\
+          \        }\n\n    year_filter = _sanitize_year_filter(year)\n    journal_filter\
+          \ = _sanitize_free_text_filter(journal, max_len=80)\n    title_filter =\
+          \ _sanitize_free_text_filter(title, max_len=160)\n\n    has_any_filter =\
+          \ any(\n        [\n            _is_set(year_filter),\n            _is_set(journal_filter),\n\
+          \            _is_set(title_filter),\n            _is_set(authors),\n   \
+          \     ]\n    )\n\n    # No-filter query → return all documents or distinct\
+          \ authors\n    if not has_any_filter:\n        if str(list_mode or \"\"\
+          ).strip().lower() == \"authors\":\n            # Extract distinct authors\
+          \ from all docs\n            author_set = set()\n            for d in docs:\n\
+          \                for a in d.get(\"authors\", \"\").split(\",\"):\n     \
+          \               a = a.strip()\n                    if a and len(a) > 2:\n\
+          \                        author_set.add(a)\n            author_list = sorted(author_set)\n\
+          \            total = len(author_list)\n            display = author_list[:100]\n\
+          \            lines = [f\"{i}. {a}\" for i, a in enumerate(display, 1)]\n\
+          \            text = f\"Distinct authors in dataset: {total}\\n\\n\" + \"\
+          \\n\".join(lines)\n            if total > 100:\n                text +=\
+          \ f\"\\n\\n(Showing first 100 of {total} authors. Use 'Papers by <name>'\
+          \ to find specific authors.)\"\n            return {\n                \"\
+          result\": text.split(\"\\n\")[:30],\n                \"result_text\": text,\n\
+          \            }\n        else:\n            uniq = {}\n            for d\
+          \ in docs:\n                k = (\n                    d.get(\"title\",\
+          \ \"\").strip().lower(),\n                    d.get(\"authors\", \"\").strip().lower(),\n\
+          \                    d.get(\"year\", \"\").strip(),\n                  \
+          \  d.get(\"journal\", \"\").strip().lower(),\n                )\n      \
+          \          if k not in uniq:\n                    uniq[k] = d\n        \
+          \    all_docs = list(uniq.values())\n            total = len(all_docs)\n\
+          \            lines = [\n                f\"{i}. {d['title']}, {d['year']},\
+          \ {d['journal']}\"\n                for i, d in enumerate(all_docs, 1)\n\
+          \            ]\n            text = f\"Total papers in dataset: {total}\\\
+          n\\n\" + \"\\n\".join(lines)\n            return {\n                \"result\"\
+          : text.split(\"\\n\")[:30],\n                \"result_text\": text,\n  \
+          \          }\n\n    matches = []\n    for doc in docs:\n        if _matches_filters(doc,\
+          \ year_filter, authors, journal_filter, title_filter):\n            matches.append(doc)\n\
+          \n    unique = {}\n    for doc in matches:\n        key = (\n          \
+          \  (doc.get(\"title\") or \"\").strip().lower(),\n            (doc.get(\"\
+          authors\") or \"\").strip().lower(),\n            (doc.get(\"year\") or\
+          \ \"\").strip(),\n            (doc.get(\"journal\") or \"\").strip().lower(),\n\
+          \        )\n        if key not in unique:\n            unique[key] = doc\n\
+          \    final_docs = list(unique.values())\n\n    # Detect multi-author OR\
+          \ query for result header hint\n    is_multi = \",\" in str(authors or \"\
+          \")\n\n    result_text = _render_result(\n        final_docs, total_docs=len(docs),\
+          \ is_multi_author=is_multi\n    )\n    if errors:\n        result_text +=\
+          \ \"\\nFehlerdetails:\\n\" + \"\\n\".join(f\"- {e}\" for e in errors[:8])\n\
+          \    # Cap result array at 30 elements (Dify limit); split only display\
+          \ lines\n    result_lines = result_text.split(\"\\n\") if result_text else\
+          \ []\n    if len(result_lines) > 30:\n        result_lines = result_lines[:30]\n\
+          \    return {\n        \"result\": result_lines,\n        \"result_text\"\
+          : result_text,\n    }\n"
+        code_language: python3
+        isInIteration: false
+        isInLoop: false
+        outputs:
+          result:
+            children: null
+            type: array[string]
+          result_text:
+            children: null
+            type: string
+        selected: false
+        title: Metadata Query
+        type: code
+        variables:
+        - value_selector:
+          - '1778800001033'
+          - paper_list
+          value_type: array[object]
+          variable: paper_list
+        - value_selector:
+          - '1778800001033'
+          - list_mode
+          value_type: string
+          variable: list_mode
+        - value_selector:
+          - '1778800001033'
+          - collaboration_mode
+          value_type: string
+          variable: collaboration_mode
+        - value_selector:
+          - env
+          - DIFY_API_KEY
+          value_type: string
+          variable: api_key_input
+        - value_selector:
+          - env
+          - DIFY_DATASET_ID
+          value_type: string
+          variable: dataset_id_input
+      height: 51
+      id: '17786780698570'
+      position:
+        x: -1072.0495596626015
+        y: 3399.9558281169493
+      positionAbsolute:
+        x: -1072.0495596626015
+        y: 3399.9558281169493
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 241
+    - data:
+        code: "def _normalize_obj(item):\n    if not isinstance(item, dict):\n   \
+          \     return None\n    title = str(item.get(\"title\") or \"\").strip()\n\
+          \    authors = str(item.get(\"authors\") or item.get(\"author\") or \"\"\
+          ).strip()\n    year = str(item.get(\"year\") or \"\").strip()\n    journal\
+          \ = str(item.get(\"journal\") or \"\").strip()\n    doc_id = str(item.get(\"\
+          doc_id\") or \"\").strip()\n    if not any([title, authors, year, journal]):\n\
+          \        return None\n    return {\n        \"title\": title,\n        \"\
+          authors\": authors,\n        \"year\": year,\n        \"journal\": journal,\n\
+          \        \"doc_id\": doc_id,\n    }\n\n\ndef _parse_from_iteration_output(iteration_output):\n\
+          \    parsed = []\n    if not isinstance(iteration_output, list):\n     \
+          \   return parsed\n\n    for block in iteration_output:\n        if not\
+          \ isinstance(block, str):\n            continue\n        for line in block.splitlines():\n\
+          \            line = line.strip()\n            if not line:\n           \
+          \     continue\n            if \"|\" not in line:\n                continue\n\
+          \            # Strip leading numbering like \"1. \"\n            if \".\
+          \ \" in line:\n                _, _, line = line.partition(\". \")\n   \
+          \         parts = [p.strip() for p in line.split(\"|\")]\n            #\
+          \ Accept 3-5 parts: title | [authors] | year | journal | [doc_id]\n    \
+          \        if len(parts) < 3 or len(parts) > 5:\n                continue\n\
+          \            obj_dict = {}\n            if len(parts) == 3:\n          \
+          \      obj_dict = {\"title\": parts[0], \"year\": parts[1], \"journal\"\
+          : parts[2]}\n            elif len(parts) == 4:\n                obj_dict\
+          \ = {\n                    \"title\": parts[0],\n                    \"\
+          authors\": parts[1],\n                    \"year\": parts[2],\n        \
+          \            \"journal\": parts[3],\n                }\n            else:\
+          \  # 5 parts\n                obj_dict = {\n                    \"title\"\
+          : parts[0],\n                    \"authors\": parts[1],\n              \
+          \      \"year\": parts[2],\n                    \"journal\": parts[3],\n\
+          \                    \"doc_id\": parts[4],\n                }\n        \
+          \    obj = _normalize_obj(obj_dict)\n            if obj is not None:\n \
+          \               parsed.append(obj)\n    return parsed\n\n\ndef _dedupe(items):\n\
+          \    unique = {}\n    for item in items:\n        obj = _normalize_obj(item)\n\
+          \        if obj is None:\n            continue\n        key = (\n      \
+          \      obj[\"title\"].lower(),\n            obj[\"authors\"].lower(),\n\
+          \            obj[\"year\"],\n            obj[\"journal\"].lower(),\n   \
+          \     )\n        if key not in unique:\n            unique[key] = obj\n\
+          \    return list(unique.values())\n\n\ndef main(iteration_output=None, memory=None):\n\
+          \    parsed_docs = _dedupe(_parse_from_iteration_output(iteration_output))\n\
+          \    if parsed_docs:\n        return {\"memory\": parsed_docs}\n\n    #\
+          \ If parsing failed, return existing memory (don't overwrite with empty)\n\
+          \    existing = memory if isinstance(memory, list) else []\n    if existing:\n\
+          \        return {\"memory\": _dedupe(existing)}\n\n    # Last resort: return\
+          \ empty\n    return {\"memory\": []}\n"
+        code_language: python3
+        isInIteration: false
+        isInLoop: false
+        outputs:
+          memory:
+            children: null
+            type: array[object]
+        selected: false
+        title: Update Paper Memory
+        type: code
+        variables:
+        - value_selector:
+          - '17786780698570'
+          - result
+          value_type: array[string]
+          variable: iteration_output
+        - value_selector:
+          - conversation
+          - memory
+          value_type: array[object]
+          variable: memory
+      height: 51
+      id: '1778800001002'
+      position:
+        x: -628.8956719908643
+        y: 3399.9558281169493
+      positionAbsolute:
+        x: -628.8956719908643
+        y: 3399.9558281169493
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 241
+    - data:
+        desc: ''
+        isInIteration: false
+        isInLoop: false
+        items:
+        - input_type: variable
+          operation: over-write
+          value:
+          - '1778800001002'
+          - memory
+          variable_selector:
+          - conversation
+          - memory
+          write_mode: over-write
+        selected: false
+        title: Persist Paper Memory
+        type: assigner
+        version: '2'
+      height: 83
+      id: '1778800001003'
+      position:
+        x: -319.81031088124917
+        y: 3399.9558281169493
+      positionAbsolute:
+        x: -319.81031088124917
+        y: 3399.9558281169493
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 241
+    - data:
+        code: "def _normalize_obj(item):\n    if not isinstance(item, dict):\n   \
+          \     return None\n    title = str(item.get(\"title\") or \"\").strip()\n\
+          \    authors = str(item.get(\"authors\") or item.get(\"author\") or \"\"\
+          ).strip()\n    year = str(item.get(\"year\") or \"\").strip()\n    journal\
+          \ = str(item.get(\"journal\") or \"\").strip()\n    doc_id = str(item.get(\"\
+          doc_id\") or \"\").strip()\n    if not any([title, authors, year, journal]):\n\
+          \        return None\n    return {\n        \"title\": title,\n        \"\
+          authors\": authors,\n        \"year\": year,\n        \"journal\": journal,\n\
+          \        \"doc_id\": doc_id,\n    }\n\n\ndef _parse_from_iteration_output(iteration_output):\n\
+          \    parsed = []\n    if not isinstance(iteration_output, list):\n     \
+          \   return parsed\n\n    for block in iteration_output:\n        if not\
+          \ isinstance(block, str):\n            continue\n        for line in block.splitlines():\n\
+          \            line = line.strip()\n            if not line:\n           \
+          \     continue\n            if \"|\" not in line:\n                continue\n\
+          \            # Strip leading numbering like \"1. \"\n            if \".\
+          \ \" in line:\n                _, _, line = line.partition(\". \")\n   \
+          \         parts = [p.strip() for p in line.split(\"|\")]\n            #\
+          \ Accept 3-5 parts: title | [authors] | year | journal | [doc_id]\n    \
+          \        if len(parts) < 3 or len(parts) > 5:\n                continue\n\
+          \            obj_dict = {}\n            if len(parts) == 3:\n          \
+          \      obj_dict = {\"title\": parts[0], \"year\": parts[1], \"journal\"\
+          : parts[2]}\n            elif len(parts) == 4:\n                obj_dict\
+          \ = {\n                    \"title\": parts[0],\n                    \"\
+          authors\": parts[1],\n                    \"year\": parts[2],\n        \
+          \            \"journal\": parts[3],\n                }\n            else:\
+          \  # 5 parts\n                obj_dict = {\n                    \"title\"\
+          : parts[0],\n                    \"authors\": parts[1],\n              \
+          \      \"year\": parts[2],\n                    \"journal\": parts[3],\n\
+          \                    \"doc_id\": parts[4],\n                }\n        \
+          \    obj = _normalize_obj(obj_dict)\n            if obj is not None:\n \
+          \               parsed.append(obj)\n    return parsed\n\n\ndef _dedupe(items):\n\
+          \    unique = {}\n    for item in items:\n        obj = _normalize_obj(item)\n\
+          \        if obj is None:\n            continue\n        key = (\n      \
+          \      obj[\"title\"].lower(),\n            obj[\"authors\"].lower(),\n\
+          \            obj[\"year\"],\n            obj[\"journal\"].lower(),\n   \
+          \     )\n        if key not in unique:\n            unique[key] = obj\n\
+          \    return list(unique.values())\n\n\ndef main(iteration_output=None, memory=None):\n\
+          \    parsed_docs = _dedupe(_parse_from_iteration_output(iteration_output))\n\
+          \    if parsed_docs:\n        return {\"memory\": parsed_docs}\n\n    #\
+          \ If parsing failed, return existing memory (don't overwrite with empty)\n\
+          \    existing = memory if isinstance(memory, list) else []\n    if existing:\n\
+          \        return {\"memory\": _dedupe(existing)}\n\n    # Last resort: return\
+          \ empty\n    return {\"memory\": []}\n"
+        code_language: python3
+        isInIteration: false
+        isInLoop: false
+        outputs:
+          memory:
+            children: null
+            type: array[object]
+        selected: false
+        title: Update Paper Memory
+        type: code
+        variables:
+        - value_selector:
+          - '1778676584534'
+          - output
+          value_type: array[string]
+          variable: iteration_output
+        - value_selector:
+          - conversation
+          - memory
+          value_type: array[object]
+          variable: memory
+      height: 51
+      id: '1778800001029'
+      position:
+        x: -628.8956719908643
+        y: 3469.4812241425457
+      positionAbsolute:
+        x: -628.8956719908643
+        y: 3469.4812241425457
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 241
+    - data:
+        desc: ''
+        isInIteration: false
+        isInLoop: false
+        items:
+        - input_type: variable
+          operation: over-write
+          value:
+          - '1778800001029'
+          - memory
+          variable_selector:
+          - conversation
+          - memory
+          write_mode: over-write
+        selected: false
+        title: Persist Paper Memory
+        type: assigner
+        version: '2'
+      height: 83
+      id: '1778800001030'
+      position:
+        x: -62.63214964004112
+        y: 3469.4812241425457
+      positionAbsolute:
+        x: -62.63214964004112
+        y: 3469.4812241425457
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 241
+    - data:
+        code: "import json\nimport os\nfrom urllib.error import HTTPError, URLError\n\
+          from urllib.parse import urlencode\nfrom urllib.request import Request,\
+          \ urlopen\n\n\ndef _norm(text):\n    return str(text or \"\").strip()\n\n\
+          \ndef _run_json_get(url, headers, timeout=30):\n    req = Request(url=url,\
+          \ headers=headers, method=\"GET\")\n    try:\n        with urlopen(req,\
+          \ timeout=timeout) as resp:\n            body = resp.read().decode(\"utf-8\"\
+          , errors=\"replace\")\n            status = resp.getcode()\n    except HTTPError\
+          \ as exc:\n        body = exc.read().decode(\"utf-8\", errors=\"replace\"\
+          )\n        return {}, f\"HTTPError {exc.code}: {body}\"\n    except URLError\
+          \ as exc:\n        return {}, f\"URLError: {exc}\"\n    except Exception\
+          \ as exc:\n        return {}, f\"Error: {exc}\"\n    if status != 200:\n\
+          \        return {}, f\"HTTP {status}: {body}\"\n    try:\n        return\
+          \ json.loads(body), None\n    except Exception:\n        return {}, f\"\
+          Invalid JSON: {body[:400]}\"\n\n\ndef _fetch_all_segments(api_base, dataset_id,\
+          \ doc_id, headers):\n    all_segs = []\n    seen = set()\n    for page in\
+          \ range(1, 31):\n        q = urlencode({\"page\": page, \"limit\": 100})\n\
+          \        url = f\"{api_base}/datasets/{dataset_id}/documents/{doc_id}/segments?{q}\"\
+          \n        payload, err = _run_json_get(url, headers=headers, timeout=30)\n\
+          \        if err:\n            if page == 1:\n                return \"\"\
+          , f\"segments error: {err}\"\n            break\n        items = payload.get(\"\
+          data\") or payload.get(\"segments\") or []\n        if not items:\n    \
+          \        break\n        for seg in items:\n            for key in (\"content\"\
+          , \"text\"):\n                val = seg.get(key)\n                if isinstance(val,\
+          \ str) and val.strip():\n                    sid = _norm(seg.get(\"id\"\
+          )) or val[:100]\n                    if sid not in seen:\n             \
+          \           seen.add(sid)\n                        pos = seg.get(\"position\"\
+          , 10**9)\n                        all_segs.append((pos, val.strip()))\n\
+          \                    break\n        if len(items) < 100:\n            break\n\
+          \    if not all_segs:\n        return \"\", \"no segments found\"\n    all_segs.sort(key=lambda\
+          \ x: x[0])\n    return \"\\n\\n\".join(t for _, t in all_segs), None\n\n\
+          \ndef _find_doc_id_by_title(api_base, dataset_id, title, headers):\n   \
+          \ # Find document ID by matching title against doc_metadata from the list\
+          \ response.\n    # Uses the list endpoint doc_metadata field directly -\
+          \ no per-document detail calls.\n    expected = title.lower().strip()\n\
+          \    exp_words = set(expected.split())\n    for page in range(1, 21):\n\
+          \        q = urlencode({\"page\": page, \"limit\": 100})\n        url =\
+          \ f\"{api_base}/datasets/{dataset_id}/documents?{q}\"\n        payload,\
+          \ err = _run_json_get(url, headers=headers, timeout=30)\n        if err:\n\
+          \            break\n        items = payload.get(\"data\") or []\n      \
+          \  if not items:\n            break\n        for item in items:\n      \
+          \      doc_id = _norm(item.get(\"id\"))\n            if not doc_id:\n  \
+          \              continue\n            # Read title from doc_metadata (already\
+          \ in list response, no extra call)\n            doc_title = \"\"\n     \
+          \       for m in item.get(\"doc_metadata\") or []:\n                if _norm((m\
+          \ or {}).get(\"name\")).lower() == \"title\":\n                    doc_title\
+          \ = _norm((m or {}).get(\"value\"))\n                    break\n       \
+          \     if not doc_title:\n                doc_title = _norm(item.get(\"name\"\
+          , \"\"))\n            if not doc_title:\n                continue\n    \
+          \        if doc_title.lower() == expected:\n                return doc_id,\
+          \ None\n            if exp_words:\n                doc_words = set(doc_title.lower().split())\n\
+          \                if len(exp_words & doc_words) / len(exp_words) >= 0.8:\n\
+          \                    return doc_id, None\n        if len(items) < 100:\n\
+          \            break\n    return \"\", f\"no document found for title: {title!r}\"\
+          \n\n\ndef main(\n    doc_id=None,\n    item_title=None,\n    item_authors=None,\n\
+          \    item_year=None,\n    item_journal=None,\n    paper_count=None,\n  \
+          \  api_key_input=None,\n):\n    api_base = (\n        _norm(os.getenv(\"\
+          DIFY_API_URL\")) or \"http://rmap-chatbot-demo-dify/v1\"\n    ).rstrip(\"\
+          /\")\n    dataset_id = _norm(os.getenv(\"DIFY_DATASET_ID\")) or \"\"\n \
+          \   api_key = api_key_input or _norm(os.getenv(\"DIFY_API_KEY\")) or \"\"\
+          \n\n    if not dataset_id:\n        return {\n            \"error\": \"\
+          DIFY_DATASET_ID not configured. Run import_dify_dsl.sh to inject from .env.\"\
+          \n        }\n    if not api_key:\n        return {\n            \"error\"\
+          : \"DIFY_API_KEY not configured. Run import_dify_dsl.sh to inject from .env.\"\
+          \n        }\n\n    headers = {\"Authorization\": f\"Bearer {api_key}\",\
+          \ \"Content-Type\": \"application/json\"}\n\n    resolved = _norm(doc_id)\n\
+          \    used_title_fallback = False\n    if not resolved:\n        title =\
+          \ _norm(item_title)\n        if not title:\n            return {\"paper_context\"\
+          : \"\", \"paper_fetch_error\": \"no doc_id and no title\"}\n        resolved,\
+          \ err = _find_doc_id_by_title(api_base, dataset_id, title, headers)\n  \
+          \      if not resolved:\n            return {\n                \"paper_context\"\
+          : \"\",\n                \"paper_fetch_error\": err or \"title lookup failed\"\
+          ,\n            }\n        used_title_fallback = True\n\n    text, err =\
+          \ _fetch_all_segments(api_base, dataset_id, resolved, headers)\n\n    #\
+          \ Fallback: if doc_id fetch returned no segments, try title lookup\n   \
+          \ if (not text or err) and not used_title_fallback:\n        title = _norm(item_title)\n\
+          \        if title:\n            fallback_id, fb_err = _find_doc_id_by_title(\n\
+          \                api_base, dataset_id, title, headers\n            )\n \
+          \           if fallback_id and fallback_id != resolved:\n              \
+          \  text2, err2 = _fetch_all_segments(\n                    api_base, dataset_id,\
+          \ fallback_id, headers\n                )\n                if text2:\n \
+          \                   text, err = text2, None\n\n    if err:\n        return\
+          \ {\"paper_context\": \"\", \"paper_fetch_error\": err}\n\n    title = _norm(item_title)\n\
+          \    year = _norm(item_year)\n    journal = _norm(item_journal)\n    authors\
+          \ = _norm(item_authors)\n    meta_line = (\n        f\"{title} ({year},\
+          \ {journal}) — {authors}\"\n        if (year or journal or authors)\n  \
+          \      else title\n    )\n    header = f\"=== {meta_line} ===\"\n    n =\
+          \ int(paper_count) if paper_count and int(paper_count) > 0 else 1\n    #\
+          \ With MAX_PAPERS_FOR_SUMMARY=8: 8 papers × 6000 chars = 48K total\n   \
+          \ # Fits in 65K context window with room for prompt (~13K) + output (~4K)\n\
+          \    chars_per_paper = max(4000, 48000 // n)\n    context = f\"{header}\\\
+          n\\n{text[:chars_per_paper]}\"\n    return {\"paper_context\": context,\
+          \ \"paper_fetch_error\": \"\"}\n"
+        code_language: python3
+        isInIteration: true
+        isInLoop: false
+        iteration_id: '1778676584534'
+        outputs:
+          paper_context:
+            children: null
+            type: string
+          paper_fetch_error:
+            children: null
+            type: string
+        selected: false
+        title: Fetch Full Paper
+        type: code
+        variables:
+        - value_selector:
+          - '1778676584534'
+          - item
+          - doc_id
+          value_type: string
+          variable: doc_id
+        - value_selector:
+          - '1778676584534'
+          - item
+          - title
+          value_type: string
+          variable: item_title
+        - value_selector:
+          - '1778676584534'
+          - item
+          - authors
+          value_type: string
+          variable: item_authors
+        - value_selector:
+          - '1778676584534'
+          - item
+          - year
+          value_type: string
+          variable: item_year
+        - value_selector:
+          - '1778676584534'
+          - item
+          - journal
+          value_type: string
+          variable: item_journal
+        - value_selector:
+          - '1778800001033'
+          - paper_count
+          value_type: number
+          variable: paper_count
+        - value_selector:
+          - env
+          - DIFY_API_KEY
+          value_type: string
+          variable: api_key_input
+      height: 51
+      id: '1778800001025'
+      parentId: '1778676584534'
+      position:
+        x: 129.36682773149482
+        y: 68.71826501922305
+      positionAbsolute:
+        x: -991.2478064367317
+        y: 3538.1994891617687
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 241
+    - data:
+        context:
+          enabled: false
+          variable_selector: []
+        isInIteration: false
+        isInLoop: false
+        memory:
+          query_prompt_template: '{{#sys.query#}}'
+          role_prefix:
+            assistant: ''
+            user: ''
+          window:
+            enabled: false
+            size: 50
+        model:
+          completion_params:
+            max_tokens: 4000
+            num_ctx: 32768
+            temperature: 0
+          mode: chat
+          name: qwen:3.5b:35b
+          provider: langgenius/ollama/ollama
+        prompt_template:
+        - id: b9d22b40-75cf-5841-a2e5-4ee428e3d59f
+          reasoning_format: separated
+          role: system
+          text: 'You are an academic literature assistant.
+
+
+            === CONTEXT ===
+
+            Paper metadata from database query: {{#17786780698570.result_text#}}
+
+            Resolved paper memory (may contain full paper texts from Fetch Full Paper):
+            {{#conversation.memory#}}
+
+            Requested paper identities (authoritative order): {{#1778800001033.paper_list#}}
+
+
+            === RESPONSE POLICY ===
+
+            PASSTHROUGH RULE: If the database query result already contains a pre-formatted
+            numbered list (starting with a paper count like "12 papers" followed by
+            "1. **Title**" entries), output that text EXACTLY AS-IS. Do not add, remove,
+            or change a single character. Do not verify or re-count. Example: if result_text
+            is "12 papers\n\n1. **X**\n   - Authors: ...", your entire response must
+            be that text and nothing else.
+
+            If the context contains FULL PAPER TEXTS (with methods, findings, details):
+            - Produce a SUMMARIZATION: 3-5 sentence global synthesis comparing themes
+            across papers. - Then for each paper: **Title** → Method, Key finding,
+            Implication (1 sentence each). - Use markdown: **Title** for paper titles,
+            bullet points for details.
+
+            If the context only contains PAPER METADATA (titles, authors, years):
+            - State the EXACT total count of papers you are listing. - COUNT the items
+            in your numbered list. Verify that the count you state matches the actual
+            number of numbered items. If you list 8 papers, say "8 papers", not "7
+            papers". Double-check before output. - Then output a clean numbered list:
+            title, authors, year, journal.
+
+            Always: - Answer in the same language as the user. - Output final answer
+            text only. No <think> tags or hidden reasoning. - If context includes
+            errors, explain clearly and suggest one concrete reformulation.'
+        reasoning_format: separated
+        selected: false
+        title: Metadata LLM
+        type: llm
+        vision:
+          enabled: false
+      height: 87
+      id: '1778800001027'
+      position:
+        x: 345.7855416125657
+        y: 3287.6768914476447
+      positionAbsolute:
+        x: 345.7855416125657
+        y: 3287.6768914476447
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 241
+    - data:
+        context:
+          enabled: false
+          variable_selector: []
+        memory:
+          query_prompt_template: '{{#sys.query#}}'
+          role_prefix:
+            assistant: ''
+            user: ''
+          window:
+            enabled: true
+            size: 12
+        model:
+          completion_params:
+            max_tokens: 4096
+            temperature: 0
+          mode: chat
+          name: qwen:3.5b:35b
+          provider: langgenius/ollama/ollama
+        prompt_template:
+        - id: unified-router-prompt
+          reasoning_format: separated
+          role: system
+          text: "You are the routing brain of an academic literature chatbot. Analyze\
+            \ the user query and decide the single correct intent and search constraints.\n\
+            \nAuthoritative resolved paper memory from prior turns:\n{{#conversation.memory#}}\n\
+            \nReturn valid JSON only via structured output:\n{\n  \"intent\": \"knowledge_retrieval\"\
+            \ | \"metadata_list\" | \"content_summary\" | \"author_lookup\" | \"entity_lookup\"\
+            ,\n  \"paper_list\": [{\"title\": \"\", \"authors\": \"\", \"year\": \"\
+            \", \"journal\": \"\"}],\n  \"list_mode\": \"papers\" | \"authors\",\n\
+            \  \"rewritten_query\": \"standalone version of the user query\"\n}\n\n\
+            === INTENT RULES ===\n\n\"knowledge_retrieval\" — General knowledge question\
+            \ about a topic, method, or concept.\n  paper_list MUST be [].\n\n\"metadata_list\"\
+            \ — User wants to COUNT, LIST, or FILTER papers by metadata (titles, authors,\
+            \ years, journals).\n  paper_list = search constraints (e.g. {\"authors\"\
+            : \"Dieterich\"}).\n  If user wants ALL papers/authors with NO filter\
+            \ → paper_list = [] and list_mode = \"authors\" for author listing.\n\
+            \  paper_list MAY be [] ONLY for EXPLICIT \"all papers / all researchers\"\
+            \ queries with NO filter.\nIf the query contains ANY author name, year,\
+            \ journal, or title constraint → paper_list MUST include it.\nExamples:\n\
+            \  - \"Papers by Dieterich\" → paper_list: [{\"authors\": \"Christoph\
+            \ Dieterich\"}]  ← NOT empty!\n  - \"Find papers by Francesca Tuorto\"\
+            \ → metadata_list, paper_list: [{\"authors\": \"Francesca Tuorto\"}] \
+            \ ← author filter, not content search!\n  - \"Find all research papers\"\
+            \ → paper_list: []  ← truly no constraints\n  - \"Papers from 2024\" →\
+            \ paper_list: [{\"year\": \"2024\"}]  ← has year filter\n\n\"content_summary\"\
+            \ — User wants to SUMMARIZE, COMPARE, or ANALYZE specific papers by their\
+            \ content.\n  paper_list MUST contain paper identities to fetch and summarize.\n\
+            \n\"author_lookup\" — User asks WHO: \"Who has experience with X?\", \"\
+            Who worked on Y?\", \"Which authors studied Z?\".\n  paper_list MUST be\
+            \ []. The Knowledge Retrieval will find relevant papers, and a downstream\n\
+            \  extraction step will identify the authors. This is a content-based\
+            \ search, not metadata filtering.\n\n\"entity_lookup\" — User asks WHICH/WHAT\
+            \ specific entities: \"Which tRNAs were...?\", \"What methods...?\",\n\
+            \  \"Which organisms...?\". The answer is a list of named entities extracted\
+            \ from papers.\n  paper_list MUST be []. KR finds papers, extraction identifies\
+            \ entities.\n\n\n\n=== WHICH INTENT WHEN? ===\n\n- \"Who has experience\
+            \ with X?\" / \"Wer hat Erfahrung mit X?\" → \"author_lookup\"\n- \"Who\
+            \ has worked on X?\" / \"Wer hat an X gearbeitet?\" → \"author_lookup\"\
+            \n- \"Who synthesized Y?\" / \"Wer hat Y synthetisiert?\" → \"author_lookup\"\
+            \n- \"Which tRNAs / proteins / methods ...?\" → \"entity_lookup\"\n- Just\
+            \ a name (no question, no instruction) → \"metadata_list\". This includes\
+            \ ALL name formats:\n    \"Mark Helm\", \"Helm, Mark\", \"M. Helm\", \"\
+            Dieterich\", \"Chr. Dieterich\".\n    Names with comma (Last, First) or\
+            \ dot (M. Helm) are still person names → list their papers.\n  - CRITICAL:\
+            \ \"Find papers by <name>\" or \"Papers by <name>\" or \"Show papers by\
+            \ <name>\" → \"metadata_list\", paper_list: [{\"authors\": \"<name>\"\
+            }]. This overrides ALL other rules. These are metadata queries, NOT content_summary\
+            \ and NOT author_lookup. Examples: \"Find papers by Francesca Tuorto\"\
+            \ → metadata_list. \"Papers by Dieterich\" → metadata_list.\n  - MULTI-NAME:\
+            \ \"Identify <name1>, <name2>, ...\" or \"Can you identify these names:\
+            \ ...\" or \"Which papers are by X or Y?\" or \"Papers by X, Y, Z\" →\
+            \ \"metadata_list\", paper_list: [{\"authors\": \"<name1>, <name2>, ...\"\
+            }]. Put ALL names comma-separated in the authors field.\n- \"Find all\
+            \ research papers\" / \"List all researchers\" → \"metadata_list\", paper_list:\
+            \ [], list_mode: \"authors\" for researchers\n- Just a topic, no paper\
+            \ reference → \"knowledge_retrieval\"\n- Author + \"summarize their findings\"\
+            \ → \"content_summary\"\n- \"Compare the papers by X and Y\" → \"content_summary\"\
+            \n- \"Group/Sort/Filter/Categorize them by X\" (journal, topic, year,\
+            \ method) → \"content_summary\", paper_list: \"use_memory\"\n- \"Who has\
+            \ collaborated the most?\" / \"Who published together?\" / \"Co-authors\
+            \ of X?\" / \"Which co-authors has X published with?\" → \"metadata_list\"\
+            \n- \"What else did <pronoun/name> publish?\" / \"What else has <name>\
+            \ published?\" / \"Anything else by <name>?\" → \"metadata_list\"\n  →\
+            \ paper_list: [{\"authors\": \"<name from previous turn or explicit>\"\
+            }] with NO extra filters (no year, no journal).\n  → If a pronoun (he/she/they):\
+            \ extract the author from the conversation context (previous turn).\n\
+            \  → If a name is explicitly given: use that name.\n  → This is a NEW\
+            \ metadata_list query, NOT \"use_memory\". It searches the full dataset\
+            \ for ALL papers by that author.\n\n=== paper_list RULES ===\n\nFor \"\
+            knowledge_retrieval\", \"author_lookup\", \"entity_lookup\": paper_list\
+            \ MUST be [].\nFor \"metadata_list\" and \"content_summary\": follow the\
+            \ same rules as before.\n\nFOR NEW QUERIES (conversation.memory is empty\
+            \ or irrelevant):\n  → paper_list = SEARCH CONSTRAINTS for the database\
+            \ lookup.\n  Examples:\n  - \"papers by Christoph Dieterich\" → [{\"authors\"\
+            : \"Christoph Dieterich\"}]\n  - \"papers about RNA from 2024\" → [{\"\
+            title\": \"RNA\", \"year\": \"2024\"}]\n\nFOR FOLLOW-UP QUERIES (conversation.memory\
+            \ has papers AND query references them):\n  → paper_list = the STRING\
+            \ \"use_memory\". The downstream parser will fill in the actual papers.\n\
+            \  The query contains pronouns or references to prior turns.\n\nCRITICAL:\
+            \ \"Papers by <name>\" / \"Find papers by <name>\" is ALWAYS a NEW metadata_list\
+            \ query. Even if conversation.memory has papers, do NOT use \"use_memory\"\
+            \ for these. They are fresh author searches, NOT follow-up refinements.\n\
+            \nFor \"metadata_list\": empty paper_list IS VALID (means all papers /\
+            \ all authors).\nFor \"content_summary\": paper_list MUST NOT be empty.\
+            \ If you cannot determine which papers to summarize, use \"knowledge_retrieval\"\
+            \ instead.\n\n=== REWRITTEN QUERY RULES ===\n\n- Resolve pronouns: \"\
+            them\" → \"the papers from the previous turn\".\n- For author_lookup and\
+            \ entity_lookup: keep the original query as-is (it will be used for KR\
+            \ search).\n- Keep original language and intent.\n\nOutput ONLY the JSON.\
+            \ No <think> tags, no explanations, no markdown fences."
+        reasoning_format: separated
+        selected: false
+        structured_output:
+          schema:
+            additionalProperties: false
+            properties:
+              intent:
+                description: Routing intent
+                enum:
+                - knowledge_retrieval
+                - metadata_list
+                - content_summary
+                - author_lookup
+                - entity_lookup
+                type: string
+              list_mode:
+                description: 'List mode: papers or authors'
+                enum:
+                - papers
+                - authors
+                type: string
+              paper_list:
+                description: Paper identities or "use_memory" for follow-up queries
+                items:
+                  additionalProperties: false
+                  properties:
+                    authors:
+                      description: Author name(s)
+                      type: string
+                    journal:
+                      description: Journal name if available
+                      type: string
+                    title:
+                      description: Paper title if available
+                      type: string
+                    year:
+                      description: Publication year
+                      type: string
+                  type: object
+                type: array
+              rewritten_query:
+                description: Standalone rewritten query
+                type: string
+            required:
+            - intent
+            - paper_list
+            - rewritten_query
+            type: object
+        structured_output_enabled: false
+        title: Unified Router
+        type: llm
+        vision:
+          enabled: false
+      height: 87
+      id: '1778800001031'
+      position:
+        x: -1479.2766666643752
+        y: 3142.2196865549713
+      positionAbsolute:
+        x: -1479.2766666643752
+        y: 3142.2196865549713
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 241
+    - data:
+        cases:
+        - case_id: metadata_list
+          conditions:
+          - comparison_operator: is
+            id: intent-is-metadata
+            value: metadata_list
+            varType: string
+            variable_selector:
+            - '1778800001033'
+            - intent
+          id: metadata_list
+          logical_operator: and
+        - case_id: content_summary
+          conditions:
+          - comparison_operator: is
+            id: intent-is-content
+            value: content_summary
+            varType: string
+            variable_selector:
+            - '1778800001033'
+            - intent
+          id: content_summary
+          logical_operator: and
+        - case_id: author_lookup
+          conditions:
+          - comparison_operator: is
+            id: intent-is-author
+            value: author_lookup
+            varType: string
+            variable_selector:
+            - '1778800001033'
+            - intent
+          id: author_lookup
+          logical_operator: and
+        - case_id: entity_lookup
+          conditions:
+          - comparison_operator: is
+            id: intent-is-entity
+            value: entity_lookup
+            varType: string
+            variable_selector:
+            - '1778800001033'
+            - intent
+          id: entity_lookup
+          logical_operator: and
+        selected: false
+        title: Intent Dispatcher
+        type: if-else
+      height: 363
+      id: '1778800001032'
+      position:
+        x: -1489.7142084055456
+        y: 3368.332460133041
+      positionAbsolute:
+        x: -1489.7142084055456
+        y: 3368.332460133041
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 241
+    - data:
+        code: "import json\nimport re\n\n\ndef _clean_paper(item):\n    if not isinstance(item,\
+          \ dict):\n        return None\n    obj = {\n        \"title\": str(item.get(\"\
+          title\") or \"\").strip(),\n        \"authors\": str(item.get(\"authors\"\
+          ) or item.get(\"author\") or \"\").strip(),\n        \"year\": str(item.get(\"\
+          year\") or \"\").strip(),\n        \"journal\": str(item.get(\"journal\"\
+          ) or \"\").strip(),\n    }\n    doc_id = str(item.get(\"doc_id\") or \"\"\
+          ).strip()\n    if doc_id:\n        obj[\"doc_id\"] = doc_id\n    return\
+          \ obj if any(obj.values()) else None\n\n\ndef _fallback_result():\n    \"\
+          \"\"Fallback when router JSON is unparseable.\"\"\"\n    return {\n    \
+          \    \"intent\": \"knowledge_retrieval\",\n        \"paper_list\": [],\n\
+          \        \"paper_count\": 0,\n        \"rewritten_query\": \"\",\n     \
+          \   \"list_mode\": \"papers\",\n    }\n\n\ndef main(router_text=None, conversation_memory=None,\
+          \ sys_query=None):\n    text = str(router_text or \"\").strip()\n    # Strip\
+          \ <think> tags\n    text = re.sub(r\"<think>.*?</think>\", \"\", text, flags=re.DOTALL).strip()\n\
+          \    # Strip markdown fences\n    text = re.sub(r\"^```(?:json)?\\s*\",\
+          \ \"\", text)\n    text = re.sub(r\"\\s*```$\", \"\", text).strip()\n  \
+          \  # Find JSON object\n    m = re.search(r\"\\{.*\\}\", text, re.DOTALL)\n\
+          \    if not m:\n        return _fallback_result()\n    try:\n        obj\
+          \ = json.loads(m.group())\n    except Exception:\n        return _fallback_result()\n\
+          \n    intent = str(obj.get(\"intent\", \"\")).strip()\n    if intent not\
+          \ in (\n        \"metadata_list\",\n        \"content_summary\",\n     \
+          \   \"knowledge_retrieval\",\n        \"author_lookup\",\n        \"entity_lookup\"\
+          ,\n    ):\n        intent = \"knowledge_retrieval\"\n\n    # ── Read list_mode\
+          \ from router JSON (LLM-native, no regex) ──\n    list_mode = str(obj.get(\"\
+          list_mode\") or \"\").strip()\n    if list_mode not in (\"papers\", \"authors\"\
+          ):\n        list_mode = \"papers\"  # default\n\n    paper_list = obj.get(\"\
+          paper_list\")\n    mem = conversation_memory if isinstance(conversation_memory,\
+          \ list) else []\n\n    # If paper_list is the string \"use_memory\", populate\
+          \ from conversation.memory\n    if paper_list == \"use_memory\":\n     \
+          \   paper_list = []\n        for item in mem:\n            cleaned = _clean_paper(item)\n\
+          \            if cleaned:\n                paper_list.append(cleaned)\n \
+          \   elif not isinstance(paper_list, list):\n        paper_list = []\n  \
+          \  else:\n        # Clean paper_list items from LLM output\n        cleaned_list\
+          \ = []\n        for item in paper_list:\n            if isinstance(item,\
+          \ dict):\n                c = _clean_paper(item)\n                if c:\n\
+          \                    cleaned_list.append(c)\n        paper_list = cleaned_list\n\
+          \n    # Auto-fallback: if paper_list is empty but intent requires papers,\
+          \ use conversation.memory\n    # ONLY for content_summary (follow-up \"\
+          Summarize them\").\n    # For metadata_list, empty paper_list means \"all\
+          \ papers\" — do NOT override.\n    if not paper_list and intent == \"content_summary\"\
+          \ and mem:\n        paper_list = []\n        for item in mem:\n        \
+          \    cleaned = _clean_paper(item)\n            if cleaned:\n           \
+          \     paper_list.append(cleaned)\n\n    # ── Cap papers for content_summary\
+          \ to avoid context overflow ──\n    # Full paper texts average ~11K chars\
+          \ each; 8 papers ≈ 48K chars ≈ 12K tokens\n    # which fits comfortably\
+          \ in the Summary LLM's 65K context window and\n    # keeps A2 (qwen:3.5b:35b)\
+          \ response time under 2 minutes.\n    MAX_PAPERS_FOR_SUMMARY = 8\n    if\
+          \ intent == \"content_summary\" and len(paper_list) > MAX_PAPERS_FOR_SUMMARY:\n\
+          \        paper_list = paper_list[:MAX_PAPERS_FOR_SUMMARY]\n\n    rw = str(obj.get(\"\
+          rewritten_query\") or \"\").strip()\n    # Fallback: if Router didn't set\
+          \ rewritten_query, use original query.\n    if not rw and sys_query:\n \
+          \       rw = str(sys_query).strip()\n\n    # ── Name-only query guard: if\
+          \ the user typed what looks like just a person's\n    # name (e.g. \"Helm,\
+          \ Mark\", \"M. Helm\", \"Dieterich\") but the router misclassified\n   \
+          \ # it as author_lookup / knowledge_retrieval → override to metadata_list.\n\
+          \    # Patterns detected: \"Last, First\", \"X. Last\", or 1-2 capitalized\
+          \ words.\n    if intent in (\"author_lookup\", \"knowledge_retrieval\")\
+          \ and sys_query:\n        q = str(sys_query).strip()\n        has_comma\
+          \ = \",\" in q and len(q.split(\",\")) == 2\n        has_dot_initials =\
+          \ bool(re.match(r\"^[A-ZÀ-ÖØ-Ý]\\.\\s+\\w{2,}$\", q))\n        one_or_two_words\
+          \ = (\n            len(q.split()) in (1, 2)\n            and not re.search(r\"\
+          [.?!/]\", q)\n            and not any(\n                w.lower() in q.lower()\n\
+          \                for w in (\n                    \"who\",\n            \
+          \        \"what\",\n                    \"which\",\n                   \
+          \ \"how\",\n                    \"why\",\n                    \"where\"\
+          ,\n                    \"when\",\n                    \"summarize\",\n \
+          \                   \"compare\",\n                    \"group\",\n     \
+          \               \"find\",\n                    \"list\",\n             \
+          \       \"show\",\n                    \"experience\",\n               \
+          \     \"worked\",\n                    \"using\",\n                    \"\
+          studied\",\n                )\n            )\n        )\n        if has_comma\
+          \ or has_dot_initials or one_or_two_words:\n            intent = \"metadata_list\"\
+          \n            if not paper_list:\n                # Use the query text as\
+          \ author filter\n                paper_list = [{\"authors\": q, \"title\"\
+          : \"\", \"year\": \"\", \"journal\": \"\"}]\n\n    # ── \"Find/Show papers\
+          \ by <name>\" guard ─────────────────────────\n    if sys_query:\n     \
+          \   q = str(sys_query).strip().lower()\n        # Check for \"find papers\
+          \ by X\", \"show papers by X\", \"find publications by X\"\n        is_find_by\
+          \ = (\n            q.startswith(\"find papers by \")\n            or q.startswith(\"\
+          show papers by \")\n            or q.startswith(\"find publications by \"\
+          )\n            or q.startswith(\"show publications by \")\n            or\
+          \ q.startswith(\"find articles by \")\n            or q.startswith(\"show\
+          \ articles by \")\n        )\n        if is_find_by:\n            # Extract\
+          \ name after \"by \"\n            parts = q.split(\" by \", 1)\n       \
+          \     if len(parts) == 2:\n                name = parts[1].strip().rstrip(\"\
+          .,;\")\n                if name and len(name) >= 2:\n                  \
+          \  intent = \"metadata_list\"\n                    # Keep as single entry\
+          \ — metadata_query handles comma-separated\n                    # authors\
+          \ with OR matching, and the OR-hint in result_text tells\n             \
+          \       # the Metadata LLM to list all matches without AND filtering.\n\
+          \                    paper_list = [\n                        {\"authors\"\
+          : name, \"title\": \"\", \"year\": \"\", \"journal\": \"\"}\n          \
+          \          ]\n\n    # ── \"Identify: <name1>, <name2>, ...\" guard ───────────────────\n\
+          \    # Catches multi-name identification queries like:\n    #   \"Identify:\
+          \ Mark Helm, Martin Hengesbach\"\n    #   \"Identify Mark Helm, Martin Hengesbach\"\
+          \n    #   \"Can you identify Mark Helm, Martin Hengesbach?\"\n    # Forces\
+          \ metadata_list with comma-separated authors (OR logic).\n    if sys_query:\n\
+          \        q = str(sys_query).strip().lower()\n        is_identify = (\n \
+          \           q.startswith(\"identify:\")\n            or q.startswith(\"\
+          identify \")\n            or q.startswith(\"can you identify \")\n     \
+          \       or q.startswith(\"which papers are by \")\n        )\n        if\
+          \ is_identify:\n            # Extract the name portion: strip the prefix\n\
+          \            name_part = q\n            for prefix in (\n              \
+          \  \"identify:\",\n                \"identify \",\n                \"can\
+          \ you identify \",\n                \"which papers are by \",\n        \
+          \    ):\n                if name_part.startswith(prefix):\n            \
+          \        name_part = name_part[len(prefix) :]\n                    break\n\
+          \            name_part = name_part.strip().rstrip(\".,;?!\")\n         \
+          \   # Only override if it contains commas (multi-name) or looks like names\n\
+          \            if name_part and \",\" in name_part:\n                # Normalize:\
+          \ ensure comma-space separation\n                names = [n.strip() for\
+          \ n in name_part.split(\",\") if n.strip()]\n                if len(names)\
+          \ >= 2:\n                    intent = \"metadata_list\"\n              \
+          \      # Split into separate entries so Metadata LLM sees individual authors\n\
+          \                    paper_list = [\n                        {\"authors\"\
+          : n, \"title\": \"\", \"year\": \"\", \"journal\": \"\"}\n             \
+          \           for n in names\n                    ]\n\n    # ── Multi-author\
+          \ bypass: skip Metadata LLM ────────────────────\n    # For metadata_list\
+          \ queries with multiple distinct authors (comma-separated\n    # or split\
+          \ across paper_list entries), metadata_query produces pre-formatted\n  \
+          \  # output. The Metadata LLM (qwen:3.5b:35b) cannot reliably pass through\n\
+          \    # OR-matched results. Setting paper_count=0 routes through the Metadata\
+          \ LLM\n    # Bypass directly to Final Answer Sanitizer, which passes result_text\
+          \ through.\n    multi_author_bypass = False\n    if intent == \"metadata_list\"\
+          \ and paper_list:\n        all_authors = []\n        for entry in paper_list:\n\
+          \            if isinstance(entry, dict):\n                a = str(entry.get(\"\
+          authors\", \"\")).strip()\n                if a:\n                    all_authors.append(a)\n\
+          \        # Multi-author if: any entry has comma, OR multiple entries with\
+          \ authors\n        has_comma = any(\",\" in a for a in all_authors)\n  \
+          \      if has_comma or len(all_authors) >= 2:\n            multi_author_bypass\
+          \ = True\n\n    # ── Collaboration analysis guard ───────────────────────────\n\
+          \    # Detects queries like \"who collaborated most\", \"co-authors of X\"\
+          ,\n    # \"collaboration network\", \"published together\". Forces metadata_list\n\
+          \    # and passes collaboration_mode to metadata_query.py.\n    collaboration_mode\
+          \ = \"\"\n    if sys_query:\n        q = str(sys_query).strip().lower()\n\
+          \        collab_markers = (\n            \"collaborat\",\n            \"\
+          co-author\",\n            \"coauthor\",\n            \"co author\",\n  \
+          \          \"co-authored\",\n            \"coauthored\",\n            \"\
+          published together\",\n            \"publish together\",\n            \"\
+          published with\",\n            \"worked together\",\n            \"work\
+          \ together\",\n            \"co-autoren\",\n        )\n        # Also match\
+          \ \"share papers\", \"shared papers\", \"papers shared\"\n        has_share\
+          \ = bool(\n            re.search(\n                r\"\\bshare[ds]?\\b.*\\\
+          bpaper\\b|\\bpaper.*\\bshare[ds]?\\b|\\bshare[ds]?\\s*\\?\",\n         \
+          \       q,\n            )\n        )\n        if any(m in q for m in collab_markers)\
+          \ or has_share:\n            intent = \"metadata_list\"\n            # Extract\
+          \ target author — match separators case-insensitively (q_lower)\n      \
+          \      # but extract name preserving original case from sys_query\n    \
+          \        q_orig = str(sys_query).strip()\n            target = \"\"\n  \
+          \          for sep in (\n                \"co-authors of \",\n         \
+          \       \"co-author of \",\n                \"collaborators of \",\n   \
+          \             \"coauthors of \",\n                \"collaborations of \"\
+          ,\n                \"collaboration of \",\n            ):\n            \
+          \    if sep in q:  # match lowercase\n                    idx = q.index(sep)\n\
+          \                    target = q_orig[idx + len(sep) :].strip().rstrip(\"\
+          .,;?!\")\n                    break\n            if not target:\n      \
+          \          for sep in (\n                    \"co-authors with \",\n   \
+          \                 \"collaborated with \",\n                    \"collaborations\
+          \ with \",\n                    \"published with \",\n                ):\n\
+          \                    if sep in q:\n                        idx = q.index(sep)\n\
+          \                        target = q_orig[idx + len(sep) :].strip().rstrip(\"\
+          .,;?!\")\n                        break\n            if not target:\n  \
+          \              # \"Which co-authors has Mark Helm published with?\" → extract\
+          \ name\n                m = re.search(\n                    r\"(?:co-authors?\\\
+          s+(?:has\\s+)?|coauthors?\\s+(?:has\\s+)?)([\\w\\s.-]+?)\\s+(?:published\\\
+          s+with|collaborated\\s+with)\",\n                    q,\n              \
+          \  )\n                if m:\n                    # Use the match position\
+          \ to extract from original case\n                    start = m.start(1)\n\
+          \                    end = m.end(1)\n                    target = q_orig[start:end].strip().rstrip(\"\
+          .,;?!\")\n            # ── Dual-author detection ───────────────────────────\n\
+          \            # Patterns: \"co-authored by X and Y\", \"X and Y collaboration\"\
+          ,\n            # \"papers co-authored by X and Y\", \"do X and Y share papers?\"\
+          \n            dual_target = \"\"\n            dual_patterns = [\n      \
+          \          # Specific prefix patterns first (avoid ambiguous matching)\n\
+          \                r\"co[- ]?authored?\\s+by\\s+([\\w.-]+(?:\\s+[\\w.-]+)?)\\\
+          s+and\\s+([\\w.-]+(?:\\s+[\\w.-]+)?)\",\n                r\"how\\s+many\\\
+          s+papers\\s+(?:do|have)\\s+([\\w.-]+(?:\\s+[\\w.-]+)?)\\s+and\\s+([\\w.-]+(?:\\\
+          s+[\\w.-]+)?)\\s+(?:share|co[- ]?author|publish)\",\n                r\"\
+          ([\\w.-]+(?:\\s+[\\w.-]+)?)\\s+and\\s+([\\w.-]+(?:\\s+[\\w.-]+)?)\\s+collaborat\"\
+          ,\n                r\"do\\s+([\\w.-]+(?:\\s+[\\w.-]+)?)\\s+and\\s+([\\w.-]+(?:\\\
+          s+[\\w.-]+)?)\\s+(?:share|have|co[- ]?author)\",\n                # Generic\
+          \ \"X and Y verb\" — LAST to avoid false matches\n                r\"([\\\
+          w.-]+(?:\\s+[\\w.-]+)?)\\s+and\\s+([\\w.-]+(?:\\s+[\\w.-]+)?)\\s+(?:published|co[-\
+          \ ]?authored|share|shared|joint)\",\n            ]\n            for pattern\
+          \ in dual_patterns:\n                m = re.search(pattern, q)\n       \
+          \         if m:\n                    n1 = q_orig[m.start(1) : m.end(1)].strip().rstrip(\"\
+          .,;?!\")\n                    n2 = q_orig[m.start(2) : m.end(2)].strip().rstrip(\"\
+          .,;?!\")\n                    if n1 and n2 and len(n1) > 1 and len(n2) >\
+          \ 1:\n                        dual_target = f\"{n1}|{n2}\"\n           \
+          \         break\n\n            collaboration_mode = (\n                dual_target\
+          \ if dual_target else (target if target else \"all\")\n            )\n \
+          \           paper_list = []\n            multi_author_bypass = True\n\n\
+          \    # ── \"What else\" follow-up guard ────────────────────────────\n \
+          \   # Detects \"what else did X publish?\" follow-up queries.\n    # The\
+          \ LLM Router (qwen:3.5b:35b) ignores the prompt rule for this,\n    # so we\
+          \ override at code level. Extracts author from conversation.memory\n   \
+          \ # (previous turn) for pronoun queries, or uses explicit name.\n    if\
+          \ sys_query:\n        q = str(sys_query).strip().lower()\n        is_what_else\
+          \ = (\n            q.startswith(\"what else \")\n            or q.startswith(\"\
+          anything else \")\n            or \"what else has \" in q\n            or\
+          \ \"what else did \" in q\n        )\n        if is_what_else and mem:\n\
+          \            # Try to extract author from conversation.memory (previous\
+          \ turn)\n            prev_authors = set()\n            for item in mem:\n\
+          \                if isinstance(item, dict):\n                    a = str(item.get(\"\
+          authors\", \"\")).strip()\n                    if a:\n                 \
+          \       # Take unique authors (usually just one if prev query was author-filtered)\n\
+          \                        prev_authors.add(a)\n            if prev_authors:\n\
+          \                # Use the author(s) from the previous turn\n          \
+          \      intent = \"metadata_list\"\n                paper_list = [{\"authors\"\
+          : list(prev_authors)[0], \"title\": \"\", \"year\": \"\", \"journal\": \"\
+          \"}]\n            # else: fall through to router's classification (no memory\
+          \ to work with)\n\n    return {\n        \"intent\": intent,\n        \"\
+          paper_list\": paper_list,\n        \"paper_count\": 0 if multi_author_bypass\
+          \ else len(paper_list),\n        \"rewritten_query\": rw,\n        \"list_mode\"\
+          : list_mode,\n        \"collaboration_mode\": collaboration_mode,\n    }\n"
+        code_language: python3
+        isInIteration: false
+        isInLoop: false
+        outputs:
+          collaboration_mode:
+            children: null
+            type: string
+          intent:
+            children: null
+            type: string
+          list_mode:
+            children: null
+            type: string
+          paper_count:
+            children: null
+            type: number
+          paper_list:
+            children: null
+            type: array[object]
+          rewritten_query:
+            children: null
+            type: string
+        selected: false
+        title: Parse Router Output
+        type: code
+        variables:
+        - value_selector:
+          - '1778800001031'
+          - text
+          value_type: string
+          variable: router_text
+        - value_selector:
+          - conversation
+          - memory
+          value_type: array[object]
+          variable: conversation_memory
+        - value_selector:
+          - sys
+          - query
+          value_type: string
+          variable: sys_query
+      height: 51
+      id: '1778800001033'
+      position:
+        x: -1484.4326543241668
+        y: 3264.4811834209427
+      positionAbsolute:
+        x: -1484.4326543241668
+        y: 3264.4811834209427
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 241
+    - data:
+        code: "import json\nimport re\n\nNL = chr(10)  # newline - avoids YAML escaping\
+          \ issues\n\n\ndef _extract_text(chunk):\n    if isinstance(chunk, dict):\n\
+          \        seg = chunk.get(\"segment\", {})\n        if isinstance(seg, dict)\
+          \ and seg.get(\"content\", \"\").strip():\n            return str(seg[\"\
+          content\"]).strip()\n        if chunk.get(\"content\", \"\").strip():\n\
+          \            return str(chunk[\"content\"]).strip()\n        ccs = chunk.get(\"\
+          child_chunks\", [])\n        if ccs:\n            parts = [\n          \
+          \      str(c.get(\"content\", \"\")).strip() for c in ccs if isinstance(c,\
+          \ dict)\n            ]\n            return NL.join(p for p in parts if p)\n\
+          \        return \"\"\n    text = str(chunk or \"\").strip()\n    if text.startswith(\"\
+          {\") or text.startswith(\"[\"):\n        try:\n            obj = json.loads(text)\n\
+          \            if isinstance(obj, dict):\n                return _extract_text(obj)\n\
+          \            if isinstance(obj, list):\n                parts = [_extract_text(i)\
+          \ for i in obj[:3]]\n                return NL.join(p for p in parts if\
+          \ p)\n        except Exception:\n            pass\n    return text\n\n\n\
+          def _is_reference_chunk(text):\n    t = str(text or \"\").strip()\n    if\
+          \ not t or len(t) < 20:\n        return False\n\n    doi_count = len(re.findall(r\"\
+          doi\\.org/\\S+|DOI:\\s*\\S+\", t, re.IGNORECASE))\n    numbered_refs = len(\n\
+          \        re.findall(r\"(?:^|\" + NL + r\")\\s*(?:\\d+\\.[ \\t]|\\[\\d+\\\
+          ][ \\t]|\\(\\d+\\)\\s)\", t)\n    )\n    # also catch parenthetical refs\
+          \ anywhere (e.g. \"...e99777. (83) de Crecy...\")\n    paren_refs_anywhere\
+          \ = len(re.findall(r\"\\(\\d+\\)\\s\", t))\n    etal_count = len(re.findall(r\"\
+          \\bet\\s+al\\b\", t, re.IGNORECASE))\n    year_parens = len(re.findall(r\"\
+          \\((?:19|20)\\d{2}[a-z]?\\)\", t))\n\n    score = (\n        doi_count *\
+          \ 3.0\n        + numbered_refs * 1.5\n        + paren_refs_anywhere * 1.0\n\
+          \        + etal_count * 0.5\n        + year_parens * 0.3\n    )\n    density\
+          \ = score / max(1.0, len(t) / 500.0)\n\n    if doi_count >= 4:\n       \
+          \ return True\n    if numbered_refs >= 8:\n        return True\n    if density\
+          \ > 1.8:\n        return True\n\n    first_line = t.split(NL)[0].strip()\n\
+          \    if re.match(r\"^\\d+[\\.,]\\s\", first_line) or re.match(r\"^\\[\\\
+          d+\\]\", first_line):\n        if density > 0.8:\n            return True\n\
+          \n    return False\n\n\ndef _metadata_looks_garbled(title, authors, year,\
+          \ journal):\n    \"\"\"Detect clearly broken metadata (book chapters, extraction\
+          \ failures).\"\"\"\n    t = str(title or \"\").strip()\n    a = str(authors\
+          \ or \"\").strip()\n    y = str(year or \"\").strip()\n    j = str(journal\
+          \ or \"\").strip()\n\n    # Title has no spaces → garbled concatenation\
+          \ (e.g. \"ComputationalEpigenomicsandEpitranscriptomics\")\n    if len(t)\
+          \ > 15 and \" \" not in t:\n        return True\n\n    # Authors contain\
+          \ structural text, not person names\n    a_lower = a.lower()\n    garbled_author_markers\
+          \ = [\n        \"editor\",\n        \"series\",\n        \"ethods in\",\n\
+          \        \"olecular biology\",\n    ]\n    if any(m in a_lower for m in\
+          \ garbled_author_markers):\n        return True\n\n    # Year is not a 4-digit\
+          \ year\n    if y and not re.fullmatch(r\"(19|20)\\d{2}\", y):\n        return\
+          \ True\n\n    # Journal is just numbers / page ranges (e.g. \"241-260\"\
+          )\n    if j and re.fullmatch(r\"\\d+[\\-–]\\d+\", j):\n        return True\n\
+          \n    return False\n\n\ndef _get_doc_info(chunk):\n    \"\"\"Extract rich\
+          \ document info from a Dify KR result item using real metadata.\"\"\"\n\
+          \    if not isinstance(chunk, dict):\n        return None\n    meta = chunk.get(\"\
+          metadata\", {})\n    if not isinstance(meta, dict):\n        return None\n\
+          \n    doc_meta = meta.get(\"doc_metadata\", {})\n    if isinstance(doc_meta,\
+          \ dict):\n        title = str(doc_meta.get(\"title\", \"\")).strip()\n \
+          \       authors = str(doc_meta.get(\"authors\", \"\")).strip()\n       \
+          \ journal = str(doc_meta.get(\"journal\", \"\")).strip()\n        year =\
+          \ str(doc_meta.get(\"year\", \"\")).strip()\n\n        # Detect garbled\
+          \ metadata (common with book chapters)\n        if title and not _metadata_looks_garbled(title,\
+          \ authors, year, journal):\n            header = f'\"{title}\"'\n      \
+          \      if authors:\n                header += f\" by {authors}\"\n     \
+          \       if journal or year:\n                header += \" (\"\n        \
+          \        if journal:\n                    header += journal\n          \
+          \      if year:\n                    if journal:\n                     \
+          \   header += \", \"\n                    header += year\n             \
+          \   header += \")\"\n            return header\n\n    # Fallback: use filename-based\
+          \ title field, parse structured info\n    title = str(chunk.get(\"title\"\
+          , \"\")).strip()\n    if title:\n        title = re.sub(r\"__[a-z_]+_\\\
+          d{10,}(?:\\.pdf)?$\", \"\", title, flags=re.IGNORECASE)\n        title =\
+          \ re.sub(r\"\\.pdf$\", \"\", title, flags=re.IGNORECASE)\n        title\
+          \ = title.strip()\n        if title:\n            # Try to parse structured\
+          \ filename: \"Authors, Year, Journal, ...\"\n            parts = [p.strip()\
+          \ for p in title.split(\",\")]\n            if len(parts) >= 3:\n      \
+          \          maybe_authors = parts[0]\n                maybe_year = parts[1].strip()\n\
+          \                maybe_journal = parts[2].strip()\n                if re.fullmatch(r\"\
+          (19|20)\\d{2}\", maybe_year):\n                    header = f'\"{title}\"\
+          '\n                    if maybe_authors:\n                        header\
+          \ += f\" by {maybe_authors}\"\n                    header += f\" ({maybe_journal},\
+          \ {maybe_year})\"\n                    return header\n            return\
+          \ title\n    return None\n\n\ndef main(kr_result=None):\n    if not isinstance(kr_result,\
+          \ list):\n        return {\"filtered_chunks\": [], \"chunk_count\": 0, \"\
+          chunks_removed\": 0}\n    kept = []\n    removed = 0\n    seen_docs = set()\n\
+          \    for c in kr_result:\n        text = _extract_text(c)\n        if not\
+          \ text or len(text) < 20:\n            continue\n        if _is_reference_chunk(text):\n\
+          \            removed += 1\n        else:\n            doc_name = _get_doc_info(c)\n\
+          \            if doc_name:\n                seen_docs.add(doc_name)\n   \
+          \             text = \"From paper: \" + doc_name + NL + text\n         \
+          \   kept.append(text)\n    # Safety: if too few chunks survived, pass all\
+          \ through unfiltered\n    if len(kept) < 3 and len(kr_result) >= 3:\n  \
+          \      kept = []\n        removed = 0\n        for c in kr_result:\n   \
+          \         text = _extract_text(c)\n            if not text or len(text)\
+          \ < 20:\n                continue\n            doc_name = _get_doc_info(c)\n\
+          \            if doc_name:\n                seen_docs.add(doc_name)\n   \
+          \             text = \"From paper: \" + doc_name + NL + text\n         \
+          \   kept.append(text)\n\n    # Deduplicate by paper: merge chunks from same\
+          \ document\n    by_doc = {}\n    for chunk in kept:\n        parts = chunk.split(NL,\
+          \ 1)\n        doc_key = parts[0] if parts[0].startswith(\"From paper:\"\
+          ) else \"_unknown\"\n        content = parts[1] if len(parts) > 1 else chunk\n\
+          \        if doc_key not in by_doc:\n            by_doc[doc_key] = []\n \
+          \       by_doc[doc_key].append(content)\n    deduped = []\n    for doc_key,\
+          \ contents in by_doc.items():\n        merged = NL.join(contents[:1])  #\
+          \ max 1 chunk per paper (recall-optimized)\n        deduped.append(doc_key\
+          \ + NL + merged)\n\n    if not deduped:\n        deduped.append(\n     \
+          \       \"ALL \"\n            + str(len(kr_result))\n            + \" RETRIEVED\
+          \ CHUNKS WERE REFERENCE LISTS AND FILTERED OUT. The query may match bibliography\
+          \ sections rather than paper body text. Try a more specific query or different\
+          \ search terms.\"\n        )\n    return {\n        \"filtered_chunks\"\
+          : deduped[:30],\n        \"chunk_count\": min(len(deduped), 30),\n     \
+          \   \"chunks_removed\": removed,\n        \"doc_names\": sorted(seen_docs)[:30],\n\
+          \    }\n"
+        code_language: python3
+        isInIteration: false
+        isInLoop: false
+        outputs:
+          chunk_count:
+            children: null
+            type: number
+          chunks_removed:
+            children: null
+            type: number
+          doc_names:
+            children: null
+            type: array[string]
+          filtered_chunks:
+            children: null
+            type: array[string]
+        selected: false
+        title: KR Chunk Filter
+        type: code
+        variables:
+        - value_selector:
+          - '17785930638200'
+          - result
+          value_type: array[string]
+          variable: kr_result
+      height: 51
+      id: '1778800001036'
+      position:
+        x: -595.5388103134578
+        y: 3681.1329167788017
+      positionAbsolute:
+        x: -595.5388103134578
+        y: 3681.1329167788017
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 241
+    - data:
+        context:
+          enabled: true
+          variable_selector:
+          - '1778800001036'
+          - filtered_chunks
+        memory:
+          query_prompt_template: '{{#sys.query#}}'
+          role_prefix:
+            assistant: ''
+            user: ''
+          window:
+            enabled: false
+            size: 0
+        model:
+          completion_params:
+            max_tokens: 4000
+            temperature: 0
+          mode: chat
+          name: qwen:3.5b:35b
+          provider: langgenius/ollama/ollama
+        prompt_template:
+        - id: author-extraction-prompt
+          role: system
+          text: 'Context (each chunk starts with "From paper:" followed by real metadata):
+
+            {{#context#}}
+
+
+            You are answering: "{{#sys.query#}}"
+
+
+            === CRITICAL RULES ===
+
+            1. Headers look like: "From paper: \"Title\" by A, B, C, D, E (Journal,
+            Year)"
+
+            2. COUNT the authors after "by". If the header has 5 authors, you MUST
+            output 5. If it has 3, output 3. NEVER output fewer authors than the header
+            contains. This is the most important rule.
+
+            3. Copy author names EXACTLY from the header — no initials expansion.
+            CRITICAL: Each paper entry gets its authors ONLY from its OWN header.
+            Do NOT copy authors from one header into another paper entry. If Paper
+            A has authors X,Y,Z and Paper B has authors P,Q,R, then Paper A lists
+            X,Y,Z and Paper B lists P,Q,R. NEVER mix them.
+
+            4. Copy title, journal, and year EXACTLY from the header.
+
+            5. Pick ONE verbatim quote from the chunk relevant to the user''s query.
+            The quote MUST appear verbatim in the provided context. If NO verbatim
+            quotable sentence about the query topic exists in the context, write EXACTLY:
+            "No verbatim quote available." NEVER fabricate, paraphrase, or invent
+            a quote.
+
+            6. Only include papers whose chunks contain information relevant to the
+            user''s query. Skip papers with no relevant content.
+
+
+            Format (use EXACTLY this format):
+
+            **"Paper Title"** (Journal, Year)
+
+            Authors: Author1, Author2, Author3, ...  ← ALL authors from header
+
+            Quote: "verbatim evidence"
+
+
+            EXAMPLE — if header is: "From paper: \"Detection of queuosine...\" by
+            Yu Sun, Michael Piechotta, Isabel Naarmann-de Vries, Christoph Dieterich,
+            Ann E. Ehrenhofer-Murray (Nucleic Acids Res, 2023)"
+
+            Then you MUST output:
+
+            **"Detection of queuosine and queuosine precursors in tRNAs by direct
+            RNA sequencing"** (Nucleic Acids Res, 2023)
+
+            Authors: Yu Sun, Michael Piechotta, Isabel Naarmann-de Vries, Christoph
+            Dieterich, Ann E. Ehrenhofer-Murray
+
+            Quote: "Here, we have employed direct RNA sequencing..."
+
+
+            If no headers: "Insufficient context." NO fabricated content. NO <think>.
+            Keep under 500 words.'
+        reasoning_format: separated
+        selected: false
+        title: Author Extraction LLM
+        type: llm
+        vision:
+          enabled: false
+      height: 87
+      id: '1778800001034'
+      position:
+        x: 209.4752276329641
+        y: 3710.8158540591926
+      positionAbsolute:
+        x: 209.4752276329641
+        y: 3710.8158540591926
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 241
+    - data:
+        context:
+          enabled: true
+          variable_selector:
+          - '1778800001036'
+          - filtered_chunks
+        memory:
+          query_prompt_template: '{{#sys.query#}}'
+          role_prefix:
+            assistant: ''
+            user: ''
+          window:
+            enabled: false
+            size: 0
+        model:
+          completion_params:
+            max_tokens: 4000
+            temperature: 0
+          mode: chat
+          name: qwen:3.5b:35b
+          provider: langgenius/ollama/ollama
+        prompt_template:
+        - id: entity-extraction-prompt
+          role: system
+          text: 'Context (each chunk starts with "From paper:" followed by real metadata):
+
+            {{#context#}}
+
+
+            You are answering: "{{#sys.query#}}"
+
+
+            === CRITICAL RULES === 1. Scan ALL chunks. Be COMPREHENSIVE — list ALL
+            matching entities, not just the first few. 2. For the "Paper" column,
+            use ONLY the paper TITLE and YEAR from the "From paper:" header (e.g.
+            "Title (2024)"). Do NOT include authors or full header text. Do NOT copy
+            chunk body text into the Paper column. NEVER extract author names or paper
+            titles from the chunk body text. 3. Derive the Entity Type from the chunk
+            content — it should match the query intent. 4. Group identical entities
+            from different papers into ONE row with multiple papers, separated by
+            ";".
+
+
+            Format:
+
+            | Entity | Type | Paper | |--------|------|-------|
+
+
+            If NO relevant entities found: "Insufficient context."
+
+            CRITICAL: NEVER fabricate. NO <think>. NO word limit — be complete.'
+        reasoning_format: separated
+        selected: false
+        title: Entity Extraction LLM
+        type: llm
+        vision:
+          enabled: false
+      height: 87
+      id: '1778800001037'
+      position:
+        x: 209.4752276329641
+        y: 3832.1064165496446
+      positionAbsolute:
+        x: 209.4752276329641
+        y: 3832.1064165496446
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 241
+    - data:
+        context:
+          enabled: true
+          variable_selector:
+          - '1778800001036'
+          - filtered_chunks
+        memory:
+          query_prompt_template: '{{#sys.query#}}'
+          role_prefix:
+            assistant: ''
+            user: ''
+          window:
+            enabled: false
+            size: 0
+        model:
+          completion_params:
+            max_tokens: 4000
+            temperature: 0
+          mode: chat
+          name: qwen:3.5b:35b
+          provider: langgenius/ollama/ollama
+        prompt_template:
+        - id: kr-extraction-prompt
+          role: system
+          text: 'Context (each chunk starts with "From paper:" followed by real metadata):
+
+            {{#context#}}
+
+
+            You are answering: "{{#sys.query#}}"
+
+
+            Answer as a concise knowledge summary. For EVERY finding or method you
+            mention, you MUST cite the source paper in this format:
+
+            "Paper Title" by ALL authors from the header (Journal, Year)
+
+            NEVER say "and colleagues" or "et al." — list EVERY author from the "From
+            paper:" header exactly as written. Copy the title exactly. Never extract
+            author names from the chunk body — use only the "From paper:" header.
+
+            VERIFY each citation: the claim you cite MUST come from the SAME chunk
+            whose "From paper:" header you use. If a claim appears in one chunk but
+            you cite a different paper, that is WRONG. Match each claim to the correct
+            header carefully.
+
+
+            If context lacks information: "Insufficient context."
+
+            CRITICAL: NEVER fabricate. NO <think>. Keep under 500 words. Answer in
+            the same language as the user.'
+        reasoning_format: separated
+        selected: false
+        title: KR Extraction LLM
+        type: llm
+        vision:
+          enabled: false
+      height: 87
+      id: '1778800001038'
+      position:
+        x: 209.4752276329641
+        y: 3954.687541530548
+      positionAbsolute:
+        x: 209.4752276329641
+        y: 3954.687541530548
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 241
+    - data:
+        cases:
+        - case_id: author_lookup
+          conditions:
+          - comparison_operator: is
+            id: intent-is-author
+            value: author_lookup
+            varType: string
+            variable_selector:
+            - '1778800001033'
+            - intent
+          id: author_lookup
+          logical_operator: and
+        - case_id: entity_lookup
+          conditions:
+          - comparison_operator: is
+            id: intent-is-entity
+            value: entity_lookup
+            varType: string
+            variable_selector:
+            - '1778800001033'
+            - intent
+          id: entity_lookup
+          logical_operator: and
+        selected: false
+        title: KR Intent Router
+        type: if-else
+      height: 219
+      id: '1778800001039'
+      position:
+        x: -129.0488118411729
+        y: 3681.1329167788017
+      positionAbsolute:
+        x: -129.0488118411729
+        y: 3681.1329167788017
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 241
+    - data:
+        cases:
+        - case_id: set
+          conditions:
+          - comparison_operator: ≠
+            id: paper-count-zero
+            value: '0'
+            varType: number
+            variable_selector:
+            - '1778800001033'
+            - paper_count
+          id: set
+          logical_operator: and
+        selected: false
+        title: Metadata LLM Bypass
+        type: if-else
+      height: 123
+      id: '1778800001040'
+      position:
+        x: -32.70849858176177
+        y: 3254.1566834973282
+      positionAbsolute:
+        x: -32.70849858176177
+        y: 3254.1566834973282
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 241
+    viewport:
+      x: 865.8929356980279
+      y: -1581.495717501479
+      zoom: 0.5479058832238461
+  rag_pipeline_variables: []
