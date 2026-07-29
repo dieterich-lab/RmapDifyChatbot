@@ -319,6 +319,9 @@ for q in "${QUERIES[@]}"; do
     continue
   fi
 
+  # Debug: save raw SSE for inspection
+  cp "$tmp_out" /tmp/last_sse.txt
+
   # Parsing SSE can legitimately yield no rows for a selector; avoid aborting under pipefail.
   set +e
   class_name=$(grep '^data: ' "$tmp_out" | sed 's/^data: //' | jq -r --arg id "$CLASSIFIER_NODE_ID" 'select(.event=="node_finished" and .data.node_id==$id) | .data.outputs.class_name' | tail -n1)
@@ -336,4 +339,10 @@ for q in "${QUERIES[@]}"; do
   echo "Class Name: ${class_name:-<none>}"
   echo "Answer preview:"
   printf '%s\n' "$answer" | sed -n '1,20p'
+
+  # Debug: show raw router LLM output
+  echo ""
+  echo "=== Router LLM raw output ==="
+  grep '^data: ' "$tmp_out" | sed 's/^data: //' | jq -r 'select(.event=="node_finished") | select(.data.node_type=="llm") | "NODE: \(.data.title)\nOUTPUTS: \(.data.outputs)"' 2>/dev/null | head -20
+  echo "=== End router debug ==="
 done

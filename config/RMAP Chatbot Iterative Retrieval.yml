@@ -1981,11 +1981,13 @@ workflow:
           \       # Take unique authors (usually just one if prev query was author-filtered)\n\
           \                        prev_authors.add(a)\n            if prev_authors:\n\
           \                # Use the author(s) from the previous turn\n          \
-          \      intent = \"metadata_list\"\n                paper_list = [{\"authors\"\
-          : list(prev_authors)[0], \"title\": \"\", \"year\": \"\", \"journal\": \"\
-          \"}]\n            # else: fall through to router's classification (no memory\
-          \ to work with)\n\n    return {\n        \"intent\": intent,\n        \"\
-          paper_list\": paper_list,\n        \"paper_count\": 0 if multi_author_bypass\
+          \      intent = \"metadata_list\"\n                paper_list = [\n    \
+          \                {\n                        \"authors\": list(prev_authors)[0],\n\
+          \                        \"title\": \"\",\n                        \"year\"\
+          : \"\",\n                        \"journal\": \"\",\n                  \
+          \  }\n                ]\n            # else: fall through to router's classification\
+          \ (no memory to work with)\n\n    return {\n        \"intent\": intent,\n\
+          \        \"paper_list\": paper_list,\n        \"paper_count\": 0 if multi_author_bypass\
           \ else len(paper_list),\n        \"rewritten_query\": rw,\n        \"list_mode\"\
           : list_mode,\n        \"collaboration_mode\": collaboration_mode,\n    }\n"
         code_language: python3
