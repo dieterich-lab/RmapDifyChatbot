@@ -4,7 +4,7 @@ RmapDifyChatbot is a Dify-based academic literature assistant for the RMaP proje
 
 ## Status Snapshot (2026-07-28)
 
-**v0.4.16 — EU AI Act Art. 50 Compliant 🇪🇺**
+**v0.4.17 — "What else" follow-ups + Security hardening 🔒**
 
 1. **5 Query Intents + Collaboration**: ✅ `metadata_list`, `content_summary`, `knowledge_retrieval`, `author_lookup`, `entity_lookup` + 🆕 Co-Author Analysis
 2. **84 Papers** in dataset, all with PubMed/CrossRef metadata

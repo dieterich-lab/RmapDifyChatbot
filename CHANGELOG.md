@@ -1,5 +1,28 @@
 # Changelog
 
+## [0.4.17] - 2026-07-29
+
+### Added
+
+- **Test Case #21 – "What else" follow-up**: "Papers by Christoph Dieterich from 2023" (3 papers) → "What else did he publish?" → all 8 Dieterich papers. Code-level guard in `parse_router_output.py` detects "what else"/"anything else" patterns, extracts author from `conversation.memory`, and forces `metadata_list` re-query without the year filter.
+- **Router prompt rule**: Defense-in-depth — "what else" → `metadata_list` re-query rule in Unified Router prompt. The code guard is the reliable layer (qwen2.5:14b ignores complex prompt rules, same pattern as multi-author OR).
+
+### Changed
+
+- **Auto-inject env vars from `.env`**: `import_dify_dsl.sh` `sync_draft()` now reads `DIFY_API_KEY` and `DIFY_DATASET_ID` from `.env` and injects them into the draft on every import. No manual env var step needed after import — the #1 cause of broken deploys is eliminated.
+- **README translated to English**: All sections now in English for broader accessibility.
+- **Roadmap updated**: Conversation Memory Expansion downgraded to prompt-tuning task (Dify conversation context already suffices). "What else" re-query marked as done.
+
+### Security
+
+- **All real IDs/hostnames removed from committed files**: Dataset UUID, App ID, API hostname, chat URL token replaced with placeholders across all docs, Python code, YAML config, and shell scripts. `.env` is the sole source of truth.
+- **`build_dsl.py` + `export_dify_dsl.sh`**: Post-build/post-export sanitization automatically replaces real `DIFY_API_KEY`/`DIFY_DATASET_ID` values with placeholders.
+- **Expired dataset key removed**: `dataset-N1iM87...` replaced with `<your-dataset-key>` in DSL YAML.
+
+### Removed
+
+- **Redundant RELEASE files**: `RELEASE_v0.4.15.md`, `RELEASE_v0.4.16.md`, `docs/RELEASE_v0.4.0.md` deleted. GitHub Releases + CHANGELOG are the sole source of truth for release notes.
+
 ## [0.4.16] - 2026-07-28
 
 ### Added
