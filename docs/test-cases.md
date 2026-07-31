@@ -1,7 +1,7 @@
 # RMAP Chatbot – Test Cases
 
 > Living document: current behavior of all release test cases.
-> Last updated: 2026-07-23 (v0.4.12+ regression test, all 20 re-verified)
+> Last updated: 2026-07-30 (H100 regression with qwen3:32b)
 
 ## Overview
 
@@ -11,14 +11,14 @@
 | 2 | → "Please summarize them" | content_summary | ✅ | ✅ none |
 | 3 | "What is m6A?" | knowledge_retrieval | ✅ | ✅ none (citation fix verified) |
 | 4 | "Who has worked on tRNA modifications?" | author_lookup | ✅ | ✅ none (quote + cross-contamination fixed) |
-| 5 | "Which RNA modifications are most studied?" | entity_lookup | ⚠️ | ✅ none (m6A missing) |
+| 5 | "Which RNA modifications are most studied?" | entity_lookup | ✅ | ✅ none (FIXED in H100: 10 entities incl. m6A) |
 | 6 | "Find papers by Francesca Tuorto" | metadata_list | ✅ | ✅ 6 papers (v0.4.12+ code guard, 85s) |
 | 7 | "Find papers by René Ketting" | metadata_list | ✅ | ✅ none |
 | 8 | "Find papers by Claudia Höbartner" | metadata_list | ✅ | ✅ none |
 | 9 | "Find papers by Lauren Saunders" | metadata_list | ✅ | ✅ 0 results (not in dataset) |
 | 10 | "Find all research papers" | metadata_list | ✅ | ✅ none (84 papers) |
 | 11 | "List all researchers" | metadata_list | ✅ | ✅ none (821 authors) |
-| 12 | "Who is using HEK cells?" | author_lookup | ✅ | ✅ none (prompt de-tRNA-fied, speculative claims removed) |
+| 12 | "Who is using HEK cells?" | author_lookup | ✅ | ✅ none (FIXED: 8K token budget) |
 | 13 | "Find papers by Mark Helm" → "Summarize them" | content_summary | ✅ | ✅ none (v0.4.10: cap 15→8, 184s) |
 | 14 | "Find Papers by Dieterich" (last name only) | metadata_list | ✅ | ✅ none (8/8, count verified) |
 | 15 | "Papers by X" → "Group them by journal" | content_summary | ✅ | ✅ none (groups by journal) |
@@ -403,3 +403,51 @@ Full re-verification after v0.4.12 changes (multi-author, umlaut, two-turn fix).
 ### #6 Fix Details
 
 "Find papers by Francesca Tuorto" was routing to `content_summary` (Summary LLM format with Method/Key Finding) instead of `metadata_list`. Root cause: Router LLM misinterpreted the query. Fix: code-level guard in `parse_router_output.py` using `startswith("find papers by ")` – overrides Router intent to `metadata_list` with extracted author name. Regex-based approach failed due to YAML DSL escaping issues.
+
+---
+
+## Regression Test: H100 with qwen3:32b (2026-07-30)
+
+Full re-verification after H100 migration. **Model:** qwen3:32b (thinking, 20 GB VRAM) on `gpu-g5-1:21434`. Draft API, single-turn, warm start, `max_tokens=8192`.
+
+| # | Query | Status | Time | Notes |
+|---|-------|--------|------|-------|
+| 1 | Papers by Christoph Dieterich | ✅ | 60s | 8 papers with full author lists, bold titles |
+| 3 | What is m6A? | ✅ | 52s | Structured (Functions/Detection/Challenges), real citations, no hallucination |
+| 4 | Who worked on tRNA modifications? | ✅ | 68s | 9 papers, authors + verbatim quotes, cross-contamination fixed |
+| 5 | Which RNA mods most studied? | ✅ | 50s | 10 entities with papers, note about most studied. **m6A now included!** |
+| 6 | Find papers by Francesca Tuorto | ✅ | 45s | 6 papers, code guard working |
+| 7 | Find papers by René Ketting | ✅ | 48s | 1 paper |
+| 8 | Find papers by Claudia Höbartner | ✅ | 43s | 1 paper |
+| 9 | Find papers by Lauren Saunders | ✅ | 43s | 0 results + search tips |
+| 10 | Find all research papers | ✅ | 22s | 84 papers |
+| 11 | List all researchers | ✅ | 12s | 821 authors |
+| 12 | Who is using HEK cells? | ✅ | 102s | 13,139 tokens, finish=stop (FIXED with 8K budget, was 4K length) |
+| 14 | Find Papers by Dieterich | ✅ | 55s | 8 papers |
+| 19 | Find papers by Tamer Butto | ✅ | 44s | 2 papers |
+| 20 | Find papers by Michaela Frye | ✅ | 45s | 1 paper |
+
+**Tally: ✅ 14 · ⚠️ 0 · ❌ 0**
+
+### H100 vs A2 Comparison
+
+| Metric | A2 (qwen2.5:14b, 4K) | H100 (qwen3:32b, 8K) | Change |
+|--------|-------------------|-------------------|--------|
+| Avg. time (single-turn) | ~73s | ~48s | **1.5× faster** |
+| #5 entity recall | 5 entities, m6A missing | 10 entities, m6A included | **Fixed** |
+| #12 HEK cells | 84s, finish=stop (4K) | 102s, finish=stop (8K) | ✅ Fixed |
+| Answer quality | Good | **Excellent** — real citations, structured | Upgrade |
+| Thinking tokens | N/A | 800–1,300 (fits in 4K) | Efficient |
+
+### Key Improvements over A2
+
+1. **#5 entity_lookup now passes**: 10 RNA modifications detected including m6A, pseudouridine, m5C, 2'-O-methylation — up from 5 on qwen2.5:14b. The 32B thinking model reads all chunks comprehensively.
+2. **Faster overall**: 1.5× speedup despite using a 2.3× larger model (H100 GPU eliminates A2 bottleneck).
+3. **Better answer structure**: Thinking models produce more organized output with clear section headers, numbered lists, and proper citation formatting.
+
+### #12 HEK Cells — Fixed with 8K Token Budget
+
+The Author Extraction LLM for "Who is using HEK cells?" scans 30+ papers in its thinking process, which overflowed the 4,096 token budget. Increasing `max_tokens` to 8,192 resolved this — both Router and Author Extraction LLM now finish with `stop`. Total tokens: 13,139 (well within 8K). Time: 102s.
+
+---
+

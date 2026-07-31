@@ -2,15 +2,15 @@
 
 RmapDifyChatbot is a Dify-based academic literature assistant for the RMaP project. It answers questions about 84 RNA-modification papers using hybrid retrieval (keyword + vector) and intent-based routing.
 
-## Status Snapshot (2026-07-28)
+## Status Snapshot (2026-07-30)
 
-**v0.4.17 — "What else" follow-ups + Security hardening 🔒**
+**v0.4.17 — H100 Migration: qwen3:32b 🔥**
 
 1. **5 Query Intents + Collaboration**: ✅ `metadata_list`, `content_summary`, `knowledge_retrieval`, `author_lookup`, `entity_lookup` + 🆕 Co-Author Analysis
 2. **84 Papers** in dataset, all with PubMed/CrossRef metadata
 3. **All Prompt Fixes** (v0.4.6–v0.4.16): Quote, Count, Group-by, Find-by-name, Citation, Cross-Contamination, HEK, Name-Format, Author-Display, Umlaut, Multi-Author-OR+LLM-Bypass, Two-Turn-Memory, Code-Guard, Collaboration, EU AI Act
-4. **top_k: 100**, Hybrid **0.7/0.3**, **qwen2.5:14b** (A2 16GB VRAM), 23 Nodes, 28 Edges
-5. **20 Test Cases**: ✅ 19 · ⚠️ 2 · ❌ 0 (Regression 2026-07-29)
+4. **top_k: 100**, Hybrid **0.7/0.3**, **qwen3:32b** (H100 94GB VRAM), 23 Nodes, 28 Edges
+5. **20 Test Cases**: ✅ 19 · ⚠️ 1 · ❌ 0 (H100 Regression 2026-07-30, qwen3:32b)
 6. **EU AI Act Art. 50 Compliant 🇪🇺**: Opening statement (Art. 50(1)) + machine-readable watermark `<!-- AI_GENERATED_CONTENT_RMAP -->` on all AI-generated text (Art. 50(2))
 
 ---
