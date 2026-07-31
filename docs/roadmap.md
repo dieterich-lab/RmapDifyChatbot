@@ -1,6 +1,6 @@
 # RMAP Chatbot – Feature Roadmap & Analysis
 
-> Stand: 2026-07-30 · v0.4.17 · App `16d50bee-bc86-4bda-bb56-a861743f3ddb` · Model `qwen3:32b` (H100, 8K tokens) · Embedding `nomic-embed-text-v2-moe`
+> Stand: 2026-07-31 · v0.4.17 · App `16d50bee-bc86-4bda-bb56-a861743f3ddb` · ⚠️ **BROKEN** (see §Infrastructure Incident)
 
 ## Übersicht
 
@@ -47,14 +47,70 @@
 
 ---
 
+## ⚠️ Infrastructure Incident (2026-07-31)
+
+**Symptom:** Both Draft and Published App unresponsive. Draft API returns only `event: ping` (no node execution). Published API returns `HTTP 401` or hangs. Web UI (`/chat/...`) shows opening statement but no query responses.
+
+**Timeline:**
+| Time | Event |
+|------|-------|
+| 2026-07-29 | H100 migration tested successfully with `qwen3:32b` (draft API, 14/14 tests) |
+| 2026-07-30 | `qwen3:32b` regression tests complete; results documented in `docs/timing.md`, `docs/test-cases.md` |
+| 2026-07-30 | New dataset indexing started on `gpu-g5-1` (H100) — still running on 2026-07-31 |
+| 2026-07-31 | Published app stopped responding; debug reveals first LLM node hangs (no output) |
+| 2026-07-31 | `sync_draft()` bug found: `opening_statement` read from `app.features` instead of `workflow.features` → fixed |
+| 2026-07-31 | After fix: Published app works via runtime API, but Draft API hangs |
+| 2026-07-31 | **Hypothesis:** GPU contention from long-running embedding indexing on `gpu-g5-1` may be causing internal Dify/Ollama communication issues, affecting `app01.internal` indirectly |
+
+**Root Cause Hypothesis:** A new dataset indexing job on `gpu-g5-1` (H100) has been running since 2026-07-30. If the GPU is saturated, it may cause:
+1. Ollama on `gpu-g5-1` to become unresponsive → Dify's model provider hangs
+2. Dify's internal state to degrade (database locks, queue overflow)
+3. Cross-contamination: `app01.internal` (A2) may be affected if Dify's worker pool is blocked waiting for H100 requests
+
+**Immediate Actions:**
+1. 🔲 Delete the new (incomplete) dataset from Dify UI
+2. 🔲 Shutdown Ollama on `gpu-g5-1` (`ollama stop` or kill Slurm job)
+3. 🔲 Verify `app01.internal` (A2) Ollama is responsive independently
+4. 🔲 Test Published App with A2 config → should work if GPU contention was the cause
+5. 🔲 Test Draft with A2 config
+
+### 🆕 Planned: Separate Apps for A2 and H100
+
+**Problem:** Using a single Dify app for both A2 and H100 configs causes interference — draft/publish operations overwrite each other, and model endpoint configurations are shared.
+
+**Solution:** Create two separate Dify apps:
+
+| App | Branch | Model | Ollama | Purpose |
+|-----|--------|-------|--------|---------|
+| RMAP Chatbot (A2) | `master` | `qwen2.5:14b` | `app01.internal:21434` | Production, stable |
+| RMAP Chatbot (H100) | `h100-migration` | `qwen3:32b` | `gpu-g5-1:21434` | Development, H100 testing |
+
+**Benefits:**
+- No draft/publish interference between configs
+- Independent env vars, API keys, dataset bindings
+- Can test H100 without affecting production users
+- Clear separation of concerns
+
+**Steps:**
+1. 🔲 Export published A2 config as baseline
+2. 🔲 Create new Dify app "RMAP Chatbot H100" via Dify UI
+3. 🔲 Import H100 config into new app
+4. 🔲 Configure H100 app with its own dataset binding and env vars
+5. 🔲 Update scripts to support `--app-id` for both apps
+6. 🔲 Update documentation
+
+---
+
 ## Priorities & Planned Work
 
 > Historical fixes → `CHANGELOG.md` · Intent deep-dives → [`intent-architecture.md`](intent-architecture.md) · Lessons learned → [`lessons-learned.md`](lessons-learned.md)
 
 | # | Target | Prio | Impact | Effort | Status |
 |---|--------|:---:|--------|--------|--------|
-| 1 | **H100 LLM Migration: qwen3:32b** | 🔴 | Behebt #5 (m6A-Recall), bessere Qualität | ✅ Done | ✅ Deployed (v0.4.17), 14/14 regression passed |
-| 2 | **qwen3-embedding Evaluation** | 🟡 | Bessere Retrieval-Rankings (miCLIP/MeRIP) | 3h | Analog zu bge-m3 Test (v0.4.14) |
+| 🔥 | **Infrastructure Recovery** | 🔴 | App unresponsive — production down | ? | ⚠️ In Progress (see §Infrastructure Incident) |
+| 1 | **H100 LLM Migration: qwen3:32b** | 🔴 | Behebt #5 (m6A-Recall), bessere Qualität | ✅ Done | ⚠️ Blocked by infra incident |
+| 🆕 | **Separate A2/H100 Apps** | 🔴 | Eliminiert Config-Interferenz | 2h | 🔲 Planned (see §Separate Apps) |
+| 2 | **qwen3-embedding Evaluation** | 🟡 | Bessere Retrieval-Rankings (miCLIP/MeRIP) | 3h | 🔲 After infra recovery |
 | 3 | **#16 Collaboration Analysis** | 🟢 | Co-Author pair frequencies | ✅ Done | ✅ Implemented (v0.4.15) |
 | 4 | **Prompt-Tuning: "what else" re-query** | 🟢 | "What else did X publish?" → metadata_list re-query | ✅ Done | ✅ Code-level guard (v0.4.16+), test case #21 |
 | 5 | **🔬 Abstract Parent-Child Chunking** | 🔵 | Bessere Retrieval-Rankings durch semantisches Chunking | >2d | Preprocessing-Pipeline nötig |
