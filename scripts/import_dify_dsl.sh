@@ -301,7 +301,7 @@ else:
 
 payload = {
     "graph":                 dsl["workflow"]["graph"],
-    "features":              dsl.get("app", {}).get("features", {}),
+    "features":              dsl.get("workflow", {}).get("features", {}),
     "environment_variables": env_vars,
     "conversation_variables":draft.get("conversation_variables", []),
     "hash":                  draft.get("hash", ""),
