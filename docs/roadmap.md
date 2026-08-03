@@ -1,6 +1,6 @@
 # RMAP Chatbot – Feature Roadmap & Analysis
 
-> Stand: 2026-07-31 · v0.4.17 · App `16d50bee-bc86-4bda-bb56-a861743f3ddb` · ⚠️ **BROKEN** (see §Infrastructure Incident)
+> Stand: 2026-07-31 · v0.4.17 · App `16d50bee-bc86-4bda-bb56-a861743f3ddb` · ⚠️ **Docker restart pending** (see §Infrastructure Incident) · Model `qwen3:32b` (H100, ready) · Next: qwen3-embedding eval
 
 ## Übersicht
 
@@ -47,32 +47,47 @@
 
 ---
 
-## ⚠️ Infrastructure Incident (2026-07-31)
+## ⚠️ Infrastructure Incident (2026-07-31) — RESOLVED, awaiting Docker restart
 
-**Symptom:** Both Draft and Published App unresponsive. Draft API returns only `event: ping` (no node execution). Published API returns `HTTP 401` or hangs. Web UI (`/chat/...`) shows opening statement but no query responses.
+**Final Root Cause:** Dify's internal indexing queue deadlocked during `qwen3-embedding` dataset creation. The deadlocked queue blocked Dify's worker pool, preventing ALL draft API requests from executing. Ollama servers were healthy throughout — GPU contention was a red herring.
 
-**Timeline:**
+**Corrected Timeline:**
 | Time | Event |
 |------|-------|
-| 2026-07-29 | H100 migration tested successfully with `qwen3:32b` (draft API, 14/14 tests) |
-| 2026-07-30 | `qwen3:32b` regression tests complete; results documented in `docs/timing.md`, `docs/test-cases.md` |
-| 2026-07-30 | New dataset indexing started on `gpu-g5-1` (H100) — still running on 2026-07-31 |
-| 2026-07-31 | Published app stopped responding; debug reveals first LLM node hangs (no output) |
-| 2026-07-31 | `sync_draft()` bug found: `opening_statement` read from `app.features` instead of `workflow.features` → fixed |
-| 2026-07-31 | After fix: Published app works via runtime API, but Draft API hangs |
-| 2026-07-31 | **Hypothesis:** GPU contention from long-running embedding indexing on `gpu-g5-1` may be causing internal Dify/Ollama communication issues, affecting `app01.internal` indirectly |
+| 2026-07-30 15:00 | 84 PDFs uploaded to new dataset `ae948002` (qwen3-embedding). Indexing started. |
+| 2026-07-30 ~16:00 | First ~5 docs indexed quickly. Rate then dropped. |
+| 2026-07-31 ~10:00 | 32/84 docs completed, 52 stuck in `waiting`. Dify Draft + Published API unresponsive. |
+| 2026-07-31 15:40 | Investigation: Both Ollama servers (A2 + H100) confirmed healthy. Indexing confirmed deadlocked (0 progress in 30s). |
+| 2026-07-31 16:00 | Dataset deleted via API (HTTP 204). Draft API still unresponsive — deadlocked workers persist. |
+| 2026-07-31 | **Docker restart required** to clear stuck worker pool. Sysadmin unavailable. |
 
-**Root Cause Hypothesis:** A new dataset indexing job on `gpu-g5-1` (H100) has been running since 2026-07-30. If the GPU is saturated, it may cause:
-1. Ollama on `gpu-g5-1` to become unresponsive → Dify's model provider hangs
-2. Dify's internal state to degrade (database locks, queue overflow)
-3. Cross-contamination: `app01.internal` (A2) may be affected if Dify's worker pool is blocked waiting for H100 requests
+**Diagnostic Evidence:**
+| Check | Result |
+|-------|--------|
+| `app01.internal:21434` Ollama | ✅ HTTP 200, qwen2.5:14b loaded, responding |
+| `gpu-g5-1:21434` Ollama | ✅ HTTP 200, 15 models, `/api/embed` 500ms, `/api/chat` 1-1.5min |
+| Dataset indexing progress | ❌ 32/84 completed, 52 `waiting`, **0 delta in 30s** |
+| Dify `/health` | ✅ HTTP 200 |
+| Dify Draft API | ❌ Timeout / `event: ping` only |
+| Dify Runtime API | ⚠️ Intermittent |
 
-**Immediate Actions:**
-1. 🔲 Delete the new (incomplete) dataset from Dify UI
-2. 🔲 Shutdown Ollama on `gpu-g5-1` (`ollama stop` or kill Slurm job)
-3. 🔲 Verify `app01.internal` (A2) Ollama is responsive independently
-4. 🔲 Test Published App with A2 config → should work if GPU contention was the cause
-5. 🔲 Test Draft with A2 config
+**Hypothesis Debunked:**
+| Original Hypothesis | Evidence |
+|---------------------|----------|
+| GPU contention blocks Ollama | Both Ollama servers respond normally to direct API calls |
+| Cross-contamination to app01 | app01 responds independently to `/api/tags` |
+| Indexing slowly progressing | Queue is dead — zero documents transitioned in 30s |
+
+**Recovery Steps:**
+1. ✅ Dataset deleted (API, HTTP 204)
+2. 🔲 **Docker restart** (`docker restart rmap-chatbot-demo-dify-*`) — BLOCKED (sysadmin unavailable)
+3. 🔲 After restart: verify Draft API responds
+4. 🔲 Re-create qwen3-embedding dataset and upload during off-hours (≤5 docs at a time, monitor queue)
+
+**Prevention:**
+- Bulk indexing must run during off-hours with monitoring
+- Separate Dify apps for A2/H100 (see §Separate Apps) will isolate indexing impact
+- Consider uploading in batches of 10 with health checks between batches
 
 ### 🆕 Planned: Separate Apps for A2 and H100
 
