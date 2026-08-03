@@ -89,25 +89,18 @@
 - Separate Dify apps for A2/H100 (see §Separate Apps) will isolate indexing impact
 - Consider uploading in batches of 10 with health checks between batches
 
-### 🆕 Planned: Separate Apps for A2 and H100
+### 🆕 Separate Apps for A2 and H100 ✅ DONE (2026-08-03)
 
-**Problem:** Using a single Dify app for both A2 and H100 configs causes interference — draft/publish operations overwrite each other, and model endpoint configurations are shared.
-
-**Solution:** Create two separate Dify apps:
-
-| App | Branch | Model | Ollama | Purpose |
-|-----|--------|-------|--------|---------|
-| RMAP Chatbot (A2) | `master` | `qwen2.5:14b` | `app01.internal:21434` | Production, stable |
-| RMAP Chatbot (H100) | `h100-migration` | `qwen3:32b` | `gpu-g5-1:21434` | Development, H100 testing |
+| App | App ID | Branch | Model | Ollama | Purpose |
+|-----|--------|--------|-------|--------|---------|
+| RMAP Chatbot Iterative Retrieval | `16d50bee-bc86-4bda-bb56-a861743f3ddb` | `master` | `qwen2.5:14b` | `app01.internal:21434` | Production, stable |
+| RMAP Chatbot H100 | `6f9536b1-26e8-4f79-b2b0-d54bc3d091d2` | `h100-migration` | `qwen3:32b` | `gpu-g5-1:21434` | Development, H100 testing |
 
 **Benefits:**
 - No draft/publish interference between configs
 - Independent env vars, API keys, dataset bindings
 - Can test H100 without affecting production users
 - Clear separation of concerns
-
-**Steps:**
-1. 🔲 Export published A2 config as baseline
 2. 🔲 Create new Dify app "RMAP Chatbot H100" via Dify UI
 3. 🔲 Import H100 config into new app
 4. 🔲 Configure H100 app with its own dataset binding and env vars
@@ -122,9 +115,9 @@
 
 | # | Target | Prio | Impact | Effort | Status |
 |---|--------|:---:|--------|--------|--------|
-| 🔥 | **Infrastructure Recovery** | 🔴 | App unresponsive — production down | ? | ⚠️ In Progress (see §Infrastructure Incident) |
-| 1 | **H100 LLM Migration: qwen3:32b** | 🔴 | Behebt #5 (m6A-Recall), bessere Qualität | ✅ Done | ⚠️ Blocked by infra incident |
-| 🆕 | **Separate A2/H100 Apps** | 🔴 | Eliminiert Config-Interferenz | 2h | 🔲 Planned (see §Separate Apps) |
+| 🔥 | **Infrastructure Recovery** | 🔴 | App unresponsive — production down | ✅ Resolved | ✅ Docker restart + separate apps (2026-08-03) |
+| 1 | **H100 LLM Migration: qwen3:32b** | 🔴 | Behebt #5 (m6A-Recall), bessere Qualität | ✅ Done | ✅ Deployed to separate H100 app (2026-08-03) |
+| 🆕 | **Separate A2/H100 Apps** | 🔴 | Eliminiert Config-Interferenz | ✅ Done | 🔲 Done (2026-08-03, see below) |
 | 2 | **qwen3-embedding Evaluation** | 🟡 | Bessere Retrieval-Rankings (miCLIP/MeRIP) | 3h | 🔲 After infra recovery |
 | 3 | **#16 Collaboration Analysis** | 🟢 | Co-Author pair frequencies | ✅ Done | ✅ Implemented (v0.4.15) |
 | 4 | **Prompt-Tuning: "what else" re-query** | 🟢 | "What else did X publish?" → metadata_list re-query | ✅ Done | ✅ Code-level guard (v0.4.16+), test case #21 |
