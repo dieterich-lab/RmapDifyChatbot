@@ -1,0 +1,681 @@
+{
+  "extracted_at": "2026-06-30T20:06:11",
+  "total": 84,
+  "successful": 84,
+  "errors": 0,
+  "results": [
+    {
+      "title": "METTL1 promotes tumorigenesis through tRNA-derived fragment biogenesis in prostate cancer",
+      "authors": "The Author, Creative Commons Attribution, International License, Creative Commons, The Creative Commons, Public Domain Dedication, Amaia Zabala, Borja Miguel, Diego Alonso, Aitziber Ugalde, Ana Loizaga, Isabel Lacasa, Monika Gonzalez, Javier De Las, Pier Paolo",
+      "year": "2023",
+      "journal": "Mol Cancer",
+      "_filename": "Blanco S, García-Vílchez R, 2023, Mol Cancer.pdf",
+      "_filepath": "RMaP papers first funding period/Blanco S, García-Vílchez R, 2023, Mol Cancer.pdf"
+    },
+    {
+      "title": "Exploring a unique class of flavoenzymes: Identification and biochemical characterization of ribosomal RNA dihydrouridine synthase",
+      "authors": "Sabrine Toubdjia, Quentin Thuillier, Lea-Marie Kiltz, Virginie Marchand, Yifeng Yuan, Claudia Sudol, Catherine Goyenvalle, Olivier Jean-Jean, Simon Rose, Stephen Douthwaite, Léo Hardy, Zeynep Baharoglu, Valérie de Crécy-Lagard, Mark Helm, Yuri Motrin, Djemel Hamdane, Damien Brégeon",
+      "year": "2024",
+      "journal": "PNAS",
+      "_filename": "Brégeon D, Toubdji S, 2024, PNAS.pdf",
+      "_filepath": "RMaP papers first funding period/Brégeon D, Toubdji S, 2024, PNAS.pdf"
+    },
+    {
+      "title": "RNA-dependent interactome allows network-based assignment of RNA-binding protein function",
+      "authors": "Albert Fradera-Sola, Falk Butter, Emily Nischwitz, Marie Elisabeth Bayer, Katja Luck",
+      "year": "2023",
+      "journal": "Nucleic Acids Res",
+      "_filename": "Butter F, Fradera-Sola A, 2023, Nucleic Acids Res.pdf",
+      "_filepath": "RMaP papers first funding period/Butter F, Fradera-Sola A, 2023, Nucleic Acids Res.pdf"
+    },
+    {
+      "title": "Pod5Viewer: a GUI for inspecting raw nanopore sequencing data",
+      "authors": "Mark Helm, Vincent Dietrich, Susanne Gerber, Tamer Butto",
+      "year": "2024",
+      "journal": "Bioinformatics",
+      "_filename": "Butto T, Dietrich V, 2024, Bioinformatics.pdf",
+      "_filepath": "RMaP papers first funding period/Butto T, Dietrich V, 2024, Bioinformatics.pdf"
+    },
+    {
+      "title": "Bacterial RNA sensing by TLR8 requires RNase 6 processing and is inhibited by RNA 2’O-methylation",
+      "authors": "Ivanéia V. Nunes, Luisa Breitenbach, Sarah Pawusch, Tatjana Eigenbrod, Swetha Ananth, Paulina Schad, Oliver T. Fackler, Falk Butter, Alexander H. Dalpke, Lan-Sun Chen",
+      "year": "2024",
+      "journal": "EMBO Rep",
+      "_filename": "Chen LS, Nunes IV, 2024, EMBO Rep.pdf",
+      "_filepath": "RMaP papers first funding period/Chen LS, Nunes IV, 2024, EMBO Rep.pdf"
+    },
+    {
+      "title": "A Direct Chemical Repair of Etheno‐Type RNA Damages",
+      "authors": "Yin-Ming He, Alicia Burkard, Chuan-Shuo Wu, Xiao-Yang Jin, Li Liu, Mark Helm, Liang Cheng",
+      "year": "2025",
+      "journal": "Angew Chem Int Ed",
+      "_filename": "Cheng L, He YM, 2025, Angew Chem Int Ed.pdf",
+      "_filepath": "RMaP papers first funding period/Cheng L, He YM, 2025, Angew Chem Int Ed.pdf"
+    },
+    {
+      "title": "Sci-ModoM: a quantitative database of transcriptome-wide high-throughput RNA modification sites",
+      "authors": "Etienne Boileau, Harald Wilhelmi, Anne Busch, Andrea Cappannini, Andreas Hildebrand, Janusz M. Bujnicki, Christoph Dieterich",
+      "year": "2025",
+      "journal": "Nucleic Acids Res",
+      "_filename": "Dieterich C, Boileau E, 2025, Nucleic Acids Res.pdf",
+      "_filepath": "RMaP papers first funding period/Dieterich C, Boileau E, 2025, Nucleic Acids Res.pdf"
+    },
+    {
+      "title": "Detecting m6A at single-molecular resolution via direct RNA sequencing and realistic training data",
+      "authors": "Adrian Chan, Isabel S. Naarmann-de Vries, Carolin P. M. Scheitl, Claudia Höbartner, Christoph Dieterich",
+      "year": "2024",
+      "journal": "Nat Commun",
+      "_filename": "Dieterich C, Chan A, 2024, Nat Commun.pdf",
+      "_filepath": "RMaP papers first funding period/Dieterich C, Chan A, 2024, Nat Commun.pdf"
+    },
+    {
+      "title": "Adaptive sampling for nanopore direct RNA-sequencing",
+      "authors": "Isabel S. Naarmann-de Vries, Enio Gjerga, Catharina L.A. Gandor, Christoph Dieterich",
+      "year": "2023",
+      "journal": "RNA",
+      "_filename": "Dieterich C, Naarmann-de Vries IS, 2023, RNA.pdf",
+      "_filepath": "RMaP papers first funding period/Dieterich C, Naarmann-de Vries IS, 2023, RNA.pdf"
+    },
+    {
+      "title": "Detection of queuosine and queuosine precursors in tRNAs by direct RNA sequencing",
+      "authors": "Yu Sun, Michael Piechotta, Isabel Naarmann-de Vries, Christoph Dieterich, Ann E. Ehrenhofer-Murray",
+      "year": "2023",
+      "journal": "Nucleic Acids Res",
+      "_filename": "Ehrenhofer-Murray AE, Sun Y, 2023, Nucleic Acids Res.pdf",
+      "_filepath": "RMaP papers first funding period/Ehrenhofer-Murray AE, Sun Y, 2023, Nucleic Acids Res.pdf"
+    },
+    {
+      "title": "RNA modifications in physiology and disease: towards clinical applications",
+      "authors": "Sylvain Delaunay, Mark Helm, Michaela Frye",
+      "year": "2023",
+      "journal": "Nat. Rev. Genet.",
+      "_filename": "Frye M, Delaunay S, 2023, Nat. Rev. Genet. .pdf",
+      "_filepath": "RMaP papers first funding period/Frye M, Delaunay S, 2023, Nat. Rev. Genet. .pdf"
+    },
+    {
+      "title": "RNA modifications stabilize the tertiary structure of tRNAfMet by locally increasing conformational dynamics",
+      "authors": "Vanessa de Jesus, Martina Schmidt-Dengler, Mark Helm",
+      "year": "2022",
+      "journal": "Nucleic Acids Res",
+      "_filename": "Fürtig B, Biedenbänder T, 2022, Nucleic Acids Res.pdf",
+      "_filepath": "RMaP papers first funding period/Fürtig B, Biedenbänder T, 2022, Nucleic Acids Res.pdf"
+    },
+    {
+      "title": "The RMaP challenge of predicting RNA modifications by nanopore sequencing",
+      "authors": "Nature Portfolio, The RMaP, Jannes Spangenberg, Winfried Goettsch, Eva Maria, Kandarp Joshi, Salvatore Di Giorgio, Irem Tellioglu, Andreas Hildebrandt, Susanne Gerber, Nicolo Alagna, Direct Rna, Oxford Nanopore Technologies, Oxford Nanopore Tech, Rna Sequencing, In Challenge, Ont MinION, Method Section",
+      "year": "2025",
+      "journal": "Commun Chem",
+      "_filename": "Gerber S, Spangenberg J, 2025, Commun Chem.pdf",
+      "_filepath": "RMaP papers first funding period/Gerber S, Spangenberg J, 2025, Commun Chem.pdf"
+    },
+    {
+      "title": "OP-CBIO230539 1..3",
+      "authors": "Anna Wierczeiko, Stefan Pastore, Anne M. Busch, Vincent Dietrich, Mark Helm, Tamer Butto, Susanne Gerber",
+      "year": "2023",
+      "journal": "Bioinformatics",
+      "_filename": "Gerber S, Wierczeiko A, 2023, Bioinformatics.pdf",
+      "_filepath": "RMaP papers first funding period/Gerber S, Wierczeiko A, 2023, Bioinformatics.pdf"
+    },
+    {
+      "title": "Functional redundancy in tRNA dihydrouridylation",
+      "authors": "Claudia Sudol, Lea-Marie Kilz, Virginie Marchand, Quentin Thuillier, Vincent Guérineau, Catherine Goyenvalle, Bruno Faivre, Sabrine Toubdji, Murielle Lombard, Olivier Jean-Jean, Valérie de Crécy-Lagard, Mark Helm, Yuri Motorin, Damien Brégeon, Djemel Hamdane",
+      "year": "2024",
+      "journal": "Nucleic Acids Res",
+      "_filename": "Hamdane D, Sudol C, 2024, Nucleic Acids Res.pdf",
+      "_filepath": "RMaP papers first funding period/Hamdane D, Sudol C, 2024, Nucleic Acids Res.pdf"
+    },
+    {
+      "title": "Functional integration of a semi-synthetic azido-queuosine derivative into translation and a tRNA modification circuit",
+      "authors": "Larissa Bessler, Navpreet Kaur, Lea-Marie Vogt, Laurin Flemmich, Carmen Siebenaller, Marie-Luise Winz, Francesca Tuorto, Ronald Micura, Ann E. Ehrenhofer-Murray, Mark Helm",
+      "year": "2022",
+      "journal": "Nucleic Acids Res",
+      "_filename": "Helm M, Bessler L, 2022, Nucleic Acids Res.pdf",
+      "_filepath": "RMaP papers first funding period/Helm M, Bessler L, 2022, Nucleic Acids Res.pdf"
+    },
+    {
+      "title": "A New Bacterial Adenosine‐Derived Nucleoside as an Example of RNA Modification Damage",
+      "authors": "Larissa Bessler, Lea-Marie Vogt, Marc Lander, Christina Dal Magro, Patrick Keller, Jonas Kühlborn, Christopher J. Kampf, Till Opatz, Mark Helm",
+      "year": "2023",
+      "journal": "Angew Chem Int Ed",
+      "_filename": "Helm M, Bessler L, 2023, Angew Chem Int Ed.pdf",
+      "_filepath": "RMaP papers first funding period/Helm M, Bessler L, 2023, Angew Chem Int Ed.pdf"
+    },
+    {
+      "title": "Esterification of Cyclic N6‐Threonylcarbamoyladenosine During RNA Sample Preparation",
+      "authors": "Larissa Bessler, Jason Sirleaf, Christopher J. Kampf, Katarzyna Frankowska, Till Opatz, Mark Helm",
+      "year": "2024",
+      "journal": "ChemMedChem",
+      "_filename": "Helm M, Bessler L, 2024, ChemMedChem.pdf",
+      "_filepath": "RMaP papers first funding period/Helm M, Bessler L, 2024, ChemMedChem.pdf"
+    },
+    {
+      "title": "Reversible oxidative dimerization of 4-thiouridines in tRNA isolates",
+      "authors": "Mark Helm, Rsc Chem, The Author, Royal Society, Larissa Bessler, Christopher J. Kampf, Till Opatz",
+      "year": "2024",
+      "journal": "RSC Chem Biol",
+      "_filename": "Helm M, Bessler L, 2024, RSC Chem Biol.pdf",
+      "_filepath": "RMaP papers first funding period/Helm M, Bessler L, 2024, RSC Chem Biol.pdf"
+    },
+    {
+      "title": "Chemical biology and medicinal chemistry of RNA methyltransferases *",
+      "authors": "Tim R. Fischer, Laurenz Meidner, Marvin Schwickert, Marlies Weber, Robert A. Zimmermann, Christian Kersten, Tanja Schirmeister, Mark Helm",
+      "year": "2022",
+      "journal": "Nucleic Acids Res",
+      "_filename": "Helm M, Fischer TR, 2022, Nucleic Acids Res.pdf",
+      "_filepath": "RMaP papers first funding period/Helm M, Fischer TR, 2022, Nucleic Acids Res.pdf"
+    },
+    {
+      "title": "Synthesis of point-modified mRNA",
+      "authors": "Jasmin Hertler, Kaouthar Slama, Benedikt Schober, Virginie Marchand, Yuri Motorin, Mark Helm",
+      "year": "2022",
+      "journal": "Nucleic Acids Res",
+      "_filename": "Helm M, Hertler J, 2022, Nucleic Acids Res.pdf",
+      "_filepath": "RMaP papers first funding period/Helm M, Hertler J, 2022, Nucleic Acids Res.pdf"
+    },
+    {
+      "title": "Differential redox sensitivity of tRNA dihydrouridylation",
+      "authors": "Lea-Marie Kilz, Simone Zimmermann, Virginie Marchand, Valérie Bourguignon, Claudia Sudol, Damien Brégeon, Djemel Hamdane, Yuri Motorin, Mark Helm",
+      "year": "2024",
+      "journal": "Nucleic Acids Res",
+      "_filename": "Helm M, Kilz LM, 2024, Nucleic Acids Res.pdf",
+      "_filepath": "RMaP papers first funding period/Helm M, Kilz LM, 2024, Nucleic Acids Res.pdf"
+    },
+    {
+      "title": "RNA nucleotide methylation: 2021 update",
+      "authors": "Yuri Motorin, Mark Helm",
+      "year": "2021",
+      "journal": "WIREs RNA",
+      "_filename": "Helm M, Motorin Y, 2021, WIREs RNA .pdf",
+      "_filepath": "RMaP papers first funding period/Helm M, Motorin Y, 2021, WIREs RNA .pdf"
+    },
+    {
+      "title": "General Principles and Limitations for Detection of RNA Modifications by Sequencing",
+      "authors": "Yuri Motorin, Mark Helm",
+      "year": "2024",
+      "journal": "Acc. Chem. Res",
+      "_filename": "Helm M, Motorin Y, 2024, Acc. Chem. Res.pdf",
+      "_filepath": "RMaP papers first funding period/Helm M, Motorin Y, 2024, Acc. Chem. Res.pdf"
+    },
+    {
+      "title": "Quantification of substoichiometric modification reveals global tsRNA hypomodification, preferences for angiogenin-mediated tRNA cleavage, and idiosyncratic epitranscriptomes of human neuronal cell-lines",
+      "authors": "Florian Pichot, Marion C. Hogg, Virginie Marchand, Valérie Bourguignon, Elisabeth Jirström, Cliona Farrell, Hesham A. Gibriel, Jochen H.M. Prehn, Yuri Motorin, Mark Helm",
+      "year": "2022",
+      "journal": "Comput Struct Biotechnol J",
+      "_filename": "Helm M, Pichot F, 2022, Comput Struct Biotechnol J.pdf",
+      "_filepath": "RMaP papers first funding period/Helm M, Pichot F, 2022, Comput Struct Biotechnol J.pdf"
+    },
+    {
+      "title": "RNA marker modifications reveal the necessity for rigorous preparation protocols to avoid artifacts in epitranscriptomic analysis",
+      "authors": "Florian Richter, Johanna E. Plehn, Larissa Bessler, Jasmin Hertler, Cansu Cirzi, Francesca Tuorto, Kristina Friedland, Mark Helm",
+      "year": "2022",
+      "journal": "Nucleic Acids Res",
+      "_filename": "Helm M, Richter F, 2022, Nucleic Acids Res.pdf",
+      "_filepath": "RMaP papers first funding period/Helm M, Richter F, 2022, Nucleic Acids Res.pdf"
+    },
+    {
+      "title": "Covalent S-Adenosylhomocysteine-Based DNA Methyltransferase 2 Inhibitors with a New Type of Aryl Warhead",
+      "authors": "Adenosylhomocysteine-Based Dna Methyltransferase, New Type, Aryl Warhead, Marvin Schwickert, Robert A. Zimmermann, Tanja Habeck, Sabrina N. Hoba, Zarina Nidoieva, Tim R. Fischer, Martin M. Stark, Christian Kersten, Frederik Lermyte, Mark Helm, Tanja Schirmeister, Cite This, Acs Med, Read Online, Supporting Information",
+      "year": "2023",
+      "journal": "ACS Med Chem Lett",
+      "_filename": "Helm M, Schwickert M, 2023, ACS Med Chem Lett.pdf",
+      "_filepath": "RMaP papers first funding period/Helm M, Schwickert M, 2023, ACS Med Chem Lett.pdf"
+    },
+    {
+      "title": "m6A Methylation of Transcription Leader Sequence of SARS‐CoV‐2 Impacts Discontinuous Transcription of Subgenomic mRNAs",
+      "authors": "Nathalie Meiser, Martina Schmidt-Dengler, Christian Richter, Anna Wacker, Harald Schwalbe, A. Drach Motif",
+      "year": "2024",
+      "journal": "Chemistry",
+      "_filename": "Hengesbach M, Becker MA, 2024, Chemistry.pdf",
+      "_filepath": "RMaP papers first funding period/Hengesbach M, Becker MA, 2024, Chemistry.pdf"
+    },
+    {
+      "title": "From GPUs to AI and quantum: three waves of acceleration in bioinformatics",
+      "authors": "Bertil Schmidt, Andreas Hildebrandt",
+      "year": "2024",
+      "journal": "Drug Discov Today",
+      "_filename": "Hildebrand A, Schmidt B, 2024, Drug Discov Today .pdf",
+      "_filepath": "RMaP papers first funding period/Hildebrand A, Schmidt B, 2024, Drug Discov Today .pdf"
+    },
+    {
+      "title": "pr4c00966 1..11",
+      "authors": "David Teschner, David Gomez-Zepeda, Thomas Kemmer, Anne Busch, Stefan Tenzer, Andreas Hildebrandt",
+      "year": "2025",
+      "journal": "J Proteome Res",
+      "_filename": "Hildebrandt A, Teschner D, 2025, J Proteome Res.pdf",
+      "_filepath": "RMaP papers first funding period/Hildebrandt A, Teschner D, 2025, J Proteome Res.pdf"
+    },
+    {
+      "title": "Pronounced sequence specificity of the TET enzyme catalytic domain guides its cellular function",
+      "authors": "Mirunalini Ravichandran, Dominik Rafalski, Claudia I. Davies, Oscar Ortega-Recalde, Xinsheng Nan, Cassandra R. Glanfield, Annika Kotter, Katarzyna Misztal, Andrew H. Wang, Marek Wojciechowski, Issam M. Mayyas, Olga Kardailsky, Uwe Schwartz, Krzysztof Zembrzycki, Ian M. Morison, Mark Helm, Dieter Weichenhan, Renata Z. Jurkowska, Felix Krueger, Christoph Plass, Martin Zacharias, Matthias Bochtler, Timothy A. Hore, Tomasz P. Jurkowski",
+      "year": "2022",
+      "journal": "Sci Adv",
+      "_filename": "Hore TA, Ravichandran M, 2022, Sci Adv.pdf",
+      "_filepath": "RMaP papers first funding period/Hore TA, Ravichandran M, 2022, Sci Adv.pdf"
+    },
+    {
+      "title": "CUDASW++4.0: ultra-fast GPU-based Smith–Waterman protein sequence database search",
+      "authors": "Bertil Schmidt, Felix Kallenborn, Alejandro Chacon, Christian Hundt",
+      "year": "2024",
+      "journal": "BMC Bioinformatics",
+      "_filename": "Hundt C, Schmidt B, 2024, BMC Bioinformatics.pdf",
+      "_filepath": "RMaP papers first funding period/Hundt C, Schmidt B, 2024, BMC Bioinformatics.pdf"
+    },
+    {
+      "title": "A viral ADP-ribosyltransferase attaches RNA chains to host proteins",
+      "authors": "Maik Wolfram-Schauerte, Nadiia Pozhydaieva, Julia Grawenhoff, Luisa M. Welp, Ivan Silbern, Alexander Wulf, Franziska A. Billau, Timo Glatter, Henning Urlaub, Andres Jäschke, Katharina Höfer",
+      "year": "2023",
+      "journal": "Nature",
+      "_filename": "Höfer K, Wolfram-Schauerte M, 2023, Nature.pdf",
+      "_filepath": "RMaP papers first funding period/Höfer K, Wolfram-Schauerte M, 2023, Nature.pdf"
+    },
+    {
+      "title": "Mitochondrial Inhibition by Sodium Azide Induces Assembly of eIF2 Phosphorylation-Independent Stress Granules in Mammalian Cells",
+      "authors": "Nina Eiermann, Georg Stoecklin, Bogdan Jovanovic",
+      "year": "2022",
+      "journal": "Int J Mol Sci",
+      "_filename": "Jovanovic B, Eiermann N, 2022, Int J Mol Sci.pdf",
+      "_filepath": "RMaP papers first funding period/Jovanovic B, Eiermann N, 2022, Int J Mol Sci.pdf"
+    },
+    {
+      "title": "Future Perspectives for the Identification and Sequencing of Nicotinamide Adenine Dinucleotide-Capped RNAs",
+      "authors": "Marvin Möhler, Andres Jäschke",
+      "year": "2023",
+      "journal": "Acc Chem Res",
+      "_filename": "Jäschke A, Möhler M, 2023, Acc Chem Res.pdf",
+      "_filepath": "RMaP papers first funding period/Jäschke A, Möhler M, 2023, Acc Chem Res.pdf"
+    },
+    {
+      "title": "Chemical Space Virtual Screening against Hard-to-Drug RNA Methyltransferases DNMT2 and NSUN6",
+      "authors": "Robert A. Zimmermann, Christian Kersten, Tim R. Fischer, Marvin Schwickert, Zarina Nidoieva, Tanja Schirmeister",
+      "year": "2023",
+      "journal": "Int J Mol Sci",
+      "_filename": "Kersten C, Zimmermann R, 2023, Int J Mol Sci.pdf",
+      "_filepath": "RMaP papers first funding period/Kersten C, Zimmermann R, 2023, Int J Mol Sci.pdf"
+    },
+    {
+      "title": "piRNA processing by a trimeric Schlafen-domain nuclease",
+      "authors": "Nadezda Podvalnaya, Alfred W. Bronkhorst, Raffael Lichtenberger, Svenja Hellmann, Emily Nischwitz, Torben Falk, Emil Karaulanov, Falk Butter, Sebastian Falk, René F. Ketting",
+      "year": "2023",
+      "journal": "Nature",
+      "_filename": "Ketting RF, Podvalnaya N, 2023, Nature.pdf",
+      "_filepath": "RMaP papers first funding period/Ketting RF, Podvalnaya N, 2023, Nature.pdf"
+    },
+    {
+      "title": "Fluoropyrimidines trigger decay of hypomodified tRNA in yeast",
+      "authors": "Katharina Görlitz, Larissa Bessler, Mark Helm, Raffael Schaffrath, Roland Klassen",
+      "year": "2024",
+      "journal": "Nucleic Acids Res",
+      "_filename": "Klassen R, Görlitz K, 2024, Nucleic Acids Res.pdf",
+      "_filepath": "RMaP papers first funding period/Klassen R, Görlitz K, 2024, Nucleic Acids Res.pdf"
+    },
+    {
+      "title": "PEPseq quantifies transcriptome-wide changes in protein occupancy and reveals selective translational repression after translational stress",
+      "authors": "Jakob Trendel, Etienne Boileau, Marco Jochem, Christoph Dieterich, Jeroen Krijgsveld",
+      "year": "2023",
+      "journal": "Nucleic Acids Res",
+      "_filename": "Krijgsveld J, Trendel J, 2023, Nucleic Acids Res.pdf",
+      "_filepath": "RMaP papers first funding period/Krijgsveld J, Trendel J, 2023, Nucleic Acids Res.pdf"
+    },
+    {
+      "title": "RNA stability controlled by m6A methylation contributes to X-to-autosome dosage compensation in mammals",
+      "authors": "Cornelia Rücklé, Nadine Körtel, M. Felicia Basilicata, Anke Busch, You Zhou, Peter Hoch-Kraft, Kerstin Tretow, Fridolin Kielisch, Marco Bertin, Mihika Pradhan, Michael Musheev, Susann Schweiger, Christof Niehrs, Oliver Rausch, Kathi Zarnack, Claudia Isabelle Keller Valsecchi, Julian König",
+      "year": "2023",
+      "journal": "Nat Struct Mol Biol",
+      "_filename": "König J, Rücklé C, 2023, Nat Struct Mol Biol.pdf",
+      "_filepath": "RMaP papers first funding period/König J, Rücklé C, 2023, Nat Struct Mol Biol.pdf"
+    },
+    {
+      "title": "m6A sites in the coding region trigger translation-dependent mRNA decay",
+      "authors": "You Zhou, Peter Hoch-Kraft, Martin Hengesbach, Kathi Zarnack, Julian KöNig",
+      "year": "2024",
+      "journal": "Mol Cell",
+      "_filename": "König J, Zhou Y, 2024, Mol Cell.pdf",
+      "_filepath": "RMaP papers first funding period/König J, Zhou Y, 2024, Mol Cell.pdf"
+    },
+    {
+      "title": "Pseudouridylation of Epstein-Barr virus noncoding RNA EBER2 facilitates lytic replication",
+      "authors": "Belle A. Henry, Virginie Marchand, Brent T. Schlegel, Mark Helm, Yuri Motorin, Nara Lee",
+      "year": "2022",
+      "journal": "RNA",
+      "_filename": "Lee N, Henry BA, 2022, RNA.pdf",
+      "_filepath": "RMaP papers first funding period/Lee N, Henry BA, 2022, RNA.pdf"
+    },
+    {
+      "title": "RabbitQCPlus 2.0: More efficient and versatile quality control for sequencing data",
+      "authors": "Lifeng Yan, Zekun Yin, Hao Zhang, Zhan Zhao, Mingkai Wang, André Müller, Felix Kallenborn, Alexander Wichmann, Yanjie Wei, Beifang Niu, Bertil Schmidt, Weiguo Liu",
+      "year": "2023",
+      "journal": "Methods",
+      "_filename": "Liu W, Yan L, 2023, Methods.pdf",
+      "_filepath": "RMaP papers first funding period/Liu W, Yan L, 2023, Methods.pdf"
+    },
+    {
+      "title": "RabbitFX: Efficient Framework for FASTA/Q File Parsing on Modern Multi-Core Platforms",
+      "authors": "Hao Zhang, Honglei Song, Xiaoming Xu, Qixin Chang, Mingkai Wang, Yanjie Wei, Zekun Yin, Bertil Schmidt, Weiguo Liu",
+      "year": "Zhang H",
+      "journal": "2021 IEEE-ACM TRANSACTIONS",
+      "_filename": "Liu W, Zhang H, 2021 IEEE-ACM TRANSACTIONS.pdf",
+      "_filepath": "RMaP papers first funding period/Liu W, Zhang H, 2021 IEEE-ACM TRANSACTIONS.pdf"
+    },
+    {
+      "title": "Reinvestigating the clinical relevance of the m6A writer METTL3 in urothelial carcinoma of the bladder",
+      "authors": "Jonas Koch, Manuel Neuberger, Martina SchmidtDengler, Malin Nientiedt, Frank Lyko",
+      "year": "2023",
+      "journal": "iScience",
+      "_filename": "Lyko F, Koch J, 2023, iScience.pdf",
+      "_filepath": "RMaP papers first funding period/Lyko F, Koch J, 2023, iScience.pdf"
+    },
+    {
+      "title": "Refining the role of N6-methyladenosine in cancer",
+      "authors": "Jonas Koch, Frank Lyko",
+      "year": "2024",
+      "journal": "Curr. Opin. Genet. Dev.",
+      "_filename": "Lyko F, Koch J, 2024, Curr. Opin. Genet. Dev..pdf",
+      "_filepath": "RMaP papers first funding period/Lyko F, Koch J, 2024, Curr. Opin. Genet. Dev..pdf"
+    },
+    {
+      "title": "Loss of YTHDC1 m6A reading function promotes invasiveness in urothelial carcinoma of the bladder",
+      "authors": "Jinyun Xu, Jonas Koch, Claudia Schmidt, Malin Nientiedt, Manuel Neuberger, Philipp Erben, Maurice Stephan Michel, Manuel Rodríguez-Paredes, Frank Lyko",
+      "year": "2025",
+      "journal": "Exp Mol Med",
+      "_filename": "Lyko F, Xu J, 2025, Exp Mol Med.pdf",
+      "_filepath": "RMaP papers first funding period/Lyko F, Xu J, 2025, Exp Mol Med.pdf"
+    },
+    {
+      "title": "General Principles for the Detection of Modified Nucleotides in RNA by Specific Reagents",
+      "authors": "Mark Helm, Martina C. Schmidt-Dengler, Marlies Weber, Yuri Motorin",
+      "year": "2021",
+      "journal": "Advanced Biology",
+      "_filename": "Motorin Y, Helm M, 2021, Advanced Biology.pdf",
+      "_filepath": "RMaP papers first funding period/Motorin Y, Helm M, 2021, Advanced Biology.pdf"
+    },
+    {
+      "title": "Phosphorylation found inside RNA",
+      "authors": "Mark Helm, Yuri Motorin",
+      "year": "2022",
+      "journal": "Nature",
+      "_filename": "Motorin Y, Helm M, 2022, Nature.pdf",
+      "_filepath": "RMaP papers first funding period/Motorin Y, Helm M, 2022, Nature.pdf"
+    },
+    {
+      "title": "Machine learning algorithm for precise prediction of 2′-O-methylation (Nm) sites from experimental RiboMethSeq datasets",
+      "authors": "Florian Pichot, Virginie Marchand, Mark Helm, Yuri Motorin",
+      "year": "2022",
+      "journal": "Methods",
+      "_filename": "Motorin Y, Pichot F, 2022, Methods.pdf",
+      "_filepath": "RMaP papers first funding period/Motorin Y, Pichot F, 2022, Methods.pdf"
+    },
+    {
+      "title": "ComputationalEpigenomicsandEpitranscriptomics",
+      "authors": "Pedro H. Oliveira Editor, Ethods In, Olecular B. Iology, Series Editor, John M. Walker",
+      "year": "Chapter16",
+      "journal": "241-260",
+      "_filename": "Naarmann-de Vries IS, Lemsara A, 2023, Methods Mol Biol, Chapter16, 241-260.pdf",
+      "_filepath": "RMaP papers first funding period/Naarmann-de Vries IS, Lemsara A, 2023, Methods Mol Biol, Chapter16, 241-260.pdf"
+    },
+    {
+      "title": "GR278849Die 1865..1877",
+      "authors": "Gregor Diensthuber, Leszek P. Pryszcz, Laia Llovera, Morghan C. Lucas, Anna Delgado-Tejedor, Sonia Cruciani, Jean-Yves Roignant, Oguzhan Begik, Eva Maria Novoa",
+      "year": "2024",
+      "journal": "Genome Res",
+      "_filename": "Novoa E, Diensthuber G, 2024, Genome Res.pdf",
+      "_filepath": "RMaP papers first funding period/Novoa E, Diensthuber G, 2024, Genome Res.pdf"
+    },
+    {
+      "title": "Landscape of Post-Transcriptional tRNA Modifications in Streptomyces albidoflavus J1074 as Portrayed by Mass Spectrometry and Genomic Data Mining",
+      "authors": "Oksana Koshla, Lea-Marie Vogt, Oleksandr Rydkin, Yuliia Sehin, Iryna Ostash, Mark Helm, Bohdan Ostash",
+      "year": "2023",
+      "journal": "J Bacteriol",
+      "_filename": "Ostash B, Koshla O, 2023, J Bacteriol.pdf",
+      "_filepath": "RMaP papers first funding period/Ostash B, Koshla O, 2023, J Bacteriol.pdf"
+    },
+    {
+      "title": "ADAR1-mediated RNA editing promotes B cell lymphomagenesis",
+      "authors": "Riccardo Pecori, Weicheng Ren, Mohammad Pirmoradian, Marco Binder, F. Nina Papavasiliou",
+      "year": "2023",
+      "journal": "iScience",
+      "_filename": "Pan-Hammarström Q, Pecori R, 2023, iScience.pdf",
+      "_filepath": "RMaP papers first funding period/Pan-Hammarström Q, Pecori R, 2023, iScience.pdf"
+    },
+    {
+      "title": "ADAR RNA editing on antisense RNAs results in apparent U-to-C base changes on overlapping sense transcripts",
+      "authors": "Riccardo Pecori, Isabel Chillón, Claudio Lo Giudice, Annette Arnold, Sandra Wüst, Marco Binder, Marco Marcia, Ernesto Picardi, Fotini Nina Papavasiliou",
+      "year": "2023",
+      "journal": "Front. Cell Dev. Biol.",
+      "_filename": "Papavasiliou F, Pecori R, 2023, Front. Cell Dev. Biol..pdf",
+      "_filepath": "RMaP papers first funding period/Papavasiliou F, Pecori R, 2023, Front. Cell Dev. Biol..pdf"
+    },
+    {
+      "title": "APOBEC2 safeguards skeletal muscle cell fate through binding chromatin and regulating transcription of non-muscle genes during myoblast differentiation",
+      "authors": "J. Paulo Lorenzo, Linda Molla, Elias Moris Amro, Ignacio L. Ibarra, Sandra Ruff, Cedrik Neber, Christos Gkougkousis, Jana Ridani, Poorani Ganesh Subramani, Jonathan Boulais, Dewi Harjanto, Javier M. Di Noia, Christoph Dieterich, Judith B. Zaugg, F. Nina Papavasiliou",
+      "year": "2024",
+      "journal": "PNAS",
+      "_filename": "Papavasiliou FN, Lorenzo JP, 2024, PNAS.pdf",
+      "_filepath": "RMaP papers first funding period/Papavasiliou FN, Lorenzo JP, 2024, PNAS.pdf"
+    },
+    {
+      "title": "Refining the role of N6-methyladenosine in cancer",
+      "authors": "Jonas Koch, Frank Lyko",
+      "year": "Pecori R",
+      "journal": "2022 Nat. Rev. Genet",
+      "_filename": "Papavasiliou N, Pecori R, 2022 Nat. Rev. Genet.pdf",
+      "_filepath": "RMaP papers first funding period/Papavasiliou N, Pecori R, 2022 Nat. Rev. Genet.pdf"
+    },
+    {
+      "title": "Structural and mechanistic insights into activation of the human RNA ligase RTCB by Archease",
+      "authors": "Janina Lara Gerber, Suria Itzel Morales Guzmán, Lorenz Worf, Petra Hubbe, Jürgen Kopp, Jirka Peschek",
+      "year": "2024",
+      "journal": "Nat. Commun",
+      "_filename": "Peschek J, Gerber J, 2024, Nat. Commun .pdf",
+      "_filepath": "RMaP papers first funding period/Peschek J, Gerber J, 2024, Nat. Commun .pdf"
+    },
+    {
+      "title": "Biological Chemistry",
+      "authors": "Janina L. Gerber, Sandra Köhler, Jirka Peschek",
+      "year": "2022",
+      "journal": "BiolChem",
+      "_filename": "Peschek J, Gerber JL, 2022, BiolChem.pdf",
+      "_filepath": "RMaP papers first funding period/Peschek J, Gerber JL, 2022, BiolChem.pdf"
+    },
+    {
+      "title": "Biallelic variants in NSUN6 cause an autosomal recessive neurodevelopmental disorder",
+      "authors": "Francesca Mattioli, Lina Worpenberg, Cai-Tao Li, Nazia Ibrahim, Shagufta Naz, Saima Sharif, Saghar G. Firouzabadi, Shohreh Vosoogh, Radoslava Saraeva-Lamri, Laure Raymond, Carlos Trujillo, Nicolas Guex, Stylianos E. Antonarakis, Muhammad Ansar, Hossein Darvish, Ru-Juan Liu, Jean-Yves Roignant, Alexandre Reymond",
+      "year": "2023",
+      "journal": "Genet Med",
+      "_filename": "Reymond A, Mattioli F, 2023, Genet Med.pdf",
+      "_filepath": "RMaP papers first funding period/Reymond A, Mattioli F, 2023, Genet Med.pdf"
+    },
+    {
+      "title": "Exploring pseudouridylation_ dysregulation in disease and therapeutic potential",
+      "authors": "Maria Guillen-Angel, Jean-Yves Roignant",
+      "year": "2024",
+      "journal": "Curr Opin Genet Dev",
+      "_filename": "Roignant J-Y, Guillen-Angel M, 2024, Curr Opin Genet Dev.pdf",
+      "_filepath": "RMaP papers first funding period/Roignant J-Y, Guillen-Angel M, 2024, Curr Opin Genet Dev.pdf"
+    },
+    {
+      "title": "Poly(m6A) tails stabilize transcripts",
+      "authors": "Guillaume Lavergne, Jean-Yves Roignant",
+      "year": "2022",
+      "journal": "Mol Cell",
+      "_filename": "Roignant J-Y, Lavergne G, 2022, Mol Cell.pdf",
+      "_filepath": "RMaP papers first funding period/Roignant J-Y, Lavergne G, 2022, Mol Cell.pdf"
+    },
+    {
+      "title": "Comprehensive map of ribosomal 2&prime;-O-methylation and C&sol;D box snoRNAs in Drosophila melanogaster",
+      "authors": "Athena Sklias, Sonia Cruciani, Virginie Marchand, Mariangela Spagnuolo, Guillaume Lavergne, Valérie Bourguignon, Alessandro Brambilla, René Dreos, Steven J. Marygold, Eva Maria Novoa, Yuri Motorin, Jean-Yves Roignant",
+      "year": "2024",
+      "journal": "Nucleic Acids Res",
+      "_filename": "Roignant J-Y, Sklias A, 2024, Nucleic Acids Res.pdf",
+      "_filepath": "RMaP papers first funding period/Roignant J-Y, Sklias A, 2024, Nucleic Acids Res.pdf"
+    },
+    {
+      "title": "Turnover of PPP1R15A mRNA encoding GADD34 controls responsiveness and adaptation to cellular stress",
+      "authors": "Vera Magg, Alessandro Manetto, Katja Kopp, Nicolas Locker, Georg Stoecklin, Alessia Ruggieri",
+      "year": "2024",
+      "journal": "Cell Rep",
+      "_filename": "Ruggieri A, Magg V, 2024, Cell Rep.pdf",
+      "_filepath": "RMaP papers first funding period/Ruggieri A, Magg V, 2024, Cell Rep.pdf"
+    },
+    {
+      "title": "Spectral libraries from nucleobases and deoxyribonucleosides facilitate the identification of ribonucleosides by nano‐flow liquid chromatography–tandem mass spectrometry",
+      "authors": "Guadalupe Espadas, Francesca Tuorto, Eva Maria Novoa, Laia Llovera, Alexane Ollivier, Eduard Sabidó",
+      "year": "2024",
+      "journal": "Rapid Comm Mass Spectrom",
+      "_filename": "Sabido E, Espadas G, 2024, Rapid Comm Mass Spectrom.pdf",
+      "_filepath": "RMaP papers first funding period/Sabido E, Espadas G, 2024, Rapid Comm Mass Spectrom.pdf"
+    },
+    {
+      "title": "tRNA binding to Kti12 is crucial for wobble uridine modification by Elongator",
+      "authors": "David Scherf, Alexander Hammermeister, Pauline Böhnert, Alicia Burkard, Mark Helm, Sebastian Glatt, Raffael Schaffrath",
+      "year": "2025",
+      "journal": "Nucleic Acids Res",
+      "_filename": "Schaffrath R, Scherf D, 2025, Nucleic Acids Res.pdf",
+      "_filepath": "RMaP papers first funding period/Schaffrath R, Scherf D, 2025, Nucleic Acids Res.pdf"
+    },
+    {
+      "title": "A low-cost 3D-printable differential scanning fluorometer for protein and RNA melting experiments",
+      "authors": "Fabian Barthels, Stefan J. Hammerschmidt, Tim R. Fischer, Collin Zimmer, Elisabeth Kallert, Mark Helm, Christian Kersten, Tanja Schirmeister",
+      "year": "2022",
+      "journal": "HardwareX",
+      "_filename": "Schirmeister T, Barthels F, 2022, HardwareX.pdf",
+      "_filepath": "RMaP papers first funding period/Schirmeister T, Barthels F, 2022, HardwareX.pdf"
+    },
+    {
+      "title": "Discovery of Inhibitors of DNA Methyltransferase 2, an Epitranscriptomic Modulator and Potential Target for Cancer Treatment",
+      "authors": "Marvin Schwickert, Tim R. Fischer, Robert A. Zimmermann, Sabrina N. Hoba, J. Laurenz Meidner, Marlies Weber, Moritz Weber, Martin M. Stark, Jonas Koch, Nathalie Jung, Christian Kersten, Maike Windbergs, Frank Lyko, Mark Helm, Tanja Schirmeister",
+      "year": "2022",
+      "journal": "J. Med. Chem",
+      "_filename": "Schirmeister T, Schwickert M, 2022, J. Med. Chem.pdf",
+      "_filepath": "RMaP papers first funding period/Schirmeister T, Schwickert M, 2022, J. Med. Chem.pdf"
+    },
+    {
+      "title": "An Optimized Microscale Thermophoresis Method for High-Throughput Screening of DNA Methyltransferase 2 Ligands",
+      "authors": "An Optimized Microscale, Thermophoresis Method, Throughput Screening, Dna Methyltransferase, Robert Alexander Zimmermann, Marvin Schwickert, Laurenz Meidner, Zarina Nidoieva, Mark Helm, Tanja Schirmeister, Cite This, Acs Pharmacol, Read Online, Supporting Information",
+      "year": "2022",
+      "journal": "ACS Pharmacol Transl Sci",
+      "_filename": "Schirmeister T, Zimmermann RA, 2022, ACS Pharmacol Transl Sci.pdf",
+      "_filepath": "RMaP papers first funding period/Schirmeister T, Zimmermann RA, 2022, ACS Pharmacol Transl Sci.pdf"
+    },
+    {
+      "title": "Structures of aberrant spliceosome intermediates on their way to disassembly",
+      "authors": "Komal Soni, Attila Horvath, Olexandr Dybkov, Merlin Schwan, Sasanan Trakansuebkul, Dirk Flemming, Klemens Wild, Henning Urlaub, Tamás Fischer, Irmgard Sinning",
+      "year": "2025",
+      "journal": "Nat Struct Mol Biol",
+      "_filename": "Sinning I, Soni K, 2025, Nat Struct Mol Biol.pdf",
+      "_filepath": "RMaP papers first funding period/Sinning I, Soni K, 2025, Nat Struct Mol Biol.pdf"
+    },
+    {
+      "title": "Experience with German Research Consortia in the Field of Chemical Biology of Native Nucleic Acid Modifications",
+      "authors": "Mark Helm, Markus T. Bohnsack, Thomas Carell, Alexander Dalpke, Karl-Dieter Entian, Ann Ehrenhofer-Murray, Ralf Ficner, Christian Hammann, Claudia Höbartner, Andres Jäschke, Albert Jeltsch, Stefanie Kaiser, Roland Klassen, Sebastian A. Leidel, Andreas Marx, Mario Mörl, Jochen C. Meier, Gunter Meister, Andrea Rentmeister, Marina Rodnina, Jean-Yves Roignant, Raffael Schaffrath, Peter Stadler, Thorsten Stafforst",
+      "year": "2023",
+      "journal": "ACS Chem. Biol",
+      "_filename": "Stafforst T, Helm M, 2023, ACS Chem. Biol.pdf",
+      "_filepath": "RMaP papers first funding period/Stafforst T, Helm M, 2023, ACS Chem. Biol.pdf"
+    },
+    {
+      "title": "Preferential translation of p53 target genes",
+      "authors": "Miharu Hisaoka, Johanna Schott, Toman Bortecen, Doris Lindner, Jeroen Krijgsveld, Georg Stoecklin",
+      "year": "2022",
+      "journal": "RNA Biol",
+      "_filename": "Stoecklin G, Hisaoka M, 2022, RNA Biol.pdf",
+      "_filepath": "RMaP papers first funding period/Stoecklin G, Hisaoka M, 2022, RNA Biol.pdf"
+    },
+    {
+      "title": "E3 ubiquitin ligase RNF10 promotes dissociation of stalled ribosomes and responds to ribosomal subunit imbalance",
+      "authors": "Janina A. Lehmann, Doris Lindner, Hsu-Min Sung, Georg Stoecklin",
+      "year": "2024",
+      "journal": "Nat Commun",
+      "_filename": "Stoecklin G, Lehmann J, 2024, Nat Commun.pdf",
+      "_filepath": "RMaP papers first funding period/Stoecklin G, Lehmann J, 2024, Nat Commun.pdf"
+    },
+    {
+      "title": "Control of immediate early gene expression by CPEB4-repressor complex-mediated mRNA degradation",
+      "authors": "Fabian Poetz, Svetlana Lebedeva, Johanna Schott, Doris Lindner, Uwe Ohler, Georg Stoecklin",
+      "year": "2022",
+      "journal": "Genome Biol",
+      "_filename": "Stoecklin G, Poetz F, 2022, Genome Biol.pdf",
+      "_filepath": "RMaP papers first funding period/Stoecklin G, Poetz F, 2022, Genome Biol.pdf"
+    },
+    {
+      "title": "Nascent Ribo-Seq measures ribosomal loading time and reveals kinetic impact on ribosome density",
+      "authors": "Johanna Schott, Anjana Shenoy, Sonja Reitter, Doris Lindner, Jan Grosser, Marius Bruer, Tamar Geiger, Arthur Mathes, Gergana Dobreva, Georg Stoecklin",
+      "year": "2021",
+      "journal": "Nat Methods",
+      "_filename": "Stoecklin G, Schott J, 2021, Nat Methods.pdf",
+      "_filepath": "RMaP papers first funding period/Stoecklin G, Schott J, 2021, Nat Methods.pdf"
+    },
+    {
+      "title": "Stress-induced nuclear speckle reorganization is linked to activation of immediate early gene splicing",
+      "authors": "Hsu-Min Sung, Johanna Schott, Philipp Boss, Janina A. Lehmann, Marius Roland Hardt, Doris Lindner, Joris Messens, Ivan Bogeski, Uwe Ohler, Georg Stoecklin",
+      "year": "2023",
+      "journal": "J Cell Biol",
+      "_filename": "Stoecklin G, Sung, H-M, 2023, J Cell Biol.pdf",
+      "_filepath": "RMaP papers first funding period/Stoecklin G, Sung, H-M, 2023, J Cell Biol.pdf"
+    },
+    {
+      "title": "RNF219 attenuates global mRNA decay through inhibition of CCR4-NOT complex-mediated deadenylation",
+      "authors": "Alexander Spiegelhalter, Johanna Schott, Doris Lindner, Eugene Valkov, Fabian Poetz, Joshua Corbo, Yevgen Levdansky, Vera Magg, Svetlana Lebedeva, Jörg Schweiggert, Georg Stoecklin",
+      "year": "2021",
+      "journal": "Nat Commun",
+      "_filename": "Stoeckling G, Poetz F, 2021, Nat Commun.pdf",
+      "_filepath": "RMaP papers first funding period/Stoeckling G, Poetz F, 2021, Nat Commun.pdf"
+    },
+    {
+      "title": "Science Journals — AAAS",
+      "authors": "Tatsuya Morishima, M.D. Fakruddin, Yohei Kanamori, Takeshi Masuda, Akiko Ogawa, Yuxin Wang, Vivien A. C. Schoonenberg, Falk Butter, Yuichiro Arima, Takaaki Akaike, Toshiro Moroishi, Kazuhito Tomizawa, Toshio Suda, Fan-Yan Wei, Hitoshi Takizawa",
+      "year": "2025",
+      "journal": "Sci Adv",
+      "_filename": "Takizawa H, Morishima T, 2025, Sci Adv.pdf",
+      "_filepath": "RMaP papers first funding period/Takizawa H, Morishima T, 2025, Sci Adv.pdf"
+    },
+    {
+      "title": "Lost in translation: How neurons cope with tRNA decoding",
+      "authors": "Wei Guo, Stefano Russo, Francesca Tuorto",
+      "year": "2024",
+      "journal": "BioEssays",
+      "_filename": "Tuorto F, Guo W, 2024, BioEssays.pdf",
+      "_filepath": "RMaP papers first funding period/Tuorto F, Guo W, 2024, BioEssays.pdf"
+    },
+    {
+      "title": "Interplay Between tRNA Modifications and Processing",
+      "authors": "Jirka Peschek, Francesca Tuorto",
+      "year": "2025",
+      "journal": "J Mol Biol",
+      "_filename": "Tuorto F, Peschek J, 2025, J Mol Biol.pdf",
+      "_filepath": "RMaP papers first funding period/Tuorto F, Peschek J, 2025, J Mol Biol.pdf"
+    },
+    {
+      "title": "Queuosine‐tRNA promotes sex‐dependent learning and memory formation by maintaining codon‐biased translation elongation speed",
+      "authors": "Cansu Cirzi, Julia Dyckow, Carine Legrand, Johanna Schott, Wei Guo, Daniel Perez Hernandez, Miharu Hisaoka, Rosanna Parlato, Claudia Pitzer, Franciscus van der Hoeven, Gunnar Dittmar, Mark Helm, Georg Stoecklin, Lucas Schirmer, Frank Lyko, Francesca Tuorto",
+      "year": "Cirzi C",
+      "journal": "2023 EMBO J",
+      "_filename": "Tuorto, F, Cirzi C, 2023 EMBO J.pdf",
+      "_filepath": "RMaP papers first funding period/Tuorto, F, Cirzi C, 2023 EMBO J.pdf"
+    },
+    {
+      "title": "Adenine methylation is very scarce in the Drosophila genome and not erased by the ten-­eleven translocation dioxygenase",
+      "authors": "Manon Boulet, Guerric Gilbert, Yoan Renaud, Martina Schmidt-Dengler, Emilie Plantié, Romane Bertrand, Xinsheng Nan, Tomasz Jurkowski, Mark Helm, Laurence Vandel, Lucas Waltzer",
+      "year": "2023",
+      "journal": "eLife",
+      "_filename": "Waltzer L, Boulet M, 2023, eLife.pdf",
+      "_filepath": "RMaP papers first funding period/Waltzer L, Boulet M, 2023, eLife.pdf"
+    },
+    {
+      "title": "Nascent mRNA damage: depot and disposal",
+      "authors": "Mark Helm, Marie-Luise Winz",
+      "year": "2024",
+      "journal": "Signal Transduct Target Ther",
+      "_filename": "Winz M-L, Helm M, 2024, Signal Transduct Target Ther.pdf",
+      "_filepath": "RMaP papers first funding period/Winz M-L, Helm M, 2024, Signal Transduct Target Ther.pdf"
+    },
+    {
+      "title": "Molecular Highway Patrol for Ribosome Collisions",
+      "authors": "Kaushik Viswanathan Iyer, Max Müller, Lena Sophie Tittel, Marie-Luise Winz During Translation",
+      "year": "2023",
+      "journal": "ChemBioChem",
+      "_filename": "Winz M-L, Iyer K, 2023, ChemBioChem .pdf",
+      "_filepath": "RMaP papers first funding period/Winz M-L, Iyer K, 2023, ChemBioChem .pdf"
+    }
+  ],
+  "error_details": []
+}

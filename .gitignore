@@ -18,7 +18,6 @@ scripts/start_ollama.sh
 .mypy_cache/
 
 # Local outputs
-reports/
 slurm/*.log
 
 # Local corpus / large input data (not part of source repository)
