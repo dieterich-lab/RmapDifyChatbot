@@ -7,6 +7,8 @@ __pycache__/
 # Virtual environments and editor artifacts
 .venv/
 .env
+.env.master
+.env.h100
 .vscode/
 
 # Personal runner scripts (SLURM Ollama launcher)
