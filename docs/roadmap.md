@@ -47,7 +47,11 @@
 
 ---
 
-## ⚠️ Infrastructure Incident (2026-07-31) — RESOLVED, awaiting Docker restart
+## ⚠️ Infrastructure Incident (2026-07-31) — RESOLVED ✅
+
+**Resolution:** New H100 app created (`6f9536b1`) with clean config. GPU contention from indexing was the likely cause. Separate apps now prevent interference.
+
+**Outcome:** Separate Dify apps for A2 and H100 — see below.
 
 **Final Root Cause:** Dify's internal indexing queue deadlocked during `qwen3-embedding` dataset creation. The deadlocked queue blocked Dify's worker pool, preventing ALL draft API requests from executing. Ollama servers were healthy throughout — GPU contention was a red herring.
 
@@ -118,7 +122,7 @@
 | 🔥 | **Infrastructure Recovery** | 🔴 | App unresponsive — production down | ✅ Resolved | ✅ Docker restart + separate apps (2026-08-03) |
 | 1 | **H100 LLM Migration: qwen3:32b** | 🔴 | Behebt #5 (m6A-Recall), bessere Qualität | ✅ Done | ✅ Deployed to separate H100 app (2026-08-03) |
 | 🆕 | **Separate A2/H100 Apps** | 🔴 | Eliminiert Config-Interferenz | ✅ Done | 🔲 Done (2026-08-03, see below) |
-| 2 | **qwen3-embedding Evaluation** | 🟡 | Bessere Retrieval-Rankings (miCLIP/MeRIP) | 3h | 🔲 After infra recovery |
+| 2 | **qwen3-embedding Evaluation** | 🟡 | Bessere Retrieval-Rankings (miCLIP/MeRIP) | 3h | ✅ Evaluated — 14/14, no significant gain on 84-paper set (see `reports/h100_qwen3_embedding_regression.md`, 2026-08-04) |
 | 3 | **#16 Collaboration Analysis** | 🟢 | Co-Author pair frequencies | ✅ Done | ✅ Implemented (v0.4.15) |
 | 4 | **Prompt-Tuning: "what else" re-query** | 🟢 | "What else did X publish?" → metadata_list re-query | ✅ Done | ✅ Code-level guard (v0.4.16+), test case #21 |
 | 5 | **🔬 Abstract Parent-Child Chunking** | 🔵 | Bessere Retrieval-Rankings durch semantisches Chunking | >2d | Preprocessing-Pipeline nötig |

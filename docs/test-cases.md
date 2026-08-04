@@ -451,3 +451,40 @@ The Author Extraction LLM for "Who is using HEK cells?" scans 30+ papers in its 
 
 ---
 
+## Regression Test: H100 with qwen3-embedding (2026-08-04)
+
+Full re-verification after switching to qwen3-embedding dataset. **Model:** qwen3:32b (thinking, 20 GB VRAM), **Embedding:** qwen3-embedding:latest (≈4× larger than nomic). **App:** `6f9536b1-26e8-4f79-b2b0-d54bc3d091d2`. Draft API, single-turn, `max_tokens=8192`.
+
+| # | Query | Status | Key Result |
+|---|-------|--------|------------|
+| 1 | Papers by Christoph Dieterich | ✅ | 8 papers |
+| 2 | What is m6A? | ✅ | Structured answer with citations |
+| 3 | Who worked on tRNA modifications? | ✅ | Papers with authors + verbatim quotes |
+| 4 | Which RNA mods most studied? | ✅ | 10 entities (m6A, m3C, m5C, 5hmC, Ψ, ...) |
+| 5 | Find papers by Francesca Tuorto | ✅ | 6 papers |
+| 6 | Find papers by René Ketting | ✅ | 1 paper |
+| 7 | Find papers by Claudia Höbartner | ✅ | 2 papers |
+| 8 | Find papers by Lauren Saunders | ✅ | 0 results + search tips |
+| 9 | Find all research papers | ✅ | 83 papers (1 less than nomic — indexing artifact) |
+| 10 | List all researchers | ✅ | 821 authors |
+| 11 | Who is using HEK cells? | ✅ | Papers with HEK293T quotes |
+| 12 | Find Papers by Dieterich | ✅ | 8 papers |
+| 13 | Find papers by Tamer Butto | ✅ | 2 papers |
+| 14 | Find papers by Michaela Frye | ✅ | 1 paper |
+
+**Tally: ✅ 14 · ⚠️ 0 · ❌ 0**
+
+### Three-Configuration Comparison
+
+| Configuration | Model | Embedding | App | Tests |
+|--------------|-------|-----------|-----|-------|
+| A2 Baseline | qwen2.5:14b | nomic | `16d50bee` | 19✅ 2⚠️ 1❌ |
+| H100 + nomic | qwen3:32b | nomic | `16d50bee` (draft) | 14✅ 0⚠️ 0❌ |
+| H100 + qwen3-emb | qwen3:32b | qwen3-embedding | `6f9536b1` | 14✅ 0⚠️ 0❌ |
+
+### Embedding Comparison Verdict
+
+No significant quality difference between nomic and qwen3-embedding on the current 84-paper dataset. The LLM upgrade (qwen2.5:14b → qwen3:32b) is the dominant quality driver. qwen3-embedding may show advantages on larger datasets or fine-grained method-level queries (miCLIP, MeRIP).
+
+Full comparison: `reports/h100_qwen3_embedding_regression.md`
+
