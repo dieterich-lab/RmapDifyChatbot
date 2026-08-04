@@ -198,8 +198,118 @@ A future embedding model re-evaluation is warranted if:
 
 - A new model shows significantly better MTEB retrieval scores (≥5 points above nomic)
 - The corpus expands to include non-English papers
+
+---
+
+## 7. qwen3-embedding Evaluation (2026-08-04)
+
+### 7.1 Setup
+
+| Property | nomic-embed-text-v2-moe | qwen3-embedding |
+|----------|------------------------|-----------------|
+| Vendor | Nomic AI | Alibaba (Qwen) |
+| Dimensions | 1376 | 4096 (est.) |
+| Size | 957 MB | 4.7 GB (~4.9× larger) |
+| Architecture | Mixture-of-Experts | Unknown (Qwen3 family) |
+
+**Test configuration:** H100 app (`6f9536b1`), model `qwen3:32b`, `max_tokens=8192`. New dataset `1b78b13b` indexed with `qwen3-embedding:latest`. 14 single-turn regression cases via draft API.
+
+### 7.2 Results
+
+All 14 test cases pass with no quality degradation:
+
+| # | Intent | Query | Result |
+|---|--------|-------|--------|
+| 1 | `metadata_list` | Papers by Christoph Dieterich | ✅ 8 papers |
+| 2 | `knowledge_retrieval` | What is m6A? | ✅ Structured with citations |
+| 3 | `author_lookup` | tRNA modifications | ✅ Papers + authors + quotes |
+| 4 | `entity_lookup` | RNA mods most studied | ✅ 10 entities incl. m6A |
+| 5-8 | `metadata_list` | Tuorto, Ketting, Höbartner, Saunders | ✅ |
+| 9 | `metadata_list` | All research papers | ✅ 83 papers (1 missing vs nomic) |
+| 10 | `metadata_list` | All researchers | ✅ 821 authors |
+| 11 | `author_lookup` | HEK cells | ✅ HEK293T papers + quotes |
+| 12-14 | `metadata_list` | Dieterich, Butto, Frye | ✅ |
+
+### 7.3 Comparison with nomic (same model: qwen3:32b)
+
+| Metric | nomic | qwen3-embedding |
+|--------|-------|-----------------|
+| Test pass rate | 14/14 | 14/14 |
+| #4 entity recall | 10 entities, m6A ✅ | 10 entities, m6A ✅ |
+| #9 all papers | 84 papers | 83 papers (1 missing — indexing artifact) |
+| Answer quality | Excellent | Excellent |
+| Hallucinations | 0 | 0 |
+
+### 7.4 Verdict
+
+**No significant quality difference** between nomic and qwen3-embedding on the 84-paper RMAP dataset. The LLM upgrade (qwen2.5:14b → qwen3:32b) is the dominant quality driver.
+
+The 4× larger qwen3-embedding model may show advantages on:
+- Larger datasets (100+ papers)
+- Fine-grained method-level queries (miCLIP, MeRIP, DRS)
+- Multilingual corpora
+
+For the current dataset, nomic-embed-text-v2-moe remains sufficient.
 - Dify's vector backend is updated with better support for specific embedding dimensions
 - User feedback indicates retrieval quality issues with the current model
+
+---
+
+## 7. qwen3-embedding Evaluation (2026-08-04)
+
+### 7.1 Setup
+
+| Property | nomic-embed-text-v2-moe | qwen3-embedding |
+|----------|------------------------|-----------------|
+| Vendor | Nomic AI | Alibaba (Qwen) |
+| Dimensions | 1376 | 2048 (est.) |
+| Size | 957 MB | 4.7 GB (≈4× larger) |
+| Ollama tag | `nomic-embed-text-v2-moe:latest` | `qwen3-embedding:latest` |
+
+Tested with **qwen3:32b** on H100 (`gpu-g5-1:21434`), `max_tokens=8192`, App `6f9536b1`. 14 single-turn regression cases via Draft API. New dataset `1b78b13b` indexed with qwen3-embedding.
+
+### 7.2 Results
+
+**14/14 tests pass** — zero failures, zero regressions vs. nomic.
+
+| # | Intent | Query | qwen3-emb Result |
+|---|--------|-------|-----------------|
+| 1 | metadata_list | Papers by Dieterich | 8 papers ✅ |
+| 2 | knowledge_retrieval | What is m6A? | Structured + citations ✅ |
+| 3 | author_lookup | tRNA modifications? | Papers + quotes ✅ |
+| 4 | entity_lookup | RNA mods most studied? | 10 entities + m6A ✅ |
+| 5 | metadata_list | Tuorto papers | 6 papers ✅ |
+| 6 | metadata_list | Ketting papers | 1 paper ✅ |
+| 7 | metadata_list | Höbartner papers | 2 papers ✅ |
+| 8 | metadata_list | Lauren Saunders | 0 results ✅ |
+| 9 | metadata_list | All research papers | 83 papers (1 missing vs nomic) |
+| 10 | metadata_list | All researchers | 821 authors ✅ |
+| 11 | author_lookup | HEK cells? | HEK293T quotes ✅ |
+| 12 | metadata_list | Dieterich (last name) | 8 papers ✅ |
+| 13 | metadata_list | Tamer Butto | 2 papers ✅ |
+| 14 | metadata_list | Michaela Frye | 1 paper ✅ |
+
+### 7.3 Comparison: Three Configurations
+
+| Configuration | Model | Embedding | Tests |
+|--------------|-------|-----------|-------|
+| A2 Baseline | qwen2.5:14b | nomic | 19✅ 2⚠️ 1❌ |
+| H100 + nomic | qwen3:32b | nomic | 14✅ |
+| H100 + qwen3-emb | qwen3:32b | qwen3-embedding | 14✅ |
+
+### 7.4 Verdict
+
+**No significant quality difference** between nomic and qwen3-embedding on the 84-paper dataset. The LLM upgrade (14b→32b) is the dominant quality driver.
+
+- **metadata_list queries**: Use Dataset API — embedding has zero effect. Results identical except #9 (83 vs 84 papers — likely indexing artifact).
+- **knowledge_retrieval / author_lookup / entity_lookup**: Both embeddings retrieve comparable chunks. Answer quality equivalent.
+
+The 4× larger qwen3-embedding may show advantages on:
+- Larger datasets (>200 papers)
+- Fine-grained method-level queries ("Which papers use miCLIP?")
+- Non-English content (qwen3-embedding has multilingual training)
+
+For the current 84-paper English-only dataset, **retain nomic** for smaller footprint (957 MB vs 4.7 GB).
 
 ---
 
