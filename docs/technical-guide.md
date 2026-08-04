@@ -91,7 +91,7 @@ Metadata LLM       Summary LLM         ┌───┼───┐              
 
 ### 2.1 Key Types and Their Roles
 
-**Single source of truth:** All configuration lives in `.env`. All scripts (`export_dify_dsl.sh`, `import_dify_dsl.sh`, `restore_kr_dataset.sh`) read settings from there.
+**Single source of truth:** All configuration lives in `.env`. All scripts (`export_dify_dsl.sh`, `import_dify_dsl.sh`, `import_dify_dsl.sh`) read settings from there.
 
 The chatbot uses three distinct API key types, each serving a different purpose:
 
@@ -409,7 +409,7 @@ gh release create v0.4.X --repo dieterich-lab/RmapDifyChatbot ...
 | `scripts/export_dify_dsl.sh` | Pull YAML from Dify UI → local |
 | `scripts/debug_route_draft.sh` | Test via draft console API (SSE, per-node) |
 | `scripts/debug_route_runtime.sh` | Test via published app API (multi-turn) |
-| `scripts/fix_kr_dataset.sh` | Restore KR dataset after import strips it |
+| `scripts/import_dify_dsl.sh` | Restore KR dataset after import strips it |
 | `scripts/update_dify_metadata.py` | Bulk-update document metadata via PubMed |
 
 ---
@@ -901,7 +901,7 @@ bash scripts/debug_route_draft.sh --app-id <your-app-id> \
 
 **Fix:** `import_dify_dsl.sh` auto-fixes via `fix_kr_dataset()`. If manual fix needed:
 ```bash
-bash scripts/fix_kr_dataset.sh --app-id <your-app-id> --auto-login
+bash scripts/import_dify_dsl.sh --app-id <your-app-id> --auto-login
 ```
 
 ### 10.7 Start Node Appears as White Bar / All Nodes "Not Connected"
@@ -985,12 +985,17 @@ provider: langgenius/ollama/ollama  # oder custom H100 provider
 | `config/RMAP Chatbot Iterative Retrieval.yml` | Complete Dify DSL (prompts + graph + code) |
 | `workflow_scripts/*.py` | Python source for code nodes |
 | `scripts/build_dsl.py` | Inject code into YAML |
-| `scripts/import_dify_dsl.sh` | Build + import + draft sync + KR fix |
+| `scripts/import_dify_dsl.sh` | Build + import + draft sync + KR fix + env var injection |
 | `scripts/export_dify_dsl.sh` | Export from Dify UI to local YAML |
-| `scripts/debug_route_draft.sh` | Test via draft console API |
-| `scripts/debug_route_runtime.sh` | Test via published app API |
-| `scripts/fix_kr_dataset.sh` | Restore KR dataset after import |
+| `scripts/debug_route_draft.sh` | Test via draft console API (SSE, per-node) |
+| `scripts/debug_route_runtime.sh` | Test via published app API (multi-turn) |
+| `scripts/publish_draft.sh` | Publish current draft to live |
 | `scripts/update_dify_metadata.py` | Bulk metadata update via PubMed |
+| `scripts/upload_papers.sh` | Upload paper metadata to Dify dataset |
+| `scripts/slurm_bulk_upload.sh` | Bulk: extract metadata + upload (Slurm, GPU) |
+| `scripts/slurm_extract_metadata.sh` | Extract metadata from PDFs (Slurm, GPU) |
+| `scripts/start_ollama.sh` | Start Ollama server (Slurm, GPU) |
+| `scripts/extract_dsl_code.py` | Extract code nodes from YAML back to Python files |
 | `.env` | DIFY_API_KEY, DIFY_BASE_URL, DIFY_DATASET_ID, credentials – **single source of truth** for all config |
 | `.secrets/dify_console_session.env` | Console auth tokens (cookie, csrf) |
 | `docs/test-cases.md` | Living document: 20 test cases with status (✅ 19 · ⚠️ 1 · ❌ 0) |
