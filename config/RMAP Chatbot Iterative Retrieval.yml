@@ -812,12 +812,12 @@ workflow:
           \ not items:\n            break\n        all_items.extend(items)\n     \
           \   if len(items) < 100:\n            break\n\n    for item in all_items:\n\
           \        doc_id = str((item or {}).get(\"id\") or \"\").strip()\n      \
-          \  if not doc_id:\n            continue\n\n        detail_url = f\"{api_base}/datasets/{dataset_id}/documents/{doc_id}?{urlencode({'metadata':\
-          \ 'all'})}\"\n        detail, detail_err = _run_json_get(detail_url, headers=headers)\n\
-          \        if detail_err:\n            errors.append(f\"Dokument {doc_id}:\
-          \ {detail_err}\")\n            continue\n\n        meta = _metadata_to_dict(detail)\n\
+          \  if not doc_id:\n            continue\n\n        # Use metadata from list\
+          \ response directly (doc_metadata is included\n        # since Dify 0.7+).\
+          \ Avoids 84 redundant detail-API calls per query\n        # and works reliably\
+          \ from the sandbox code node.\n        meta = _metadata_to_dict(item)\n\
           \        docs.append(\n            {\n                \"id\": doc_id,\n\
-          \                \"title\": meta.get(\"title\") or str(detail.get(\"name\"\
+          \                \"title\": meta.get(\"title\") or str(item.get(\"name\"\
           ) or \"\").strip(),\n                \"authors\": meta.get(\"authors\",\
           \ \"\"),\n                \"year\": meta.get(\"year\", \"\"),\n        \
           \        \"journal\": meta.get(\"journal\", \"\"),\n            }\n    \
@@ -938,17 +938,17 @@ workflow:
           def main(\n    year=None,\n    authors=None,\n    journal=None,\n    title=None,\n\
           \    paper_list=None,\n    list_mode=None,\n    collaboration_mode=None,\n\
           \    api_key_input=None,\n    dataset_id_input=None,\n):\n    api_base =\
-          \ (os.getenv(\"DIFY_API_URL\") or \"http://rmap-chatbot-demo-dify/v1\").rstrip(\n\
-          \        \"/\"\n    )\n    dataset_id = dataset_id_input or os.getenv(\"\
-          DIFY_DATASET_ID\") or \"\"\n    api_key = api_key_input or os.getenv(\"\
-          DIFY_API_KEY\") or \"\"\n\n    if not _is_set(api_base) or not _is_set(dataset_id)\
-          \ or not _is_set(api_key):\n        return {\n            \"result\": (\n\
-          \                \"Dify API Konfiguration unvollstaendig. \"\n         \
-          \       \"Erwarte DIFY_API_URL, DIFY_DATASET_ID und DIFY_API_KEY.\"\n  \
-          \          )\n        }\n\n    # Extract filter values from paper_list if\
-          \ passed (Parse Router Output)\n    if isinstance(paper_list, list) and\
-          \ len(paper_list) > 0:\n        first = paper_list[0]\n        if isinstance(first,\
-          \ dict):\n            if not _is_set(year):\n                year = first.get(\"\
+          \ (os.getenv(\"DIFY_API_URL\") or \"http://api:5001/v1\").rstrip(\n    \
+          \    \"/\"\n    )\n    dataset_id = dataset_id_input or os.getenv(\"DIFY_DATASET_ID\"\
+          ) or \"\"\n    api_key = api_key_input or os.getenv(\"DIFY_API_KEY\") or\
+          \ \"\"\n\n    if not _is_set(api_base) or not _is_set(dataset_id) or not\
+          \ _is_set(api_key):\n        return {\n            \"result\": (\n     \
+          \           \"Dify API Konfiguration unvollstaendig. \"\n              \
+          \  \"Erwarte DIFY_API_URL, DIFY_DATASET_ID und DIFY_API_KEY.\"\n       \
+          \     )\n        }\n\n    # Extract filter values from paper_list if passed\
+          \ (Parse Router Output)\n    if isinstance(paper_list, list) and len(paper_list)\
+          \ > 0:\n        first = paper_list[0]\n        if isinstance(first, dict):\n\
+          \            if not _is_set(year):\n                year = first.get(\"\
           year\", \"\")\n            if not _is_set(journal):\n                journal\
           \ = first.get(\"journal\", \"\")\n            if not _is_set(title):\n \
           \               title = first.get(\"title\", \"\")\n        # Collect authors\
@@ -960,16 +960,29 @@ workflow:
           \         all_authors.append(a)\n            if all_authors:\n         \
           \       authors = \", \".join(all_authors)\n\n    headers = _build_headers(str(api_key).strip())\n\
           \    docs, errors = _collect_documents(str(api_base), str(dataset_id).strip(),\
-          \ headers)\n\n    # ── Collaboration Analysis Mode ─────────────────────────────────\n\
-          \    # Detects queries like \"who has collaborated the most?\", \"collaboration\
-          \ network\",\n    # \"co-authors of X\". Returns co-author pair frequencies,\
-          \ bypasses LLM.\n    if _is_set(collaboration_mode):\n        target = str(collaboration_mode).strip()\n\
-          \        target_author = (\n            target if target.lower() not in\
-          \ (\"true\", \"1\", \"yes\", \"all\") else \"\"\n        )\n        result_text,\
-          \ intent_hint = _compute_collaborations(docs, target_author)\n        result_lines\
-          \ = result_text.split(\"\\n\") if result_text else []\n        if len(result_lines)\
-          \ > 30:\n            result_lines = result_lines[:30]\n        return {\n\
-          \            \"result\": result_lines,\n            \"result_text\": result_text,\n\
+          \ headers)\n\n    # ── DEBUG: Show what we collected ──\n    _debug_info\
+          \ = []\n    _debug_info.append(f\"DEBUG: api_base={api_base}\")\n    _debug_info.append(f\"\
+          DEBUG: dataset_id={dataset_id}\")\n    _debug_info.append(f\"DEBUG: api_key_prefix={str(api_key)[:20]}...\"\
+          )\n    _debug_info.append(f\"DEBUG: docs_collected={len(docs)}\")\n    _debug_info.append(f\"\
+          DEBUG: errors={len(errors)}\")\n    _debug_info.append(f\"DEBUG: authors_filter={authors}\"\
+          )\n    _debug_info.append(f\"DEBUG: paper_list={str(paper_list)[:200]}\"\
+          )\n    if docs:\n        _debug_info.append(f\"DEBUG: first_doc={docs[0]}\"\
+          )\n        _match_count = 0\n        for d in docs:\n            if 'dieterich'\
+          \ in d.get('authors','').lower():\n                _match_count += 1\n \
+          \       _debug_info.append(f\"DEBUG: dieterich_match_count={_match_count}\"\
+          )\n    if errors:\n        _debug_info.append(f\"DEBUG: first_error={errors[0][:200]}\"\
+          )\n    return {\n        \"result\": _debug_info,\n        \"result_text\"\
+          : \"\\n\".join(_debug_info),\n    }\n\n    # ── Collaboration Analysis Mode\
+          \ ─────────────────────────────────\n    # Detects queries like \"who has\
+          \ collaborated the most?\", \"collaboration network\",\n    # \"co-authors\
+          \ of X\". Returns co-author pair frequencies, bypasses LLM.\n    if _is_set(collaboration_mode):\n\
+          \        target = str(collaboration_mode).strip()\n        target_author\
+          \ = (\n            target if target.lower() not in (\"true\", \"1\", \"\
+          yes\", \"all\") else \"\"\n        )\n        result_text, intent_hint =\
+          \ _compute_collaborations(docs, target_author)\n        result_lines = result_text.split(\"\
+          \\n\") if result_text else []\n        if len(result_lines) > 30:\n    \
+          \        result_lines = result_lines[:30]\n        return {\n          \
+          \  \"result\": result_lines,\n            \"result_text\": result_text,\n\
           \        }\n\n    year_filter = _sanitize_year_filter(year)\n    journal_filter\
           \ = _sanitize_free_text_filter(journal, max_len=80)\n    title_filter =\
           \ _sanitize_free_text_filter(title, max_len=160)\n\n    has_any_filter =\
@@ -1981,11 +1994,13 @@ workflow:
           \       # Take unique authors (usually just one if prev query was author-filtered)\n\
           \                        prev_authors.add(a)\n            if prev_authors:\n\
           \                # Use the author(s) from the previous turn\n          \
-          \      intent = \"metadata_list\"\n                paper_list = [{\"authors\"\
-          : list(prev_authors)[0], \"title\": \"\", \"year\": \"\", \"journal\": \"\
-          \"}]\n            # else: fall through to router's classification (no memory\
-          \ to work with)\n\n    return {\n        \"intent\": intent,\n        \"\
-          paper_list\": paper_list,\n        \"paper_count\": 0 if multi_author_bypass\
+          \      intent = \"metadata_list\"\n                paper_list = [\n    \
+          \                {\n                        \"authors\": list(prev_authors)[0],\n\
+          \                        \"title\": \"\",\n                        \"year\"\
+          : \"\",\n                        \"journal\": \"\",\n                  \
+          \  }\n                ]\n            # else: fall through to router's classification\
+          \ (no memory to work with)\n\n    return {\n        \"intent\": intent,\n\
+          \        \"paper_list\": paper_list,\n        \"paper_count\": 0 if multi_author_bypass\
           \ else len(paper_list),\n        \"rewritten_query\": rw,\n        \"list_mode\"\
           : list_mode,\n        \"collaboration_mode\": collaboration_mode,\n    }\n"
         code_language: python3
