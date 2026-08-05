@@ -942,17 +942,17 @@ workflow:
           def main(\n    year=None,\n    authors=None,\n    journal=None,\n    title=None,\n\
           \    paper_list=None,\n    list_mode=None,\n    collaboration_mode=None,\n\
           \    api_key_input=None,\n    dataset_id_input=None,\n):\n    api_base =\
-          \ (os.getenv(\"DIFY_API_URL\") or \"http://rmap-chatbot-demo-dify/v1\").rstrip(\n\
-          \        \"/\"\n    )\n    dataset_id = dataset_id_input or os.getenv(\"\
-          DIFY_DATASET_ID\") or \"\"\n    api_key = api_key_input or os.getenv(\"\
-          DIFY_API_KEY\") or \"\"\n\n    if not _is_set(api_base) or not _is_set(dataset_id)\
-          \ or not _is_set(api_key):\n        return {\n            \"result\": (\n\
-          \                \"Dify API Konfiguration unvollstaendig. \"\n         \
-          \       \"Erwarte DIFY_API_URL, DIFY_DATASET_ID und DIFY_API_KEY.\"\n  \
-          \          )\n        }\n\n    # Extract filter values from paper_list if\
-          \ passed (Parse Router Output)\n    if isinstance(paper_list, list) and\
-          \ len(paper_list) > 0:\n        first = paper_list[0]\n        if isinstance(first,\
-          \ dict):\n            if not _is_set(year):\n                year = first.get(\"\
+          \ (os.getenv(\"DIFY_API_URL\") or \"http://nginx/v1\").rstrip(\n       \
+          \ \"/\"\n    )\n    dataset_id = dataset_id_input or os.getenv(\"DIFY_DATASET_ID\"\
+          ) or \"\"\n    api_key = api_key_input or os.getenv(\"DIFY_API_KEY\") or\
+          \ \"\"\n\n    if not _is_set(api_base) or not _is_set(dataset_id) or not\
+          \ _is_set(api_key):\n        return {\n            \"result\": (\n     \
+          \           \"Dify API Konfiguration unvollstaendig. \"\n              \
+          \  \"Erwarte DIFY_API_URL, DIFY_DATASET_ID und DIFY_API_KEY.\"\n       \
+          \     )\n        }\n\n    # Extract filter values from paper_list if passed\
+          \ (Parse Router Output)\n    if isinstance(paper_list, list) and len(paper_list)\
+          \ > 0:\n        first = paper_list[0]\n        if isinstance(first, dict):\n\
+          \            if not _is_set(year):\n                year = first.get(\"\
           year\", \"\")\n            if not _is_set(journal):\n                journal\
           \ = first.get(\"journal\", \"\")\n            if not _is_set(title):\n \
           \               title = first.get(\"title\", \"\")\n        # Collect authors\
@@ -1015,15 +1015,13 @@ workflow:
           \    final_docs = list(unique.values())\n\n    # Detect multi-author OR\
           \ query for result header hint\n    is_multi = \",\" in str(authors or \"\
           \")\n\n    result_text = _render_result(\n        final_docs, total_docs=len(docs),\
-          \ is_multi_author=is_multi\n    )\n    # DEBUG\n    result_text = f\"DEBUG\
-          \ docs={len(docs)} matches={len(final_docs)} authors={authors} errors={len(errors)}\\\
-          n\" + result_text\n    if errors:\n        result_text += \"\\nFehlerdetails:\\\
-          n\" + \"\\n\".join(f\"- {e}\" for e in errors[:8])\n    # Cap result array\
-          \ at 30 elements (Dify limit); split only display lines\n    result_lines\
-          \ = result_text.split(\"\\n\") if result_text else []\n    if len(result_lines)\
-          \ > 30:\n        result_lines = result_lines[:30]\n    return {\n      \
-          \  \"result\": result_lines,\n        \"result_text\": result_text,\n  \
-          \  }\n"
+          \ is_multi_author=is_multi\n    )\n    if errors:\n        result_text +=\
+          \ \"\\nFehlerdetails:\\n\" + \"\\n\".join(f\"- {e}\" for e in errors[:8])\n\
+          \    # Cap result array at 30 elements (Dify limit); split only display\
+          \ lines\n    result_lines = result_text.split(\"\\n\") if result_text else\
+          \ []\n    if len(result_lines) > 30:\n        result_lines = result_lines[:30]\n\
+          \    return {\n        \"result\": result_lines,\n        \"result_text\"\
+          : result_text,\n    }\n"
         code_language: python3
         isInIteration: false
         isInLoop: false
