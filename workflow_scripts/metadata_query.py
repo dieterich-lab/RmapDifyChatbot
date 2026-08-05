@@ -520,7 +520,7 @@ def main(
     api_key_input=None,
     dataset_id_input=None,
 ):
-    api_base = (os.getenv("DIFY_API_URL") or "http://api:5001/v1").rstrip(
+    api_base = (os.getenv("DIFY_API_URL") or "http://rmap-chatbot-demo-dify/v1").rstrip(
         "/"
     )
     dataset_id = dataset_id_input or os.getenv("DIFY_DATASET_ID") or ""

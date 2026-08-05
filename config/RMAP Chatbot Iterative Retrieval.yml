@@ -41,6 +41,10 @@ workflow:
     - DIFY_DATASET_ID
     value: <your-dataset-id>
     value_type: string
+  - id: dify-api-url
+    name: DIFY_API_URL
+    value: http://rmap-chatbot-demo-dify/v1
+    description: Dify API base URL for sandbox code nodes
   features:
     file_upload:
       allowed_file_extensions:
@@ -938,17 +942,17 @@ workflow:
           def main(\n    year=None,\n    authors=None,\n    journal=None,\n    title=None,\n\
           \    paper_list=None,\n    list_mode=None,\n    collaboration_mode=None,\n\
           \    api_key_input=None,\n    dataset_id_input=None,\n):\n    api_base =\
-          \ (os.getenv(\"DIFY_API_URL\") or \"http://api:5001/v1\").rstrip(\n    \
-          \    \"/\"\n    )\n    dataset_id = dataset_id_input or os.getenv(\"DIFY_DATASET_ID\"\
-          ) or \"\"\n    api_key = api_key_input or os.getenv(\"DIFY_API_KEY\") or\
-          \ \"\"\n\n    if not _is_set(api_base) or not _is_set(dataset_id) or not\
-          \ _is_set(api_key):\n        return {\n            \"result\": (\n     \
-          \           \"Dify API Konfiguration unvollstaendig. \"\n              \
-          \  \"Erwarte DIFY_API_URL, DIFY_DATASET_ID und DIFY_API_KEY.\"\n       \
-          \     )\n        }\n\n    # Extract filter values from paper_list if passed\
-          \ (Parse Router Output)\n    if isinstance(paper_list, list) and len(paper_list)\
-          \ > 0:\n        first = paper_list[0]\n        if isinstance(first, dict):\n\
-          \            if not _is_set(year):\n                year = first.get(\"\
+          \ (os.getenv(\"DIFY_API_URL\") or \"http://rmap-chatbot-demo-dify/v1\").rstrip(\n\
+          \        \"/\"\n    )\n    dataset_id = dataset_id_input or os.getenv(\"\
+          DIFY_DATASET_ID\") or \"\"\n    api_key = api_key_input or os.getenv(\"\
+          DIFY_API_KEY\") or \"\"\n\n    if not _is_set(api_base) or not _is_set(dataset_id)\
+          \ or not _is_set(api_key):\n        return {\n            \"result\": (\n\
+          \                \"Dify API Konfiguration unvollstaendig. \"\n         \
+          \       \"Erwarte DIFY_API_URL, DIFY_DATASET_ID und DIFY_API_KEY.\"\n  \
+          \          )\n        }\n\n    # Extract filter values from paper_list if\
+          \ passed (Parse Router Output)\n    if isinstance(paper_list, list) and\
+          \ len(paper_list) > 0:\n        first = paper_list[0]\n        if isinstance(first,\
+          \ dict):\n            if not _is_set(year):\n                year = first.get(\"\
           year\", \"\")\n            if not _is_set(journal):\n                journal\
           \ = first.get(\"journal\", \"\")\n            if not _is_set(title):\n \
           \               title = first.get(\"title\", \"\")\n        # Collect authors\
@@ -960,29 +964,16 @@ workflow:
           \         all_authors.append(a)\n            if all_authors:\n         \
           \       authors = \", \".join(all_authors)\n\n    headers = _build_headers(str(api_key).strip())\n\
           \    docs, errors = _collect_documents(str(api_base), str(dataset_id).strip(),\
-          \ headers)\n\n    # ── DEBUG: Show what we collected ──\n    _debug_info\
-          \ = []\n    _debug_info.append(f\"DEBUG: api_base={api_base}\")\n    _debug_info.append(f\"\
-          DEBUG: dataset_id={dataset_id}\")\n    _debug_info.append(f\"DEBUG: api_key_prefix={str(api_key)[:20]}...\"\
-          )\n    _debug_info.append(f\"DEBUG: docs_collected={len(docs)}\")\n    _debug_info.append(f\"\
-          DEBUG: errors={len(errors)}\")\n    _debug_info.append(f\"DEBUG: authors_filter={authors}\"\
-          )\n    _debug_info.append(f\"DEBUG: paper_list={str(paper_list)[:200]}\"\
-          )\n    if docs:\n        _debug_info.append(f\"DEBUG: first_doc={docs[0]}\"\
-          )\n        _match_count = 0\n        for d in docs:\n            if 'dieterich'\
-          \ in d.get('authors','').lower():\n                _match_count += 1\n \
-          \       _debug_info.append(f\"DEBUG: dieterich_match_count={_match_count}\"\
-          )\n    if errors:\n        _debug_info.append(f\"DEBUG: first_error={errors[0][:200]}\"\
-          )\n    return {\n        \"result\": _debug_info,\n        \"result_text\"\
-          : \"\\n\".join(_debug_info),\n    }\n\n    # ── Collaboration Analysis Mode\
-          \ ─────────────────────────────────\n    # Detects queries like \"who has\
-          \ collaborated the most?\", \"collaboration network\",\n    # \"co-authors\
-          \ of X\". Returns co-author pair frequencies, bypasses LLM.\n    if _is_set(collaboration_mode):\n\
-          \        target = str(collaboration_mode).strip()\n        target_author\
-          \ = (\n            target if target.lower() not in (\"true\", \"1\", \"\
-          yes\", \"all\") else \"\"\n        )\n        result_text, intent_hint =\
-          \ _compute_collaborations(docs, target_author)\n        result_lines = result_text.split(\"\
-          \\n\") if result_text else []\n        if len(result_lines) > 30:\n    \
-          \        result_lines = result_lines[:30]\n        return {\n          \
-          \  \"result\": result_lines,\n            \"result_text\": result_text,\n\
+          \ headers)\n\n    # ── Collaboration Analysis Mode ─────────────────────────────────\n\
+          \    # Detects queries like \"who has collaborated the most?\", \"collaboration\
+          \ network\",\n    # \"co-authors of X\". Returns co-author pair frequencies,\
+          \ bypasses LLM.\n    if _is_set(collaboration_mode):\n        target = str(collaboration_mode).strip()\n\
+          \        target_author = (\n            target if target.lower() not in\
+          \ (\"true\", \"1\", \"yes\", \"all\") else \"\"\n        )\n        result_text,\
+          \ intent_hint = _compute_collaborations(docs, target_author)\n        result_lines\
+          \ = result_text.split(\"\\n\") if result_text else []\n        if len(result_lines)\
+          \ > 30:\n            result_lines = result_lines[:30]\n        return {\n\
+          \            \"result\": result_lines,\n            \"result_text\": result_text,\n\
           \        }\n\n    year_filter = _sanitize_year_filter(year)\n    journal_filter\
           \ = _sanitize_free_text_filter(journal, max_len=80)\n    title_filter =\
           \ _sanitize_free_text_filter(title, max_len=160)\n\n    has_any_filter =\
@@ -1024,13 +1015,15 @@ workflow:
           \    final_docs = list(unique.values())\n\n    # Detect multi-author OR\
           \ query for result header hint\n    is_multi = \",\" in str(authors or \"\
           \")\n\n    result_text = _render_result(\n        final_docs, total_docs=len(docs),\
-          \ is_multi_author=is_multi\n    )\n    if errors:\n        result_text +=\
-          \ \"\\nFehlerdetails:\\n\" + \"\\n\".join(f\"- {e}\" for e in errors[:8])\n\
-          \    # Cap result array at 30 elements (Dify limit); split only display\
-          \ lines\n    result_lines = result_text.split(\"\\n\") if result_text else\
-          \ []\n    if len(result_lines) > 30:\n        result_lines = result_lines[:30]\n\
-          \    return {\n        \"result\": result_lines,\n        \"result_text\"\
-          : result_text,\n    }\n"
+          \ is_multi_author=is_multi\n    )\n    # DEBUG\n    result_text = f\"DEBUG\
+          \ docs={len(docs)} matches={len(final_docs)} authors={authors} errors={len(errors)}\\\
+          n\" + result_text\n    if errors:\n        result_text += \"\\nFehlerdetails:\\\
+          n\" + \"\\n\".join(f\"- {e}\" for e in errors[:8])\n    # Cap result array\
+          \ at 30 elements (Dify limit); split only display lines\n    result_lines\
+          \ = result_text.split(\"\\n\") if result_text else []\n    if len(result_lines)\
+          \ > 30:\n        result_lines = result_lines[:30]\n    return {\n      \
+          \  \"result\": result_lines,\n        \"result_text\": result_text,\n  \
+          \  }\n"
         code_language: python3
         isInIteration: false
         isInLoop: false
