@@ -282,17 +282,14 @@ def _collect_documents(
         if not doc_id:
             continue
 
-        detail_url = f"{api_base}/datasets/{dataset_id}/documents/{doc_id}?{urlencode({'metadata': 'all'})}"
-        detail, detail_err = _run_json_get(detail_url, headers=headers)
-        if detail_err:
-            errors.append(f"Dokument {doc_id}: {detail_err}")
-            continue
-
-        meta = _metadata_to_dict(detail)
+        # Use metadata from list response directly (doc_metadata is included
+        # since Dify 0.7+). Avoids 84 redundant detail-API calls per query
+        # and works reliably from the sandbox code node.
+        meta = _metadata_to_dict(item)
         docs.append(
             {
                 "id": doc_id,
-                "title": meta.get("title") or str(detail.get("name") or "").strip(),
+                "title": meta.get("title") or str(item.get("name") or "").strip(),
                 "authors": meta.get("authors", ""),
                 "year": meta.get("year", ""),
                 "journal": meta.get("journal", ""),
