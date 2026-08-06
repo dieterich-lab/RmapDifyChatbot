@@ -4,7 +4,7 @@ app:
   icon_background: '#D1E9FF'
   icon_type: emoji
   mode: advanced-chat
-  name: RMAP Chatbot H100
+  name: RMAP Chatbot A2
   use_icon_as_answer_icon: false
 dependencies:
 - current_identifier: null
@@ -42,7 +42,7 @@ workflow:
     value: <your-dataset-id>
     value_type: string
   - description: ''
-    id: a1b2c3d4-e5f6-7890-abcd-ef1234567890
+    id: a1b2c3d4-e5f6-7890-abcd-ef1234567891
     name: DIFY_API_URL
     selector:
     - env
@@ -471,13 +471,12 @@ workflow:
             size: 50
         model:
           completion_params:
-            max_tokens: 8192
+            max_tokens: 4000
             num_ctx: 65536
             temperature: 0
           mode: chat
-          name: qwen3:32b
+          name: qwen2.5:14b
           provider: langgenius/ollama/ollama
-          endpoint_url: http://gpu-g5-1:21434
         prompt_template:
         - id: 400aef06-66bf-4730-a1f4-3dd418d2d48e
           reasoning_format: separated
@@ -821,12 +820,12 @@ workflow:
           \ not items:\n            break\n        all_items.extend(items)\n     \
           \   if len(items) < 100:\n            break\n\n    for item in all_items:\n\
           \        doc_id = str((item or {}).get(\"id\") or \"\").strip()\n      \
-          \  if not doc_id:\n            continue\n\n        detail_url = f\"{api_base}/datasets/{dataset_id}/documents/{doc_id}?{urlencode({'metadata':\
-          \ 'all'})}\"\n        detail, detail_err = _run_json_get(detail_url, headers=headers)\n\
-          \        if detail_err:\n            errors.append(f\"Dokument {doc_id}:\
-          \ {detail_err}\")\n            continue\n\n        meta = _metadata_to_dict(detail)\n\
+          \  if not doc_id:\n            continue\n\n        # Use metadata from list\
+          \ response directly (doc_metadata is included\n        # since Dify 0.7+).\
+          \ Avoids 84 redundant detail-API calls per query\n        # and works reliably\
+          \ from the sandbox code node.\n        meta = _metadata_to_dict(item)\n\
           \        docs.append(\n            {\n                \"id\": doc_id,\n\
-          \                \"title\": meta.get(\"title\") or str(detail.get(\"name\"\
+          \                \"title\": meta.get(\"title\") or str(item.get(\"name\"\
           ) or \"\").strip(),\n                \"authors\": meta.get(\"authors\",\
           \ \"\"),\n                \"year\": meta.get(\"year\", \"\"),\n        \
           \        \"journal\": meta.get(\"journal\", \"\"),\n            }\n    \
@@ -946,18 +945,18 @@ workflow:
           \ \"collaboration\"\n\n    return \"\\n\".join(lines), intent_hint\n\n\n\
           def main(\n    year=None,\n    authors=None,\n    journal=None,\n    title=None,\n\
           \    paper_list=None,\n    list_mode=None,\n    collaboration_mode=None,\n\
-          \    api_key_input=None,\n    dataset_id_input=None,\n    api_url_input=None,\n\
-          ):\n    api_base = (api_url_input or os.getenv(\"DIFY_API_URL\") or \"http://rmap-chatbot-demo-dify/v1\"\
-          ).rstrip(\n        \"/\"\n    )\n    dataset_id = dataset_id_input or os.getenv(\"\
-          DIFY_DATASET_ID\") or \"\"\n    api_key = api_key_input or os.getenv(\"\
-          DIFY_API_KEY\") or \"\"\n\n    if not _is_set(api_base) or not _is_set(dataset_id)\
-          \ or not _is_set(api_key):\n        return {\n            \"result\": (\n\
-          \                \"Dify API Konfiguration unvollstaendig. \"\n         \
-          \       \"Erwarte DIFY_API_URL, DIFY_DATASET_ID und DIFY_API_KEY.\"\n  \
-          \          )\n        }\n\n    # Extract filter values from paper_list if\
-          \ passed (Parse Router Output)\n    if isinstance(paper_list, list) and\
-          \ len(paper_list) > 0:\n        first = paper_list[0]\n        if isinstance(first,\
-          \ dict):\n            if not _is_set(year):\n                year = first.get(\"\
+          \    api_url_input=None,\n    api_key_input=None,\n    dataset_id_input=None,\n\
+          ):\n    api_base = (api_url_input or os.getenv(\"DIFY_API_URL\") or \"http://nginx/v1\"\
+          ).rstrip(\"/\")\n    dataset_id = dataset_id_input or os.getenv(\"DIFY_DATASET_ID\"\
+          ) or \"\"\n    api_key = api_key_input or os.getenv(\"DIFY_API_KEY\") or\
+          \ \"\"\n\n    if not _is_set(api_base) or not _is_set(dataset_id) or not\
+          \ _is_set(api_key):\n        return {\n            \"result\": [\n     \
+          \           \"Dify API Konfiguration unvollstaendig. \"\n              \
+          \  \"Erwarte DIFY_API_URL, DIFY_DATASET_ID und DIFY_API_KEY.\"\n       \
+          \     ]\n        }\n\n    # Extract filter values from paper_list if passed\
+          \ (Parse Router Output)\n    if isinstance(paper_list, list) and len(paper_list)\
+          \ > 0:\n        first = paper_list[0]\n        if isinstance(first, dict):\n\
+          \            if not _is_set(year):\n                year = first.get(\"\
           year\", \"\")\n            if not _is_set(journal):\n                journal\
           \ = first.get(\"journal\", \"\")\n            if not _is_set(title):\n \
           \               title = first.get(\"title\", \"\")\n        # Collect authors\
@@ -1058,6 +1057,11 @@ workflow:
           variable: collaboration_mode
         - value_selector:
           - env
+          - DIFY_API_URL
+          value_type: string
+          variable: api_url_input
+        - value_selector:
+          - env
           - DIFY_API_KEY
           value_type: string
           variable: api_key_input
@@ -1066,11 +1070,6 @@ workflow:
           - DIFY_DATASET_ID
           value_type: string
           variable: dataset_id_input
-        - value_selector:
-          - env
-          - DIFY_API_URL
-          value_type: string
-          variable: api_url_input
       height: 51
       id: '17786780698570'
       position:
@@ -1358,23 +1357,23 @@ workflow:
           \            break\n    return \"\", f\"no document found for title: {title!r}\"\
           \n\n\ndef main(\n    doc_id=None,\n    item_title=None,\n    item_authors=None,\n\
           \    item_year=None,\n    item_journal=None,\n    paper_count=None,\n  \
-          \  api_key_input=None,\n    api_url_input=None,\n):\n    api_base = (\n\
-          \        api_url_input or _norm(os.getenv(\"DIFY_API_URL\")) or \"http://rmap-chatbot-demo-dify/v1\"\
-          \n    ).rstrip(\"/\")\n    dataset_id = _norm(os.getenv(\"DIFY_DATASET_ID\"\
-          )) or \"\"\n    api_key = api_key_input or _norm(os.getenv(\"DIFY_API_KEY\"\
-          )) or \"\"\n\n    if not dataset_id:\n        return {\n            \"error\"\
-          : \"DIFY_DATASET_ID not configured. Run import_dify_dsl.sh to inject from\
-          \ .env.\"\n        }\n    if not api_key:\n        return {\n          \
-          \  \"error\": \"DIFY_API_KEY not configured. Run import_dify_dsl.sh to inject\
-          \ from .env.\"\n        }\n\n    headers = {\"Authorization\": f\"Bearer\
-          \ {api_key}\", \"Content-Type\": \"application/json\"}\n\n    resolved =\
-          \ _norm(doc_id)\n    used_title_fallback = False\n    if not resolved:\n\
-          \        title = _norm(item_title)\n        if not title:\n            return\
-          \ {\"paper_context\": \"\", \"paper_fetch_error\": \"no doc_id and no title\"\
-          }\n        resolved, err = _find_doc_id_by_title(api_base, dataset_id, title,\
-          \ headers)\n        if not resolved:\n            return {\n           \
-          \     \"paper_context\": \"\",\n                \"paper_fetch_error\": err\
-          \ or \"title lookup failed\",\n            }\n        used_title_fallback\
+          \  api_url_input=None,\n    api_key_input=None,\n):\n    api_base = (\n\
+          \        api_url_input\n        or _norm(os.getenv(\"DIFY_API_URL\")) or\
+          \ \"http://rmap-chatbot-demo-dify/v1\"\n    ).rstrip(\"/\")\n    dataset_id\
+          \ = _norm(os.getenv(\"DIFY_DATASET_ID\")) or \"\"\n    api_key = api_key_input\
+          \ or _norm(os.getenv(\"DIFY_API_KEY\")) or \"\"\n\n    if not dataset_id:\n\
+          \        return {\n            \"error\": \"DIFY_DATASET_ID not configured.\
+          \ Run import_dify_dsl.sh to inject from .env.\"\n        }\n    if not api_key:\n\
+          \        return {\n            \"error\": \"DIFY_API_KEY not configured.\
+          \ Run import_dify_dsl.sh to inject from .env.\"\n        }\n\n    headers\
+          \ = {\"Authorization\": f\"Bearer {api_key}\", \"Content-Type\": \"application/json\"\
+          }\n\n    resolved = _norm(doc_id)\n    used_title_fallback = False\n   \
+          \ if not resolved:\n        title = _norm(item_title)\n        if not title:\n\
+          \            return {\"paper_context\": \"\", \"paper_fetch_error\": \"\
+          no doc_id and no title\"}\n        resolved, err = _find_doc_id_by_title(api_base,\
+          \ dataset_id, title, headers)\n        if not resolved:\n            return\
+          \ {\n                \"paper_context\": \"\",\n                \"paper_fetch_error\"\
+          : err or \"title lookup failed\",\n            }\n        used_title_fallback\
           \ = True\n\n    text, err = _fetch_all_segments(api_base, dataset_id, resolved,\
           \ headers)\n\n    # Fallback: if doc_id fetch returned no segments, try\
           \ title lookup\n    if (not text or err) and not used_title_fallback:\n\
@@ -1447,14 +1446,14 @@ workflow:
           variable: paper_count
         - value_selector:
           - env
-          - DIFY_API_KEY
-          value_type: string
-          variable: api_key_input
-        - value_selector:
-          - env
           - DIFY_API_URL
           value_type: string
           variable: api_url_input
+        - value_selector:
+          - env
+          - DIFY_API_KEY
+          value_type: string
+          variable: api_key_input
       height: 51
       id: '1778800001025'
       parentId: '1778676584534'
@@ -1485,13 +1484,12 @@ workflow:
             size: 50
         model:
           completion_params:
-            max_tokens: 8192
+            max_tokens: 4000
             num_ctx: 32768
             temperature: 0
           mode: chat
-          name: qwen3:32b
+          name: qwen2.5:14b
           provider: langgenius/ollama/ollama
-          endpoint_url: http://gpu-g5-1:21434
         prompt_template:
         - id: b9d22b40-75cf-5841-a2e5-4ee428e3d59f
           reasoning_format: separated
@@ -1567,12 +1565,11 @@ workflow:
             size: 12
         model:
           completion_params:
-            max_tokens: 8192
+            max_tokens: 4096
             temperature: 0
           mode: chat
-          name: qwen3:32b
+          name: qwen2.5:14b
           provider: langgenius/ollama/ollama
-          endpoint_url: http://gpu-g5-1:21434
         prompt_template:
         - id: unified-router-prompt
           reasoning_format: separated
@@ -2226,12 +2223,11 @@ workflow:
             size: 0
         model:
           completion_params:
-            max_tokens: 8192
+            max_tokens: 4000
             temperature: 0
           mode: chat
-          name: qwen3:32b
+          name: qwen2.5:14b
           provider: langgenius/ollama/ollama
-          endpoint_url: http://gpu-g5-1:21434
         prompt_template:
         - id: author-extraction-prompt
           role: system
@@ -2331,12 +2327,11 @@ workflow:
             size: 0
         model:
           completion_params:
-            max_tokens: 8192
+            max_tokens: 4000
             temperature: 0
           mode: chat
-          name: qwen3:32b
+          name: qwen2.5:14b
           provider: langgenius/ollama/ollama
-          endpoint_url: http://gpu-g5-1:21434
         prompt_template:
         - id: entity-extraction-prompt
           role: system
@@ -2402,12 +2397,11 @@ workflow:
             size: 0
         model:
           completion_params:
-            max_tokens: 8192
+            max_tokens: 4000
             temperature: 0
           mode: chat
-          name: qwen3:32b
+          name: qwen2.5:14b
           provider: langgenius/ollama/ollama
-          endpoint_url: http://gpu-g5-1:21434
         prompt_template:
         - id: kr-extraction-prompt
           role: system

@@ -111,6 +111,7 @@ def main(
     item_year=None,
     item_journal=None,
     paper_count=None,
+    api_url_input=None,
     api_key_input=None,
     api_url_input=None,
 ):
