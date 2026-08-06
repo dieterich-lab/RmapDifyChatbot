@@ -23,3 +23,6 @@ slurm/*.log
 RMaP papers first funding period/
 *_probe_*.txt
 logs/
+
+# All env files (secrets)
+.env.*
