@@ -111,10 +111,13 @@ def main(
     item_year=None,
     item_journal=None,
     paper_count=None,
+    api_url_input=None,
     api_key_input=None,
 ):
     api_base = (
-        _norm(os.getenv("DIFY_API_URL")) or "http://rmap-chatbot-demo-dify/v1"
+        api_url_input
+        or _norm(os.getenv("DIFY_API_URL"))
+        or "http://rmap-chatbot-demo-dify/v1"
     ).rstrip("/")
     dataset_id = _norm(os.getenv("DIFY_DATASET_ID")) or ""
     api_key = api_key_input or _norm(os.getenv("DIFY_API_KEY")) or ""

@@ -945,25 +945,25 @@ workflow:
           \ \"collaboration\"\n\n    return \"\\n\".join(lines), intent_hint\n\n\n\
           def main(\n    year=None,\n    authors=None,\n    journal=None,\n    title=None,\n\
           \    paper_list=None,\n    list_mode=None,\n    collaboration_mode=None,\n\
-          \    api_key_input=None,\n    dataset_id_input=None,\n):\n    api_base =\
-          \ (os.getenv(\"DIFY_API_URL\") or \"http://nginx/v1\").rstrip(\"/\")\n \
-          \   dataset_id = dataset_id_input or os.getenv(\"DIFY_DATASET_ID\") or \"\
-          \"\n    api_key = api_key_input or os.getenv(\"DIFY_API_KEY\") or \"\"\n\
-          \n    if not _is_set(api_base) or not _is_set(dataset_id) or not _is_set(api_key):\n\
-          \        return {\n            \"result\": [\n                \"Dify API\
-          \ Konfiguration unvollstaendig. \"\n                \"Erwarte DIFY_API_URL,\
-          \ DIFY_DATASET_ID und DIFY_API_KEY.\"\n            ]\n        }\n\n    #\
-          \ Extract filter values from paper_list if passed (Parse Router Output)\n\
-          \    if isinstance(paper_list, list) and len(paper_list) > 0:\n        first\
-          \ = paper_list[0]\n        if isinstance(first, dict):\n            if not\
-          \ _is_set(year):\n                year = first.get(\"year\", \"\")\n   \
-          \         if not _is_set(journal):\n                journal = first.get(\"\
-          journal\", \"\")\n            if not _is_set(title):\n                title\
-          \ = first.get(\"title\", \"\")\n        # Collect authors from ALL entries\
-          \ (supports multi-name OR queries\n        # where parse_router_output splits\
-          \ \"X, Y\" into separate entries)\n        if not _is_set(authors):\n  \
-          \          all_authors = []\n            for entry in paper_list:\n    \
-          \            if isinstance(entry, dict):\n                    a = (entry.get(\"\
+          \    api_url_input=None,\n    api_key_input=None,\n    dataset_id_input=None,\n\
+          ):\n    api_base = (api_url_input or os.getenv(\"DIFY_API_URL\") or \"http://nginx/v1\"\
+          ).rstrip(\"/\")\n    dataset_id = dataset_id_input or os.getenv(\"DIFY_DATASET_ID\"\
+          ) or \"\"\n    api_key = api_key_input or os.getenv(\"DIFY_API_KEY\") or\
+          \ \"\"\n\n    if not _is_set(api_base) or not _is_set(dataset_id) or not\
+          \ _is_set(api_key):\n        return {\n            \"result\": [\n     \
+          \           \"Dify API Konfiguration unvollstaendig. \"\n              \
+          \  \"Erwarte DIFY_API_URL, DIFY_DATASET_ID und DIFY_API_KEY.\"\n       \
+          \     ]\n        }\n\n    # Extract filter values from paper_list if passed\
+          \ (Parse Router Output)\n    if isinstance(paper_list, list) and len(paper_list)\
+          \ > 0:\n        first = paper_list[0]\n        if isinstance(first, dict):\n\
+          \            if not _is_set(year):\n                year = first.get(\"\
+          year\", \"\")\n            if not _is_set(journal):\n                journal\
+          \ = first.get(\"journal\", \"\")\n            if not _is_set(title):\n \
+          \               title = first.get(\"title\", \"\")\n        # Collect authors\
+          \ from ALL entries (supports multi-name OR queries\n        # where parse_router_output\
+          \ splits \"X, Y\" into separate entries)\n        if not _is_set(authors):\n\
+          \            all_authors = []\n            for entry in paper_list:\n  \
+          \              if isinstance(entry, dict):\n                    a = (entry.get(\"\
           authors\") or \"\").strip()\n                    if a:\n               \
           \         all_authors.append(a)\n            if all_authors:\n         \
           \       authors = \", \".join(all_authors)\n\n    headers = _build_headers(str(api_key).strip())\n\
@@ -1055,6 +1055,11 @@ workflow:
           - collaboration_mode
           value_type: string
           variable: collaboration_mode
+        - value_selector:
+          - env
+          - DIFY_API_URL
+          value_type: string
+          variable: api_url_input
         - value_selector:
           - env
           - DIFY_API_KEY
@@ -1352,43 +1357,43 @@ workflow:
           \            break\n    return \"\", f\"no document found for title: {title!r}\"\
           \n\n\ndef main(\n    doc_id=None,\n    item_title=None,\n    item_authors=None,\n\
           \    item_year=None,\n    item_journal=None,\n    paper_count=None,\n  \
-          \  api_key_input=None,\n):\n    api_base = (\n        _norm(os.getenv(\"\
-          DIFY_API_URL\")) or \"http://rmap-chatbot-demo-dify/v1\"\n    ).rstrip(\"\
-          /\")\n    dataset_id = _norm(os.getenv(\"DIFY_DATASET_ID\")) or \"\"\n \
-          \   api_key = api_key_input or _norm(os.getenv(\"DIFY_API_KEY\")) or \"\"\
-          \n\n    if not dataset_id:\n        return {\n            \"error\": \"\
-          DIFY_DATASET_ID not configured. Run import_dify_dsl.sh to inject from .env.\"\
-          \n        }\n    if not api_key:\n        return {\n            \"error\"\
-          : \"DIFY_API_KEY not configured. Run import_dify_dsl.sh to inject from .env.\"\
-          \n        }\n\n    headers = {\"Authorization\": f\"Bearer {api_key}\",\
-          \ \"Content-Type\": \"application/json\"}\n\n    resolved = _norm(doc_id)\n\
-          \    used_title_fallback = False\n    if not resolved:\n        title =\
-          \ _norm(item_title)\n        if not title:\n            return {\"paper_context\"\
-          : \"\", \"paper_fetch_error\": \"no doc_id and no title\"}\n        resolved,\
-          \ err = _find_doc_id_by_title(api_base, dataset_id, title, headers)\n  \
-          \      if not resolved:\n            return {\n                \"paper_context\"\
-          : \"\",\n                \"paper_fetch_error\": err or \"title lookup failed\"\
-          ,\n            }\n        used_title_fallback = True\n\n    text, err =\
-          \ _fetch_all_segments(api_base, dataset_id, resolved, headers)\n\n    #\
-          \ Fallback: if doc_id fetch returned no segments, try title lookup\n   \
-          \ if (not text or err) and not used_title_fallback:\n        title = _norm(item_title)\n\
-          \        if title:\n            fallback_id, fb_err = _find_doc_id_by_title(\n\
-          \                api_base, dataset_id, title, headers\n            )\n \
-          \           if fallback_id and fallback_id != resolved:\n              \
-          \  text2, err2 = _fetch_all_segments(\n                    api_base, dataset_id,\
-          \ fallback_id, headers\n                )\n                if text2:\n \
-          \                   text, err = text2, None\n\n    if err:\n        return\
-          \ {\"paper_context\": \"\", \"paper_fetch_error\": err}\n\n    title = _norm(item_title)\n\
-          \    year = _norm(item_year)\n    journal = _norm(item_journal)\n    authors\
-          \ = _norm(item_authors)\n    meta_line = (\n        f\"{title} ({year},\
-          \ {journal}) — {authors}\"\n        if (year or journal or authors)\n  \
-          \      else title\n    )\n    header = f\"=== {meta_line} ===\"\n    n =\
-          \ int(paper_count) if paper_count and int(paper_count) > 0 else 1\n    #\
-          \ With MAX_PAPERS_FOR_SUMMARY=8: 8 papers × 6000 chars = 48K total\n   \
-          \ # Fits in 65K context window with room for prompt (~13K) + output (~4K)\n\
-          \    chars_per_paper = max(4000, 48000 // n)\n    context = f\"{header}\\\
-          n\\n{text[:chars_per_paper]}\"\n    return {\"paper_context\": context,\
-          \ \"paper_fetch_error\": \"\"}\n"
+          \  api_url_input=None,\n    api_key_input=None,\n):\n    api_base = (\n\
+          \        api_url_input\n        or _norm(os.getenv(\"DIFY_API_URL\")) or\
+          \ \"http://rmap-chatbot-demo-dify/v1\"\n    ).rstrip(\"/\")\n    dataset_id\
+          \ = _norm(os.getenv(\"DIFY_DATASET_ID\")) or \"\"\n    api_key = api_key_input\
+          \ or _norm(os.getenv(\"DIFY_API_KEY\")) or \"\"\n\n    if not dataset_id:\n\
+          \        return {\n            \"error\": \"DIFY_DATASET_ID not configured.\
+          \ Run import_dify_dsl.sh to inject from .env.\"\n        }\n    if not api_key:\n\
+          \        return {\n            \"error\": \"DIFY_API_KEY not configured.\
+          \ Run import_dify_dsl.sh to inject from .env.\"\n        }\n\n    headers\
+          \ = {\"Authorization\": f\"Bearer {api_key}\", \"Content-Type\": \"application/json\"\
+          }\n\n    resolved = _norm(doc_id)\n    used_title_fallback = False\n   \
+          \ if not resolved:\n        title = _norm(item_title)\n        if not title:\n\
+          \            return {\"paper_context\": \"\", \"paper_fetch_error\": \"\
+          no doc_id and no title\"}\n        resolved, err = _find_doc_id_by_title(api_base,\
+          \ dataset_id, title, headers)\n        if not resolved:\n            return\
+          \ {\n                \"paper_context\": \"\",\n                \"paper_fetch_error\"\
+          : err or \"title lookup failed\",\n            }\n        used_title_fallback\
+          \ = True\n\n    text, err = _fetch_all_segments(api_base, dataset_id, resolved,\
+          \ headers)\n\n    # Fallback: if doc_id fetch returned no segments, try\
+          \ title lookup\n    if (not text or err) and not used_title_fallback:\n\
+          \        title = _norm(item_title)\n        if title:\n            fallback_id,\
+          \ fb_err = _find_doc_id_by_title(\n                api_base, dataset_id,\
+          \ title, headers\n            )\n            if fallback_id and fallback_id\
+          \ != resolved:\n                text2, err2 = _fetch_all_segments(\n   \
+          \                 api_base, dataset_id, fallback_id, headers\n         \
+          \       )\n                if text2:\n                    text, err = text2,\
+          \ None\n\n    if err:\n        return {\"paper_context\": \"\", \"paper_fetch_error\"\
+          : err}\n\n    title = _norm(item_title)\n    year = _norm(item_year)\n \
+          \   journal = _norm(item_journal)\n    authors = _norm(item_authors)\n \
+          \   meta_line = (\n        f\"{title} ({year}, {journal}) — {authors}\"\n\
+          \        if (year or journal or authors)\n        else title\n    )\n  \
+          \  header = f\"=== {meta_line} ===\"\n    n = int(paper_count) if paper_count\
+          \ and int(paper_count) > 0 else 1\n    # With MAX_PAPERS_FOR_SUMMARY=8:\
+          \ 8 papers × 6000 chars = 48K total\n    # Fits in 65K context window with\
+          \ room for prompt (~13K) + output (~4K)\n    chars_per_paper = max(4000,\
+          \ 48000 // n)\n    context = f\"{header}\\n\\n{text[:chars_per_paper]}\"\
+          \n    return {\"paper_context\": context, \"paper_fetch_error\": \"\"}\n"
         code_language: python3
         isInIteration: true
         isInLoop: false
@@ -1439,6 +1444,11 @@ workflow:
           - paper_count
           value_type: number
           variable: paper_count
+        - value_selector:
+          - env
+          - DIFY_API_URL
+          value_type: string
+          variable: api_url_input
         - value_selector:
           - env
           - DIFY_API_KEY
