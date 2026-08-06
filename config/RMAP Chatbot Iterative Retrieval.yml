@@ -41,10 +41,14 @@ workflow:
     - DIFY_DATASET_ID
     value: <your-dataset-id>
     value_type: string
-  - id: dify-api-url
+  - description: ''
+    id: a1b2c3d4-e5f6-7890-abcd-ef1234567891
     name: DIFY_API_URL
+    selector:
+    - env
+    - DIFY_API_URL
     value: http://rmap-chatbot-demo-dify/v1
-    description: Dify API base URL for sandbox code nodes
+    value_type: string
   features:
     file_upload:
       allowed_file_extensions:
@@ -942,24 +946,24 @@ workflow:
           def main(\n    year=None,\n    authors=None,\n    journal=None,\n    title=None,\n\
           \    paper_list=None,\n    list_mode=None,\n    collaboration_mode=None,\n\
           \    api_key_input=None,\n    dataset_id_input=None,\n):\n    api_base =\
-          \ (os.getenv(\"DIFY_API_URL\") or \"http://nginx/v1\").rstrip(\n       \
-          \ \"/\"\n    )\n    dataset_id = dataset_id_input or os.getenv(\"DIFY_DATASET_ID\"\
-          ) or \"\"\n    api_key = api_key_input or os.getenv(\"DIFY_API_KEY\") or\
-          \ \"\"\n\n    if not _is_set(api_base) or not _is_set(dataset_id) or not\
-          \ _is_set(api_key):\n        return {\n            \"result\": (\n     \
-          \           \"Dify API Konfiguration unvollstaendig. \"\n              \
-          \  \"Erwarte DIFY_API_URL, DIFY_DATASET_ID und DIFY_API_KEY.\"\n       \
-          \     )\n        }\n\n    # Extract filter values from paper_list if passed\
-          \ (Parse Router Output)\n    if isinstance(paper_list, list) and len(paper_list)\
-          \ > 0:\n        first = paper_list[0]\n        if isinstance(first, dict):\n\
-          \            if not _is_set(year):\n                year = first.get(\"\
-          year\", \"\")\n            if not _is_set(journal):\n                journal\
-          \ = first.get(\"journal\", \"\")\n            if not _is_set(title):\n \
-          \               title = first.get(\"title\", \"\")\n        # Collect authors\
-          \ from ALL entries (supports multi-name OR queries\n        # where parse_router_output\
-          \ splits \"X, Y\" into separate entries)\n        if not _is_set(authors):\n\
-          \            all_authors = []\n            for entry in paper_list:\n  \
-          \              if isinstance(entry, dict):\n                    a = (entry.get(\"\
+          \ (os.getenv(\"DIFY_API_URL\") or \"http://nginx/v1\").rstrip(\"/\")\n \
+          \   dataset_id = dataset_id_input or os.getenv(\"DIFY_DATASET_ID\") or \"\
+          \"\n    api_key = api_key_input or os.getenv(\"DIFY_API_KEY\") or \"\"\n\
+          \n    if not _is_set(api_base) or not _is_set(dataset_id) or not _is_set(api_key):\n\
+          \        return {\n            \"result\": [\n                \"Dify API\
+          \ Konfiguration unvollstaendig. \"\n                \"Erwarte DIFY_API_URL,\
+          \ DIFY_DATASET_ID und DIFY_API_KEY.\"\n            ]\n        }\n\n    #\
+          \ Extract filter values from paper_list if passed (Parse Router Output)\n\
+          \    if isinstance(paper_list, list) and len(paper_list) > 0:\n        first\
+          \ = paper_list[0]\n        if isinstance(first, dict):\n            if not\
+          \ _is_set(year):\n                year = first.get(\"year\", \"\")\n   \
+          \         if not _is_set(journal):\n                journal = first.get(\"\
+          journal\", \"\")\n            if not _is_set(title):\n                title\
+          \ = first.get(\"title\", \"\")\n        # Collect authors from ALL entries\
+          \ (supports multi-name OR queries\n        # where parse_router_output splits\
+          \ \"X, Y\" into separate entries)\n        if not _is_set(authors):\n  \
+          \          all_authors = []\n            for entry in paper_list:\n    \
+          \            if isinstance(entry, dict):\n                    a = (entry.get(\"\
           authors\") or \"\").strip()\n                    if a:\n               \
           \         all_authors.append(a)\n            if all_authors:\n         \
           \       authors = \", \".join(all_authors)\n\n    headers = _build_headers(str(api_key).strip())\n\

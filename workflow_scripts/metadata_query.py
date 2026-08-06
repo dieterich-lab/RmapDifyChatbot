@@ -526,10 +526,10 @@ def main(
 
     if not _is_set(api_base) or not _is_set(dataset_id) or not _is_set(api_key):
         return {
-            "result": (
+            "result": [
                 "Dify API Konfiguration unvollstaendig. "
                 "Erwarte DIFY_API_URL, DIFY_DATASET_ID und DIFY_API_KEY."
-            )
+            ]
         }
 
     # Extract filter values from paper_list if passed (Parse Router Output)
