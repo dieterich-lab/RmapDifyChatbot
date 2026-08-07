@@ -1,5 +1,22 @@
 # Changelog
 
+## [0.4.18] - 2026-08-07
+
+### Added
+
+Missing parameter dataset_id_input is inserted into FETCH FULL PAPER node's input values, code is updated and it is working again.
+Environment variables for the Chatbot A2 updated.
+
+## Changed
+
+Chatbot H100's speed tuning has begun. Unified Router is changed from Qwen3:32b to Qwen2.5:14b, speed up drastically. 
+
+Tried to tune hyperparameters, this results in weakened responses. Metadata LLM, which is responsible for fetching the papers from the dataset, shows super-improved speed but misses results.
+
+Fixed the maximum returned paper size to 100, thus a list of 37 papers are no longer returned as 30 (previous limit of Dify), but the stylish effects like the bolding of the font is gone when applied. 
+
+Collaboration list was returning only the total highest collaborations, fixed it so every author's own collaborations are now fetching.
+
 ## [0.4.17] - 2026-07-29
 
 ### Added
