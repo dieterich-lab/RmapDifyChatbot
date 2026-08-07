@@ -345,8 +345,8 @@ def _render_result(
             f"{idx}. {doc['title']} | {doc['authors']} | {doc['year']} | {doc['journal']} | {doc.get('id', '')}"
         )
     header = (
-        f"Code-Version: {CODE_VERSION}; Dokumente geprueft: {total_docs}; "
-        f"Treffer: {len(matches)}"
+        #f"Code-Version: {CODE_VERSION}; Dokumente geprueft: {total_docs}; "
+        #f"Treffer: {len(matches)}"
     )
     result = header + "\n" + "\n".join(lines)
     if truncated:
