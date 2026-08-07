@@ -299,6 +299,74 @@ def main(router_text=None, conversation_memory=None, sys_query=None):
                     start = m.start(1)
                     end = m.end(1)
                     target = q_orig[start:end].strip().rstrip(".,;?!")
+            if not target:
+                # Loose fallback: a name following "with" anywhere after a
+                # collaboration marker, tolerating filler words in between
+                # (e.g. "collaborated the most with X", "worked most closely
+                # with X", "co-authored papers with X").
+                m = re.search(
+                    r"(?:collaborat\w*|co-?author\w*|publish\w*|work\w*)\b"
+                    r"(?:(?!\bwith\b).){0,40}?\bwith\s+"
+                    r"([\w.\-]+(?:\s+[\w.\-]+){0,3})",
+                    q,
+                )
+                if m:
+                    start, end = m.start(1), m.end(1)
+                    candidate = q_orig[start:end].strip().rstrip(".,;?!")
+                    # Guard against swallowing trailing question words/phrases
+                    candidate = re.split(
+                        r"\s+(?:the most|most often|the paper|papers?)\b",
+                        candidate,
+                    )[0].strip()
+                    _generic_words = {
+                        "anyone",
+                        "someone",
+                        "anybody",
+                        "somebody",
+                        "others",
+                        "each other",
+                        "them",
+                        "him",
+                        "her",
+                        "anyone else",
+                    }
+                    if (
+                        candidate
+                        and len(candidate) > 1
+                        and candidate.lower() not in _generic_words
+                    ):
+                        target = candidate
+            if not target:
+                # Possessive form: "X's collaborators" / "X's co-authors"
+                m = re.search(
+                    r"([\w.\-]+(?:\s+[\w.\-]+){0,3})'s\s+(?:collaborat\w*|co-?author\w*)",
+                    q,
+                )
+                if m:
+                    start, end = m.start(1), m.end(1)
+                    target = q_orig[start:end].strip().rstrip(".,;?!")
+            if not target:
+                # Name BEFORE the marker: "who does Mark Helm collaborate
+                # with?", "did Mark Helm co-author with anyone?"
+                m = re.search(
+                    r"(?:who\s+(?:does|did|has)\s+|does\s+|did\s+)"
+                    r"([\w.\-]+(?:\s+[\w.\-]+){0,3}?)"
+                    r"\s+(?:collaborate\w*|collaborated|co-?author\w*|publish\w*|work\w*)\b",
+                    q,
+                )
+                if m:
+                    start, end = m.start(1), m.end(1)
+                    target = q_orig[start:end].strip().rstrip(".,;?!")
+            if not target:
+                # "How many collaborators/co-authors does X have?"
+                m = re.search(
+                    r"(?:collaborators?|co-?authors?)\s+does\s+"
+                    r"([\w.\-]+(?:\s+[\w.\-]+){0,3})\s+have\b",
+                    q,
+                )
+                if m:
+                    start, end = m.start(1), m.end(1)
+                    target = q_orig[start:end].strip().rstrip(".,;?!")
             # ── Dual-author detection ───────────────────────────
             # Patterns: "co-authored by X and Y", "X and Y collaboration",
             # "papers co-authored by X and Y", "do X and Y share papers?"
