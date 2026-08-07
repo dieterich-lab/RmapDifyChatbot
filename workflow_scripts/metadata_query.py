@@ -344,11 +344,11 @@ def _render_result(
         lines.append(
             f"{idx}. {doc['title']} | {doc['authors']} | {doc['year']} | {doc['journal']} | {doc.get('id', '')}"
         )
-    header = (
+    header = (f"Papers:"
         #f"Code-Version: {CODE_VERSION}; Dokumente geprueft: {total_docs}; "
         #f"Treffer: {len(matches)}"
     )
-    result = header + "\n" + "\n".join(lines)
+    result = header +"\n" + "\n".join(lines)
     if truncated:
         result += (
             f"\n\n(Es werden nur die ersten {MAX_RESULTS} von {len(matches)} Ergebnissen angezeigt. "
