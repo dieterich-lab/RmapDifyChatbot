@@ -2,17 +2,21 @@
 
 RmapDifyChatbot is a Dify-based academic literature assistant for the RMaP project. It answers questions about 84 RNA-modification papers using hybrid retrieval (keyword + vector) and intent-based routing.
 
-## Status Snapshot (2026-07-28)
+## Status Snapshot (2026-08-07)
 
-**v0.4.17 — "What else" follow-ups + Security hardening 🔒**
+**v0.4.18 — First Changes Following Handover**
 
-1. **5 Query Intents + Collaboration**: ✅ `metadata_list`, `content_summary`, `knowledge_retrieval`, `author_lookup`, `entity_lookup` + 🆕 Co-Author Analysis
-2. **84 Papers** in dataset, all with PubMed/CrossRef metadata
-3. **All Prompt Fixes** (v0.4.6–v0.4.16): Quote, Count, Group-by, Find-by-name, Citation, Cross-Contamination, HEK, Name-Format, Author-Display, Umlaut, Multi-Author-OR+LLM-Bypass, Two-Turn-Memory, Code-Guard, Collaboration, EU AI Act
-4. **top_k: 100**, Hybrid **0.7/0.3**, **qwen2.5:14b** (A2 16GB VRAM), 23 Nodes, 28 Edges
-5. **20 Test Cases**: ✅ 19 · ⚠️ 2 · ❌ 0 (Regression 2026-07-29)
-6. **EU AI Act Art. 50 Compliant 🇪🇺**: Opening statement (Art. 50(1)) + machine-readable watermark `<!-- AI_GENERATED_CONTENT_RMAP -->` on all AI-generated text (Art. 50(2))
+1. Missing parameter dataset_id_input is inserted into FETCH FULL PAPER node's input values, code is updated and it is working again.
 
+2. Environment variables for the Chatbot A2 updated.
+
+3. Chatbot H100's speed tuning has begun. Unified Router is changed from Qwen3:32b to Qwen2.5:14b, speed up drastically.
+
+4. Tried to tune hyperparameters, this results in weakened responses. Metadata LLM, which is responsible for fetching the papers from the dataset, shows super-improved speed but misses results.
+
+5. Fixed the maximum returned paper size to 100, thus a list of 37 papers are no longer returned as 30 (previous limit of Dify), but the stylish effects like the bolding of the font is gone when applied.
+
+6. Collaboration list was returning only the total highest collaborations, fixed it so every author's own collaborations are now fetching.
 ---
 
 ## For Testers: Quick Start
