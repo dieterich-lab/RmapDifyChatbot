@@ -302,7 +302,7 @@ def _collect_documents(
 def _render_result(
     matches: list[dict], total_docs: int, is_multi_author: bool = False
 ) -> str:
-    MAX_RESULTS = 30  # Dify array output limit
+    MAX_RESULTS = 100  # Dify array output limit
     if not matches:
         return (
             "Keine Dokumente gefunden.\n"
