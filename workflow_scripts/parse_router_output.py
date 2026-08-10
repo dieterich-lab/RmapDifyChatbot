@@ -31,6 +31,26 @@ def _fallback_result():
     }
 
 
+def _render_paper_list_text(paper_list):
+    """Human-readable rendering of paper_list for plain (non-Jinja) prompt
+    fields, which can't directly interpolate Array[object] variables."""
+    if not paper_list:
+        return ""
+    lines = []
+    for idx, p in enumerate(paper_list, start=1):
+        if not isinstance(p, dict):
+            continue
+        parts = [p.get("title") or "(untitled)"]
+        if p.get("authors"):
+            parts.append(p["authors"])
+        if p.get("year"):
+            parts.append(p["year"])
+        if p.get("journal"):
+            parts.append(p["journal"])
+        lines.append(f"{idx}. " + " | ".join(parts))
+    return "\n".join(lines)
+
+
 def main(router_text=None, conversation_memory=None, sys_query=None):
     text = str(router_text or "").strip()
     # Strip <think> tags
@@ -64,6 +84,12 @@ def main(router_text=None, conversation_memory=None, sys_query=None):
 
     paper_list = obj.get("paper_list")
     mem = conversation_memory if isinstance(conversation_memory, list) else []
+    # Tracks whether paper_list was populated by a deterministic, code-level
+    # filter (as opposed to the router's own free-form extraction). Any such
+    # case should skip the Metadata LLM entirely - it cannot reliably
+    # pass through exact filter results (see "Multi-author bypass" below),
+    # a failure mode that applies just as much to single-author filters.
+    multi_author_bypass = False
 
     # If paper_list is the string "use_memory", populate from conversation.memory
     if paper_list == "use_memory":
@@ -146,6 +172,7 @@ def main(router_text=None, conversation_memory=None, sys_query=None):
             if not paper_list:
                 # Use the query text as author filter
                 paper_list = [{"authors": q, "title": "", "year": "", "journal": ""}]
+                multi_author_bypass = True
 
     # ── "Find/Show papers by <name>" guard ─────────────────────────
     if sys_query:
@@ -172,6 +199,11 @@ def main(router_text=None, conversation_memory=None, sys_query=None):
                     paper_list = [
                         {"authors": name, "title": "", "year": "", "journal": ""}
                     ]
+                    # Deterministic author filter, single author or not - the
+                    # Metadata LLM must not be allowed to re-synthesize this;
+                    # bypass it so metadata_query.py's real match count/list
+                    # (e.g. all 37 papers by this author) passes through as-is.
+                    multi_author_bypass = True
 
     # ── "Identify: <name1>, <name2>, ..." guard ───────────────────
     # Catches multi-name identification queries like:
@@ -218,7 +250,6 @@ def main(router_text=None, conversation_memory=None, sys_query=None):
     # output. The Metadata LLM (qwen2.5:14b) cannot reliably pass through
     # OR-matched results. Setting paper_count=0 routes through the Metadata LLM
     # Bypass directly to Final Answer Sanitizer, which passes result_text through.
-    multi_author_bypass = False
     if intent == "metadata_list" and paper_list:
         all_authors = []
         for entry in paper_list:
@@ -428,11 +459,14 @@ def main(router_text=None, conversation_memory=None, sys_query=None):
                         "journal": "",
                     }
                 ]
+                # Same deterministic-filter reasoning as the other guards above.
+                multi_author_bypass = True
             # else: fall through to router's classification (no memory to work with)
 
     return {
         "intent": intent,
         "paper_list": paper_list,
+        "paper_list_text": _render_paper_list_text(paper_list),
         "paper_count": 0 if multi_author_bypass else len(paper_list),
         "rewritten_query": rw,
         "list_mode": list_mode,
