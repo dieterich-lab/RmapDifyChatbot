@@ -467,8 +467,15 @@ def main(router_text=None, conversation_memory=None, sys_query=None):
         "intent": intent,
         "paper_list": paper_list,
         "paper_list_text": _render_paper_list_text(paper_list),
-        "paper_count": 0 if multi_author_bypass else len(paper_list),
+        "paper_count": len(paper_list),
         "rewritten_query": rw,
         "list_mode": list_mode,
         "collaboration_mode": collaboration_mode,
+        # Dedicated routing signal for the "Metadata LLM Bypass" if-else node.
+        # Kept separate from paper_count, which now always reflects the real
+        # number of paper_list entries this node knows about (not a routing
+        # flag in disguise). "true" = skip Metadata LLM, pass metadata_query's
+        # deterministic result_text straight through; "false" = let Metadata
+        # LLM synthesize a narrative answer.
+        "metadata_llm_bypass": "true" if multi_author_bypass else "false",
     }
