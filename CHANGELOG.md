@@ -1,5 +1,21 @@
 # Changelog
 
+## [0.4.19] - 2026-08-10
+
+### Added
+
+Fixed a bug that was delaying the paper list fetch up to 3 minutes in extreme cases. Now paper list is being fetched in acceptable time.
+
+Added further fixes to accelerate fetching of paper list, now below 30 seconds for extreme cases.
+
+Leaking id is removed from the fast paper retrieval, further cosmetics is going to be discussed (bold text, bullet points etc.)
+
+### Changed
+
+Fixed the cosmetics. 
+
+Optimizing the paper retrieval based on paper count is not possible as paper count is set to 1 or 0. 
+
 ## [0.4.18] - 2026-08-07
 
 ### Added
