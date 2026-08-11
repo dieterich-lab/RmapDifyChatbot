@@ -2,21 +2,20 @@
 
 RmapDifyChatbot is a Dify-based academic literature assistant for the RMaP project. It answers questions about 84 RNA-modification papers using hybrid retrieval (keyword + vector) and intent-based routing.
 
-## Status Snapshot (2026-08-07)
+## Status Snapshot (2026-08-11)
 
-**v0.4.18 — First Changes Following Handover**
+**v0.4.19 — Fast Paper Fetch**
 
-1. Missing parameter dataset_id_input is inserted into FETCH FULL PAPER node's input values, code is updated and it is working again.
+1. Fixed a bug that was delaying the paper list fetch up to 3 minutes in extreme cases. Now paper list is being fetched in acceptable time.
 
-2. Environment variables for the Chatbot A2 updated.
+2. Added further fixes to accelerate fetching of paper list, now below 30 seconds for extreme cases.
 
-3. Chatbot H100's speed tuning has begun. Unified Router is changed from Qwen3:32b to Qwen2.5:14b, speed up drastically.
+3. Leaking id is removed from the fast paper retrieval, further cosmetics is going to be discussed (bold text, bullet points etc.)
 
-4. Tried to tune hyperparameters, this results in weakened responses. Metadata LLM, which is responsible for fetching the papers from the dataset, shows super-improved speed but misses results.
+4. Fixed the cosmetics.
 
-5. Fixed the maximum returned paper size to 100, thus a list of 37 papers are no longer returned as 30 (previous limit of Dify), but the stylish effects like the bolding of the font is gone when applied.
+5. Optimizing the paper retrieval based on paper count is not possible as paper count is set to 1 or 0.
 
-6. Collaboration list was returning only the total highest collaborations, fixed it so every author's own collaborations are now fetching.
 ---
 
 ## For Testers: Quick Start
