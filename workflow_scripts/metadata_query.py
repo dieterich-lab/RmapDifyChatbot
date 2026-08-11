@@ -339,7 +339,7 @@ def _render_result(
     lines = []
     for idx, doc in enumerate(display_docs, start=1):
         lines.append(
-            f"{idx}. {doc['title']} | {doc['authors']} | {doc['year']} | {doc['journal']} | {doc.get('id', '')}"
+            f"{idx}. **{doc['title']}** | {doc['authors']} | {doc['year']} | {doc['journal']}"
         )
     header = (f"Papers:"
         #f"Code-Version: {CODE_VERSION}; Dokumente geprueft: {total_docs}; "
