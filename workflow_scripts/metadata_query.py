@@ -305,12 +305,9 @@ def _render_result(
     MAX_RESULTS = 100  # Dify array output limit
     if not matches:
         return (
-            "Keine Dokumente gefunden.\n"
-            "Tipps:\n"
-            "- Autor:innen-Namen ausschreiben (z.B. 'Christoph Dieterich')\n"
-            "- Nachname allein reicht oft (z.B. 'Dieterich')\n"
-            "- Jahr als vierstellige Zahl angeben (z.B. '2024')\n"
-            f"Code-Version: {CODE_VERSION}; Dokumente geprueft: {total_docs}; Treffer: 0"
+            "No documents found with the given criteria. Please verify the "
+            "details and try again or provide additional information if "
+            "available."
         )
 
     truncated = len(matches) > MAX_RESULTS
