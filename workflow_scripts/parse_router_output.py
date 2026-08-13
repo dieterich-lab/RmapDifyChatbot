@@ -70,6 +70,7 @@ def main(router_text=None, conversation_memory=None, sys_query=None):
     intent = str(obj.get("intent", "")).strip()
     if intent not in (
         "metadata_list",
+        "paper_list",
         "content_summary",
         "knowledge_retrieval",
         "author_lookup",
@@ -168,7 +169,7 @@ def main(router_text=None, conversation_memory=None, sys_query=None):
             )
         )
         if has_comma or has_dot_initials or one_or_two_words:
-            intent = "metadata_list"
+            intent = "paper_list"
             if not paper_list:
                 # Use the query text as author filter
                 paper_list = [{"authors": q, "title": "", "year": "", "journal": ""}]
@@ -192,7 +193,7 @@ def main(router_text=None, conversation_memory=None, sys_query=None):
             if len(parts) == 2:
                 name = parts[1].strip().rstrip(".,;")
                 if name and len(name) >= 2:
-                    intent = "metadata_list"
+                    intent = "paper_list"
                     # Keep as single entry — metadata_query handles comma-separated
                     # authors with OR matching, and the OR-hint in result_text tells
                     # the Metadata LLM to list all matches without AND filtering.
@@ -237,7 +238,7 @@ def main(router_text=None, conversation_memory=None, sys_query=None):
                 # Normalize: ensure comma-space separation
                 names = [n.strip() for n in name_part.split(",") if n.strip()]
                 if len(names) >= 2:
-                    intent = "metadata_list"
+                    intent = "paper_list"
                     # Split into separate entries so Metadata LLM sees individual authors
                     paper_list = [
                         {"authors": n, "title": "", "year": "", "journal": ""}
@@ -291,7 +292,7 @@ def main(router_text=None, conversation_memory=None, sys_query=None):
             )
         )
         if any(m in q for m in collab_markers) or has_share:
-            intent = "metadata_list"
+            intent = "paper_list"
             # Extract target author — match separators case-insensitively (q_lower)
             # but extract name preserving original case from sys_query
             q_orig = str(sys_query).strip()
@@ -463,11 +464,89 @@ def main(router_text=None, conversation_memory=None, sys_query=None):
                 multi_author_bypass = True
             # else: fall through to router's classification (no memory to work with)
 
+    # ── "Which authors published in <year>?" guard ─────────────────
+    # Router tends to pattern-match "Which authors...?" against the
+    # entity_lookup template ("Which <entities>...?"), even though this is
+    # a plain metadata filter (year), not content-derived entity extraction.
+    if sys_query:
+        q = str(sys_query).strip().lower()
+        m = re.search(
+            r"(?:which|what)\s+(?:authors?|researchers?)\s+(?:have\s+)?published\s+in\s+((?:19|20)\d{2})"
+            r"|who\s+(?:has\s+)?published\s+in\s+((?:19|20)\d{2})"
+            r"|(?:authors?|researchers?)\s+(?:who|that)\s+published\s+in\s+((?:19|20)\d{2})",
+            q,
+        )
+        if m:
+            year_val = next(g for g in m.groups() if g)
+            intent = "metadata_list"
+            list_mode = "authors"
+            paper_list = [
+                {"authors": "", "title": "", "year": year_val, "journal": ""}
+            ]
+
+    # ── Metadata-only follow-up guard ───────────────────────────
+    # "When did this paper get published?", "What journal is this in?",
+    # "Who wrote this?" — these ask about METADATA of an already-referenced
+    # paper, not its content. No full-text fetch is needed, so this must
+    # NOT fall into content_summary (which triggers Fetch Full Paper for
+    # every paper in memory just to answer a one-field question).
+    if sys_query and mem:
+        q = str(sys_query).strip().lower()
+        metadata_followup_markers = (
+            "when did this paper",
+            "when was this paper",
+            "when did the paper",
+            "when was it published",
+            "when was this published",
+            "what year was this",
+            "what journal is this",
+            "which journal is this",
+            "what journal was this published in",
+            "who wrote this",
+            "who are the authors of this",
+            "who authored this",
+            "wann wurde das veröffentlicht",
+            "wann wurde dies veröffentlicht",
+            "wann wurde der artikel veröffentlicht",
+        )
+        if any(marker in q for marker in metadata_followup_markers):
+            content_intent_markers = (
+                "summarize",
+                "summarise",
+                "compare",
+                "methods",
+                "method",
+                "findings",
+                "results",
+                "analyze",
+                "analyse",
+                "discuss",
+                "explain",
+                "key points",
+                "abstract",
+                "conclusion",
+                "what did they",
+                "how did they",
+                "zusammenfass",
+            )
+            is_mixed_query = any(m in q for m in content_intent_markers)
+            if not is_mixed_query:
+                from_memory = []
+                for item in mem:
+                    cleaned = _clean_paper(item)
+                    if cleaned:
+                        from_memory.append(cleaned)
+                if from_memory:
+                    intent = "metadata_list"
+                    paper_list = from_memory
+            # else: query also asks about content — fall through so
+            # content_summary (and the full-text fetch it needs) still fires.
+
     return {
         "intent": intent,
         "paper_list": paper_list,
         "paper_list_text": _render_paper_list_text(paper_list),
-        "paper_count": len(paper_list),
+        "paper_count": 1 if intent == "metadata_list" else 0,
         "rewritten_query": rw,
         "list_mode": list_mode,
         "collaboration_mode": collaboration_mode,
