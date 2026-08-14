@@ -2,20 +2,13 @@
 
 RmapDifyChatbot is a Dify-based academic literature assistant for the RMaP project. It answers questions about 84 RNA-modification papers using hybrid retrieval (keyword + vector) and intent-based routing.
 
-## Status Snapshot (2026-08-11)
+## Status Snapshot (2026-08-14)
 
-**v0.4.19 — Fast Paper Fetch**
+**v0.4.20 — Intent Changes and Reciprocal Rank Fusion**
 
-1. Fixed a bug that was delaying the paper list fetch up to 3 minutes in extreme cases. Now paper list is being fetched in acceptable time.
-
-2. Added further fixes to accelerate fetching of paper list, now below 30 seconds for extreme cases.
-
-3. Leaking id is removed from the fast paper retrieval, further cosmetics is going to be discussed (bold text, bullet points etc.)
-
-4. Fixed the cosmetics.
-
-5. Optimizing the paper retrieval based on paper count is not possible as paper count is set to 1 or 0.
-
+1. Parallelized Knowledge Retrieval by duplication, gave one of them full Semantic score and the other full Keyword score to speed up the ranking process. Then added RRF (Reciprocal Rank Fusion) to join the results in a speedy pattern. The result: no more bottleneck at the Knowledge Retrieval, speeding up the retrieval by almost 1 min.
+   
+2. Fixed the intent issues, created “paper_list” intent separate from “metadata_list” intent, which allows for metadata queries to be sent to Metadata LLM.
 ---
 
 ## For Testers: Quick Start
