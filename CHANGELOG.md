@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.4.20] - 2026-08-14
+
+### Added
+
+Parallelized Knowledge Retrieval by duplication, gave one of them full Semantic score and the other full Keyword score to speed up the ranking process. Then added RRF (Reciprocal Rank Fusion) to join the results in a speedy pattern. The result: no more bottleneck at the Knowledge Retrieval, speeding up the retrieval by almost 1 min.
+
+### Changed
+
+Fixed the intent issues, created “paper_list” intent separate from “metadata_list” intent, which allows for metadata queries to be sent to Metadata LLM. 
+
 ## [0.4.19] - 2026-08-11
 
 ### Added
