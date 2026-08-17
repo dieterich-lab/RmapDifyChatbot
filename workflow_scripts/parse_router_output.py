@@ -78,6 +78,83 @@ def main(router_text=None, conversation_memory=None, sys_query=None):
     ):
         intent = "knowledge_retrieval"
 
+        # ── Table-query routing guard ───────────────────────────────
+    # Table-related questions are content/entity extraction queries.
+    # Route them directly to entity_lookup so they do not fall through
+    # to generic knowledge_retrieval, paper_list, or the name-only guard.
+    #
+    # Examples:
+    #   "What is in Table 2?"
+    #   "Show me Table 3"
+    #   "Which genes are listed in Table 1?"
+    #   "What does the table say about TP53?"
+    #   "Which authors are in the table?"
+    #   "Find tables containing survival data"
+
+    table_query = False
+
+    if sys_query:
+        q_table = str(sys_query).strip().lower()
+
+        # Explicit table references:
+        # table 1, table 2, table 3a, table S1, supplemental table 2, etc.
+        explicit_table_ref = bool(
+            re.search(
+                r"\b(?:table|tab\.?)\s*"
+                r"(?:s\d+|\d+[a-z]?|[ivxlcdm]+)\b",
+                q_table,
+                re.IGNORECASE,
+            )
+        )
+
+        # General table terminology.
+        table_terms = bool(
+            re.search(
+                r"\b(?:tables?|tabular|rows?|columns?|cells?)\b",
+                q_table,
+                re.IGNORECASE,
+            )
+        )
+
+        # Common table-oriented question patterns.
+        table_question = bool(
+            re.search(
+                r"\b(?:"
+                r"what(?:'s| is| are)?\s+(?:in|shown|reported|listed|presented)\s+(?:in\s+)?"
+                r"(?:the\s+)?tables?"
+                r"|"
+                r"what\s+does\s+(?:the\s+)?table\s+(?:show|report|contain|say)"
+                r"|"
+                r"which\s+.+\s+(?:are|is)\s+(?:listed|shown|reported|presented)\s+in\s+(?:the\s+)?table"
+                r"|"
+                r"find\s+(?:the\s+)?tables?"
+                r"|"
+                r"show\s+(?:me\s+)?(?:the\s+)?tables?"
+                r"|"
+                r"list\s+(?:the\s+)?(?:rows?|columns?|entries|values)\s+(?:in|from)\s+(?:the\s+)?table"
+                r")\b",
+                q_table,
+                re.IGNORECASE,
+            )
+        )
+
+        # Avoid interpreting "table of contents" as a paper table.
+        table_of_contents = bool(
+            re.search(
+                r"\btable\s+of\s+contents\b|\bcontents\s+table\b",
+                q_table,
+                re.IGNORECASE,
+            )
+        )
+
+        table_query = (
+            not table_of_contents
+            and (explicit_table_ref or table_question or table_terms)
+        )
+
+    if table_query:
+        intent = "entity_lookup"
+
     # ── Read list_mode from router JSON (LLM-native, no regex) ──
     list_mode = str(obj.get("list_mode") or "").strip()
     if list_mode not in ("papers", "authors"):
