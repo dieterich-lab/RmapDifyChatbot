@@ -110,7 +110,7 @@ def main(router_text=None, conversation_memory=None, sys_query=None):
         # General table terminology.
         table_terms = bool(
             re.search(
-                r"\b(?:tables?|tabular|rows?|columns?|cells?)\b",
+                r"\b(?:tables?|tabular|rows?|columns?)\b",
                 q_table,
                 re.IGNORECASE,
             )
