@@ -3,6 +3,7 @@
 
 import json
 import os
+import re
 import traceback
 from urllib.error import HTTPError, URLError
 from urllib.parse import urlencode
@@ -11,6 +12,15 @@ from urllib.request import Request, urlopen
 
 def _norm(text):
     return str(text or "").strip()
+
+
+def _strip_md(s):
+    """Remove markdown emphasis markers (bold/italic/code) that the router
+    sometimes wraps titles in (e.g. '**Title**'), so title-matching isn't
+    penalized by corrupted first/last words - especially damaging for
+    short titles where losing 2 words can drop the fuzzy-match ratio
+    below the 0.8 threshold."""
+    return re.sub(r"[*_`]+", "", s or "").strip()
 
 
 def _run_json_get(url, headers, timeout=30):
@@ -69,7 +79,7 @@ def _fetch_all_segments(api_base, dataset_id, doc_id, headers):
 def _find_doc_id_by_title(api_base, dataset_id, title, headers):
     # Find document ID by matching title against doc_metadata from the list response.
     # Uses the list endpoint doc_metadata field directly - no per-document detail calls.
-    expected = title.lower().strip()
+    expected = _strip_md(title).lower().strip()
     exp_words = set(expected.split())
     for page in range(1, 21):
         q = urlencode({"page": page, "limit": 100})
@@ -94,10 +104,11 @@ def _find_doc_id_by_title(api_base, dataset_id, title, headers):
                 doc_title = _norm(item.get("name", ""))
             if not doc_title:
                 continue
-            if doc_title.lower() == expected:
+            doc_title_clean = _strip_md(doc_title).lower()
+            if doc_title_clean == expected:
                 return doc_id, None
             if exp_words:
-                doc_words = set(doc_title.lower().split())
+                doc_words = set(doc_title_clean.split())
                 if len(exp_words & doc_words) / len(exp_words) >= 0.8:
                     return doc_id, None
         if len(items) < 100:
