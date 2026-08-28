@@ -2,7 +2,7 @@
 
 RmapDifyChatbot is a Dify-based academic literature assistant for the RMaP project. It answers questions about 84 RNA-modification papers using hybrid retrieval (keyword + vector) and intent-based routing.
 
-## Status Snapshot (2026-08-14)
+## Status Snapshot (2026-08-28)
 
 **v0.4.21 — Summary Fixes and qwen3.8:27b**
 1. qwen3.8:27b is the latest model we're running right now. Results are: it's faster and more accurate.
