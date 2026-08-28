@@ -1,5 +1,4 @@
-# Code Node: Update Paper Memory
-# Node ID: 1778800001002
+import re
 
 
 def _normalize_obj(item):
@@ -21,6 +20,17 @@ def _normalize_obj(item):
     }
 
 
+# Matches the header line emitted by the Fetch Full Paper node:
+#   === <title> (<year>, <journal>) — <authors> ===
+# Title match is greedy on purpose: titles like "Detecting m(6)A at
+# single-molecular resolution..." contain their own parentheses, so a
+# non-greedy match would stop at the first ")" instead of the last
+# "(YYYY, journal) — authors ===" segment before the closing "===".
+_HEADER_RE = re.compile(
+    r"^===\s*(?P<title>.+?)\s*\((?P<year>\d{4}),\s*(?P<journal>[^)]*)\)\s*—\s*(?P<authors>.*?)\s*===\s*$"
+)
+
+
 def _parse_from_iteration_output(iteration_output):
     parsed = []
     if not isinstance(iteration_output, list):
@@ -29,40 +39,29 @@ def _parse_from_iteration_output(iteration_output):
     for block in iteration_output:
         if not isinstance(block, str):
             continue
+        # The paper's metadata header is always the first non-empty line
+        # of each block (see Fetch Full Paper's `header = f"=== {meta_line} ==="`).
+        first_line = ""
         for line in block.splitlines():
             line = line.strip()
-            if not line:
-                continue
-            if "|" not in line:
-                continue
-            # Strip leading numbering like "1. "
-            if ". " in line:
-                _, _, line = line.partition(". ")
-            parts = [p.strip() for p in line.split("|")]
-            # Accept 3-5 parts: title | [authors] | year | journal | [doc_id]
-            if len(parts) < 3 or len(parts) > 5:
-                continue
-            obj_dict = {}
-            if len(parts) == 3:
-                obj_dict = {"title": parts[0], "year": parts[1], "journal": parts[2]}
-            elif len(parts) == 4:
-                obj_dict = {
-                    "title": parts[0],
-                    "authors": parts[1],
-                    "year": parts[2],
-                    "journal": parts[3],
-                }
-            else:  # 5 parts
-                obj_dict = {
-                    "title": parts[0],
-                    "authors": parts[1],
-                    "year": parts[2],
-                    "journal": parts[3],
-                    "doc_id": parts[4],
-                }
-            obj = _normalize_obj(obj_dict)
-            if obj is not None:
-                parsed.append(obj)
+            if line:
+                first_line = line
+                break
+        if not first_line.startswith("==="):
+            continue
+        m = _HEADER_RE.match(first_line)
+        if not m:
+            continue
+        obj = _normalize_obj(
+            {
+                "title": m.group("title"),
+                "year": m.group("year"),
+                "journal": m.group("journal"),
+                "authors": m.group("authors"),
+            }
+        )
+        if obj is not None:
+            parsed.append(obj)
     return parsed
 
 
