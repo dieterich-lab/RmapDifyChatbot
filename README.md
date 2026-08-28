@@ -12,9 +12,7 @@ RmapDifyChatbot is a Dify-based academic literature assistant for the RMaP proje
 3. Fetch Full Paper — title lookup silently skipping short titles Symptom: "Adaptive sampling for nanopore direct RNA-sequencing" was dropped from content_summary results even though it was in paper_list. Cause: item_title still had markdown bold wrapping from the router. _find_doc_id_by_title's fuzzy match splits on whitespace, so the asterisks corrupted the first/last word. For a 6-word title, losing 2 words dropped the match ratio to 0.667 — below the 0.8 threshold. Fix: Added _strip_md() and applied it to both expected and doc_title before comparison.
 
 4. Two separate "Update Paper Memory" nodes — format mismatch Symptom: memory conversation variable returning []. Cause: Turned out there are two distinct memory nodes, each fed a different upstream shape:
-
 One attached to the Paper Iterator → receives Fetch Full Paper's === title (year, journal) — authors === blocks. One attached to metadata_query → receives pipe-delimited "N. Title | Authors | Year | Journal" lines.
-
 Midway through, the pipe-parsing node got overwritten with the ===-only version, breaking it for the metadata_query path. Fix: Restored each node to the parser matching its actual input shape — regex-based _HEADER_RE parsing for the Iterator-attached node, original pipe-split logic for the metadata_query-attached node. Both now confirmed working (8/8 and 26/26 papers parsed correctly).
 
 
@@ -23,11 +21,8 @@ Midway through, the pipe-parsing node got overwritten with the ===-only version,
 6. Summarize LLM prompt — wrong variable reference Symptom: paper_list shown as invalid in the "Requested paper identities" field. Cause: {{#...#}} referenced the raw Array[Object] paper_list, which plain (non-Jinja) prompt fields can't interpolate. Fix: Swapped to {{#...paper_list_text#}}, the pre-rendered human-readable string already built for this purpose.
 
 7. content_summary 8-paper cap — working as intended
-
 Turned out to be an older/different Dify setup being tested; the current setup correctly caps at 8 for content_summary, and the output was properly grounded in real paper text (not fabricated).
-
 29/30-paper ceiling — Dify platform limit, not the code
-
 Symptom: Even after raising MAX_PAPERS_FOR_SUMMARY to 100, output capped at 29 papers. Cause: Dify's Code node enforces a default 30-element limit on Array[...] outputs, controlled by CODE_MAX_STRING_ARRAY_LENGTH / CODE_MAX_OBJECT_ARRAY_LENGTH env vars — separately, WORKFLOW_VARIABLE_TRUNCATION_ARRAY_LENGTH governs silent truncation of variables passed between nodes (likely the more relevant one for silent-truncation symptom, versus a hard failure). Status: unresolved / next step. Needs those env vars set in Dify deployment config (docker-compose/.env or Helm values), followed by a container restart, and confirmation that it actually resolves it — one GitHub report shows this fix didn't work for at least one user, so it needs verification against the 37-paper case.
 
 ---
