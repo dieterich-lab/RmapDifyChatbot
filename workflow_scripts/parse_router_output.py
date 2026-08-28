@@ -623,7 +623,11 @@ def main(router_text=None, conversation_memory=None, sys_query=None):
         "intent": intent,
         "paper_list": paper_list,
         "paper_list_text": _render_paper_list_text(paper_list),
-        "paper_count": 1 if intent == "metadata_list" else 0,
+        "paper_count": (
+        1 if intent == "metadata_list"
+        else 0 if intent == "paper_list"
+        else len(paper_list)
+        ),
         "rewritten_query": rw,
         "list_mode": list_mode,
         "collaboration_mode": collaboration_mode,
