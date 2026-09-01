@@ -1,5 +1,21 @@
 # Changelog
 
+## [0.4.22] - 2026-09-01
+
+### Added
+
+Regex pattern to calculate collaborations between authors
+Collaboration filter for year, journal and title
+
+### Changed
+
+Changed context length to 131072 and maximum token output to 32768 to generate 40 token/s speed.
+
+CODE_MAX_OBJECT_ARRAY_LENGTH set to 100
+
+Increased MAX_PAPERS_FOR_SUMMARY to 37
+Increased result_line from 30 to 100, now 37 papers can be summarized
+
 
 ## [0.4.21] - 2026-08-28
 
