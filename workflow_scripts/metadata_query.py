@@ -563,8 +563,31 @@ def main(
         target = str(collaboration_mode).strip()
         target_author = (
             target if target.lower() not in ("true", "1", "yes", "all") else ""
-        )
-        result_text, intent_hint = _compute_collaborations(docs, target_author)
+    )
+
+        # Apply year/journal/title filters before collaboration analysis
+        year_filter = _sanitize_year_filter(year)
+        journal_filter = _sanitize_free_text_filter(journal, max_len=80)
+        title_filter = _sanitize_free_text_filter(title, max_len=160)
+
+        filtered_docs = docs
+        if _is_set(year_filter):
+            filtered_docs = [
+                d for d in filtered_docs
+                if _normalize_text(d.get("year", "")).lower() == year_filter.lower()
+            ]
+        if _is_set(journal_filter):
+            filtered_docs = [
+                d for d in filtered_docs
+                if journal_filter.lower() in _normalize_text(d.get("journal", "")).lower()
+            ]
+        if _is_set(title_filter):
+            filtered_docs = [
+                d for d in filtered_docs
+                if title_filter.lower() in _normalize_text(d.get("title", "")).lower()
+            ]
+
+        result_text, intent_hint = _compute_collaborations(filtered_docs, target_author)
         result_lines = result_text.split("\n") if result_text else []
         if len(result_lines) > 100:
             result_lines = result_lines[:100]

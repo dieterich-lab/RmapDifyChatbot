@@ -28,6 +28,8 @@ def _fallback_result():
         "paper_count": 0,
         "rewritten_query": "",
         "list_mode": "papers",
+        "collaboration_mode": "",
+        "year": "",
     }
 
 
@@ -199,11 +201,10 @@ def main(router_text=None, conversation_memory=None, sys_query=None):
                 paper_list.append(cleaned)
 
     # ── Cap papers for content_summary to avoid context overflow ──
-    # Full paper texts average ~11K chars each; 8 papers ≈ 48K chars ≈ 12K tokens
-    # which fits comfortably in the Summary LLM's 65K context window and
-    # keeps A2 (qwen2.5:14b) response time under 2 minutes.
+    # Full paper texts average ~11K chars each; 37 papers ≈ 61K tokens,
+    # which fits comfortably within the Summary LLM's 131,072-token context
+    # window (with a 32,768-token max output) on the current H100 config.
     MAX_PAPERS_FOR_SUMMARY = 37
-    #if intent == "content_summary" and len(paper_list) > MAX_PAPERS_FOR_SUMMARY:
     if intent == "content_summary":
         paper_list = paper_list[:MAX_PAPERS_FOR_SUMMARY]
 
@@ -346,6 +347,7 @@ def main(router_text=None, conversation_memory=None, sys_query=None):
     # "collaboration network", "published together". Forces metadata_list
     # and passes collaboration_mode to metadata_query.py.
     collaboration_mode = ""
+    year = ""  # FIX: initialize so it's always defined, and included in return
     if sys_query:
         q = str(sys_query).strip().lower()
         collab_markers = (
@@ -369,6 +371,11 @@ def main(router_text=None, conversation_memory=None, sys_query=None):
                 q,
             )
         )
+        # FIX: extract year for collaboration queries too (was previously
+        # computed but silently discarded — never added to the return dict).
+        year_match = re.search(r"\b(19|20)\d{2}\b", q)
+        if year_match:
+            year = year_match.group(0)
         if any(m in q for m in collab_markers) or has_share:
             intent = "paper_list"
             # Extract target author — match separators case-insensitively (q_lower)
@@ -562,6 +569,10 @@ def main(router_text=None, conversation_memory=None, sys_query=None):
             paper_list = [
                 {"authors": "", "title": "", "year": year_val, "journal": ""}
             ]
+            # FIX: keep top-level `year` in sync too, so metadata_query.py's
+            # collaboration branch (and anything else consuming top-level
+            # `year`) sees it consistently regardless of which guard set it.
+            year = year_val
 
     # ── Metadata-only follow-up guard ───────────────────────────
     # "When did this paper get published?", "What journal is this in?",
@@ -633,4 +644,5 @@ def main(router_text=None, conversation_memory=None, sys_query=None):
         "rewritten_query": rw,
         "list_mode": list_mode,
         "collaboration_mode": collaboration_mode,
+        "year": year,  # FIX: was computed but never returned — now included
     }
