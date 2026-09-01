@@ -483,6 +483,7 @@ def main(router_text=None, conversation_memory=None, sys_query=None):
             dual_target = ""
             dual_patterns = [
                 # Specific prefix patterns first (avoid ambiguous matching)
+                r"collaborat\w*\s+between\s+([\w.-]+(?:\s+[\w.-]+)?)\s+and\s+([\w.-]+(?:\s+[\w.-]+)?)",
                 r"co[- ]?authored?\s+by\s+([\w.-]+(?:\s+[\w.-]+)?)\s+and\s+([\w.-]+(?:\s+[\w.-]+)?)",
                 r"how\s+many\s+papers\s+(?:do|have)\s+([\w.-]+(?:\s+[\w.-]+)?)\s+and\s+([\w.-]+(?:\s+[\w.-]+)?)\s+(?:share|co[- ]?author|publish)",
                 r"([\w.-]+(?:\s+[\w.-]+)?)\s+and\s+([\w.-]+(?:\s+[\w.-]+)?)\s+collaborat",
