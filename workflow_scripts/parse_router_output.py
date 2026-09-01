@@ -202,8 +202,9 @@ def main(router_text=None, conversation_memory=None, sys_query=None):
     # Full paper texts average ~11K chars each; 8 papers ≈ 48K chars ≈ 12K tokens
     # which fits comfortably in the Summary LLM's 65K context window and
     # keeps A2 (qwen2.5:14b) response time under 2 minutes.
-    MAX_PAPERS_FOR_SUMMARY = 8
-    if intent == "content_summary" and len(paper_list) > MAX_PAPERS_FOR_SUMMARY:
+    MAX_PAPERS_FOR_SUMMARY = 37
+    #if intent == "content_summary" and len(paper_list) > MAX_PAPERS_FOR_SUMMARY:
+    if intent == "content_summary":
         paper_list = paper_list[:MAX_PAPERS_FOR_SUMMARY]
 
     rw = str(obj.get("rewritten_query") or "").strip()
