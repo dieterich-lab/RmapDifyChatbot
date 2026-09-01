@@ -566,8 +566,8 @@ def main(
         )
         result_text, intent_hint = _compute_collaborations(docs, target_author)
         result_lines = result_text.split("\n") if result_text else []
-        if len(result_lines) > 30:
-            result_lines = result_lines[:30]
+        if len(result_lines) > 100:
+            result_lines = result_lines[:100]
         return {
             "result": result_lines,
             "result_text": result_text,
@@ -657,8 +657,8 @@ def main(
         result_text += "\nFehlerdetails:\n" + "\n".join(f"- {e}" for e in errors[:8])
     # Cap result array at 30 elements (Dify limit); split only display lines
     result_lines = result_text.split("\n") if result_text else []
-    if len(result_lines) > 30:
-        result_lines = result_lines[:30]
+    if len(result_lines) > 100:
+        result_lines = result_lines[:100]
     return {
         "result": result_lines,
         "result_text": result_text,
