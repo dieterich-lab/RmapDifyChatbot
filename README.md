@@ -2,28 +2,18 @@
 
 RmapDifyChatbot is a Dify-based academic literature assistant for the RMaP project. It answers questions about 84 RNA-modification papers using hybrid retrieval (keyword + vector) and intent-based routing.
 
-## Status Snapshot (2026-08-28)
+## Status Snapshot (2026-09-01)
 
-**v0.4.21 — Summary Fixes and qwen3.8:27b**
-1. qwen3.8:27b is the latest model we're running right now. Results are: it's faster and more accurate.
+**v0.4.22 — Summary Length and Collaborations, Context Size and Max Token**
+1. Regex pattern to calculate collaborations between authors
 
-2. Similarity score set to 0.25 for both Knowledge Retrieval Node and the embedder.
+2. Collaboration filter for year, journal and title
 
-3. Fetch Full Paper — title lookup silently skipping short titles Symptom: "Adaptive sampling for nanopore direct RNA-sequencing" was dropped from content_summary results even though it was in paper_list. Cause: item_title still had markdown bold wrapping from the router. _find_doc_id_by_title's fuzzy match splits on whitespace, so the asterisks corrupted the first/last word. For a 6-word title, losing 2 words dropped the match ratio to 0.667 — below the 0.8 threshold. Fix: Added _strip_md() and applied it to both expected and doc_title before comparison.
+3. Changed context length to 131072 and maximum token output to 32768 to generate 40 token/s speed.
 
-4. Two separate "Update Paper Memory" nodes — format mismatch Symptom: memory conversation variable returning []. Cause: Turned out there are two distinct memory nodes, each fed a different upstream shape:
-One attached to the Paper Iterator → receives Fetch Full Paper's === title (year, journal) — authors === blocks. One attached to metadata_query → receives pipe-delimited "N. Title | Authors | Year | Journal" lines.
-Midway through, the pipe-parsing node got overwritten with the ===-only version, breaking it for the metadata_query path. Fix: Restored each node to the parser matching its actual input shape — regex-based _HEADER_RE parsing for the Iterator-attached node, original pipe-split logic for the metadata_query-attached node. Both now confirmed working (8/8 and 26/26 papers parsed correctly).
+4. CODE_MAX_OBJECT_ARRAY_LENGTH set to 100
 
-
-5. Parse Router Output — paper_count bug Symptom: Iterator returning empty outputs for one instance of this node. Cause: paper_count was hardcoded as 1 if intent == "metadata_list" else 0, disconnected from the actual size of paper_list. Fix: Replaced with a three-way check: 1 for intent == "metadata_list", 0 for intent == "paper_list", and len(paper_list) for every other intent (content_summary, entity_lookup, knowledge_retrieval, author_lookup).
-
-6. Summarize LLM prompt — wrong variable reference Symptom: paper_list shown as invalid in the "Requested paper identities" field. Cause: {{#...#}} referenced the raw Array[Object] paper_list, which plain (non-Jinja) prompt fields can't interpolate. Fix: Swapped to {{#...paper_list_text#}}, the pre-rendered human-readable string already built for this purpose.
-
-7. content_summary 8-paper cap — working as intended
-Turned out to be an older/different Dify setup being tested; the current setup correctly caps at 8 for content_summary, and the output was properly grounded in real paper text (not fabricated).
-29/30-paper ceiling — Dify platform limit, not the code
-Symptom: Even after raising MAX_PAPERS_FOR_SUMMARY to 100, output capped at 29 papers. Cause: Dify's Code node enforces a default 30-element limit on Array[...] outputs, controlled by CODE_MAX_STRING_ARRAY_LENGTH / CODE_MAX_OBJECT_ARRAY_LENGTH env vars — separately, WORKFLOW_VARIABLE_TRUNCATION_ARRAY_LENGTH governs silent truncation of variables passed between nodes (likely the more relevant one for silent-truncation symptom, versus a hard failure). Status: unresolved / next step. Needs those env vars set in Dify deployment config (docker-compose/.env or Helm values), followed by a container restart, and confirmation that it actually resolves it — one GitHub report shows this fix didn't work for at least one user, so it needs verification against the 37-paper case.
+5. Increased MAX_PAPERS_FOR_SUMMARY to 37 Increased result_line from 30 to 100, now 37 papers can be summarized
 
 ---
 
