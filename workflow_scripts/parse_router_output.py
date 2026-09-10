@@ -25,6 +25,7 @@ def _fallback_result():
     return {
         "intent": "knowledge_retrieval",
         "paper_list": [],
+        "paper_list_text": "",
         "paper_count": 0,
         "rewritten_query": "",
         "list_mode": "papers",
