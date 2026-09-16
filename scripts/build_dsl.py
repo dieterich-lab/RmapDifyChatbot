@@ -12,22 +12,32 @@ corresponding code nodes, and writes the result to config/.
 import sys
 from pathlib import Path
 
+if hasattr(sys.stdout, "reconfigure"):
+    sys.stdout.reconfigure(encoding="utf-8")
+if hasattr(sys.stderr, "reconfigure"):
+    sys.stderr.reconfigure(encoding="utf-8")
+
 import yaml
 
 REPO_ROOT = Path(__file__).parent.parent
 SCRIPTS_DIR = REPO_ROOT / "workflow_scripts"
 CONFIG_DIR = REPO_ROOT / "config"
 
-# Map node titles to script filenames
+# Map node IDs (for disambiguation) or node titles to script filenames
+NODE_ID_TO_SCRIPT = {
+    "1778800001002": "update_metadata_paper_query.py",
+    "1778800001029": "update_iterator_paper_memory.py",
+}
+
 NODE_TO_SCRIPT = {
     "Final Answer Sanitizer": "final_answer_sanitizer.py",
     "KR Chunk Filter": "kr_chunk_filter.py",
+    "KR RRF": "kr_rrf.py",
     "Metadata Query": "metadata_query.py",
     "Parse Router Output": "parse_router_output.py",
     "Parse Extractor Paper List": "parse_extractor_paper_list.py",
     "Follow-up Memory Subset": "follow_up_memory_subset.py",
     "Resolve Paper List": "resolve_paper_list.py",
-    "Update Paper Memory": "update_paper_memory.py",
     "Fetch Full Paper": "fetch_full_paper.py",
 }
 
@@ -53,7 +63,7 @@ def build_dsl(input_path: Path, output_path: Path) -> None:
     """Build the final DSL by injecting code from workflow_scripts/."""
 
     print(f"Loading base DSL from: {input_path}")
-    with open(input_path, "r") as f:
+    with open(input_path, "r", encoding="utf-8") as f:
         data = yaml.safe_load(f)
 
     nodes = data["workflow"]["graph"]["nodes"]
@@ -62,19 +72,21 @@ def build_dsl(input_path: Path, output_path: Path) -> None:
     print(f"\nInjecting code into {len(code_nodes)} nodes:")
 
     for node in code_nodes:
+        node_id = str(node.get("id", ""))
         title = node["data"].get("title", "")
 
-        if title not in NODE_TO_SCRIPT:
-            print(f"  ⚠️  {title:<30} - no script mapping found, skipping")
+        script_name = NODE_ID_TO_SCRIPT.get(node_id) or NODE_TO_SCRIPT.get(title)
+        if not script_name:
+            print(f"  ⚠️  {title:<30} (ID: {node_id}) - no script mapping found, skipping")
             continue
 
-        script_file = SCRIPTS_DIR / NODE_TO_SCRIPT[title]
+        script_file = SCRIPTS_DIR / script_name
 
         if not script_file.exists():
             print(f"  ❌ {title:<30} - script not found: {script_file}")
             continue
 
-        with open(script_file, "r") as f:
+        with open(script_file, "r", encoding="utf-8") as f:
             code = f.read()
 
         # Strip our header comments before injection
@@ -107,7 +119,7 @@ def build_dsl(input_path: Path, output_path: Path) -> None:
             ev["value"] = "<your-dataset-id>"
 
     print(f"\nWriting final DSL to: {output_path}")
-    with open(output_path, "w") as f:
+    with open(output_path, "w", encoding="utf-8") as f:
         yaml.dump(
             data, f, default_flow_style=False, allow_unicode=True, sort_keys=False
         )
