@@ -179,10 +179,10 @@ def _process_chunks(chunks, filter_refs=True):
     return kept, removed, seen_docs
 
 
-# IMPORTANT:
-# Dify input variable is named "result"
-def main(result=None):
-    if not isinstance(result, list):
+# Accepts both 'kr_result' (Dify configured name) and 'result' (fallback)
+def main(result=None, kr_result=None, **kwargs):
+    raw_chunks = kr_result if kr_result is not None else result
+    if not isinstance(raw_chunks, list):
         return {
             "filtered_chunks": [],
             "chunk_count": 0,
@@ -190,11 +190,11 @@ def main(result=None):
             "doc_names": []
         }
 
-    kept, removed, seen_docs = _process_chunks(result, filter_refs=True)
+    kept, removed, seen_docs = _process_chunks(raw_chunks, filter_refs=True)
 
     # Safety fallback: if filtering removed too many chunks, retry without filter
-    if len(kept) < 3 and len(result) >= 3:
-        kept, removed, seen_docs = _process_chunks(result, filter_refs=False)
+    if len(kept) < 3 and len(raw_chunks) >= 3:
+        kept, removed, seen_docs = _process_chunks(raw_chunks, filter_refs=False)
         removed = 0
 
     # Deduplicate: keep max 1 chunk per paper
@@ -214,7 +214,7 @@ def main(result=None):
 
     if not deduped:
         deduped.append(
-            "ALL " + str(len(result)) + " RETRIEVED CHUNKS WERE REFERENCE LISTS "
+            "ALL " + str(len(raw_chunks)) + " RETRIEVED CHUNKS WERE REFERENCE LISTS "
             "AND FILTERED OUT. The query may match bibliography sections rather "
             "than paper body text. Try a more specific query or different search terms."
         )

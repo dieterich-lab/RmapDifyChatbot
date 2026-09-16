@@ -60,7 +60,7 @@ def _render_paper_list_text(paper_list):
     return "\n".join(lines)
 
 
-def _build_result(intent, paper_list, rw, list_mode, collaboration_mode, year):
+def _build_result(intent, paper_list, rw, list_mode, collaboration_mode, year=""):
     """Construct the final output dict with computed paper_count."""
     # paper_count logic:
     #   metadata_list → 1  (signals Metadata LLM to process)
@@ -74,12 +74,10 @@ def _build_result(intent, paper_list, rw, list_mode, collaboration_mode, year):
     return {
         "intent": intent,
         "paper_list": paper_list,
-        "paper_list_text": _render_paper_list_text(paper_list),
         "paper_count": paper_count,
         "rewritten_query": rw,
         "list_mode": list_mode,
         "collaboration_mode": collaboration_mode,
-        "year": year,
     }
 
 

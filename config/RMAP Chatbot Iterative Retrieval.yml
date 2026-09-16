@@ -1845,18 +1845,18 @@ workflow:
           year\"])\n        if p.get(\"journal\"):\n            parts.append(p[\"\
           journal\"])\n        lines.append(f\"{idx}. \" + \" | \".join(parts))\n\
           \    return \"\\n\".join(lines)\n\n\ndef _build_result(intent, paper_list,\
-          \ rw, list_mode, collaboration_mode, year):\n    \"\"\"Construct the final\
-          \ output dict with computed paper_count.\"\"\"\n    # paper_count logic:\n\
-          \    #   metadata_list → 1  (signals Metadata LLM to process)\n    #   paper_list\
-          \    → 0  (signals Metadata LLM Bypass)\n    #   otherwise     → len(paper_list)\n\
-          \    paper_count = (\n        1 if intent == \"metadata_list\"\n       \
-          \ else 0 if intent == \"paper_list\"\n        else len(paper_list)\n   \
-          \ )\n    return {\n        \"intent\": intent,\n        \"paper_list\":\
-          \ paper_list,\n        \"paper_list_text\": _render_paper_list_text(paper_list),\n\
-          \        \"paper_count\": paper_count,\n        \"rewritten_query\": rw,\n\
-          \        \"list_mode\": list_mode,\n        \"collaboration_mode\": collaboration_mode,\n\
-          \        \"year\": year,\n    }\n\n\n# ── Guard functions ─────────────────────────────────────────────────\n\
-          # Each guard inspects the user query and optionally overrides\n# intent/paper_list.\
+          \ rw, list_mode, collaboration_mode, year=\"\"):\n    \"\"\"Construct the\
+          \ final output dict with computed paper_count.\"\"\"\n    # paper_count\
+          \ logic:\n    #   metadata_list → 1  (signals Metadata LLM to process)\n\
+          \    #   paper_list    → 0  (signals Metadata LLM Bypass)\n    #   otherwise\
+          \     → len(paper_list)\n    paper_count = (\n        1 if intent == \"\
+          metadata_list\"\n        else 0 if intent == \"paper_list\"\n        else\
+          \ len(paper_list)\n    )\n    return {\n        \"intent\": intent,\n  \
+          \      \"paper_list\": paper_list,\n        \"paper_count\": paper_count,\n\
+          \        \"rewritten_query\": rw,\n        \"list_mode\": list_mode,\n \
+          \       \"collaboration_mode\": collaboration_mode,\n    }\n\n\n# ── Guard\
+          \ functions ─────────────────────────────────────────────────\n# Each guard\
+          \ inspects the user query and optionally overrides\n# intent/paper_list.\
           \ Returns a dict of overrides, or None if no match.\n\ndef _guard_table_query(query):\n\
           \    \"\"\"Route table-related questions → entity_lookup.\n    Examples:\
           \ 'What is in Table 2?', 'Show me Table 3'\n    \"\"\"\n    q = query.lower()\n\
@@ -2240,29 +2240,30 @@ workflow:
           \n        doc_name = _get_doc_info(c)\n        if doc_name:\n          \
           \  seen_docs.add(doc_name)\n            text = \"From paper: \" + doc_name\
           \ + NL + text\n\n        kept.append(text)\n\n    return kept, removed,\
-          \ seen_docs\n\n\n# IMPORTANT:\n# Dify input variable is named \"result\"\
-          \ndef main(result=None):\n    if not isinstance(result, list):\n       \
-          \ return {\n            \"filtered_chunks\": [],\n            \"chunk_count\"\
-          : 0,\n            \"chunks_removed\": 0,\n            \"doc_names\": []\n\
-          \        }\n\n    kept, removed, seen_docs = _process_chunks(result, filter_refs=True)\n\
-          \n    # Safety fallback: if filtering removed too many chunks, retry without\
-          \ filter\n    if len(kept) < 3 and len(result) >= 3:\n        kept, removed,\
-          \ seen_docs = _process_chunks(result, filter_refs=False)\n        removed\
-          \ = 0\n\n    # Deduplicate: keep max 1 chunk per paper\n    by_doc = {}\n\
-          \    for chunk in kept:\n        parts = chunk.split(NL, 1)\n        doc_key\
-          \ = parts[0] if parts[0].startswith(\"From paper:\") else \"_unknown\"\n\
-          \        content = parts[1] if len(parts) > 1 else chunk\n        if doc_key\
-          \ not in by_doc:\n            by_doc[doc_key] = []\n        by_doc[doc_key].append(content)\n\
-          \n    deduped = []\n    for doc_key, contents in by_doc.items():\n     \
-          \   merged = NL.join(contents[:1])  # Keep max 1 chunk per paper\n     \
-          \   deduped.append(doc_key + NL + merged)\n\n    if not deduped:\n     \
-          \   deduped.append(\n            \"ALL \" + str(len(result)) + \" RETRIEVED\
-          \ CHUNKS WERE REFERENCE LISTS \"\n            \"AND FILTERED OUT. The query\
-          \ may match bibliography sections rather \"\n            \"than paper body\
-          \ text. Try a more specific query or different search terms.\"\n       \
-          \ )\n\n    return {\n        \"filtered_chunks\": deduped[:30],\n      \
-          \  \"chunk_count\": min(len(deduped), 30),\n        \"chunks_removed\":\
-          \ removed,\n        \"doc_names\": sorted(seen_docs)[:30]\n    }"
+          \ seen_docs\n\n\n# Accepts both 'kr_result' (Dify configured name) and 'result'\
+          \ (fallback)\ndef main(result=None, kr_result=None, **kwargs):\n    raw_chunks\
+          \ = kr_result if kr_result is not None else result\n    if not isinstance(raw_chunks,\
+          \ list):\n        return {\n            \"filtered_chunks\": [],\n     \
+          \       \"chunk_count\": 0,\n            \"chunks_removed\": 0,\n      \
+          \      \"doc_names\": []\n        }\n\n    kept, removed, seen_docs = _process_chunks(raw_chunks,\
+          \ filter_refs=True)\n\n    # Safety fallback: if filtering removed too many\
+          \ chunks, retry without filter\n    if len(kept) < 3 and len(raw_chunks)\
+          \ >= 3:\n        kept, removed, seen_docs = _process_chunks(raw_chunks,\
+          \ filter_refs=False)\n        removed = 0\n\n    # Deduplicate: keep max\
+          \ 1 chunk per paper\n    by_doc = {}\n    for chunk in kept:\n        parts\
+          \ = chunk.split(NL, 1)\n        doc_key = parts[0] if parts[0].startswith(\"\
+          From paper:\") else \"_unknown\"\n        content = parts[1] if len(parts)\
+          \ > 1 else chunk\n        if doc_key not in by_doc:\n            by_doc[doc_key]\
+          \ = []\n        by_doc[doc_key].append(content)\n\n    deduped = []\n  \
+          \  for doc_key, contents in by_doc.items():\n        merged = NL.join(contents[:1])\
+          \  # Keep max 1 chunk per paper\n        deduped.append(doc_key + NL + merged)\n\
+          \n    if not deduped:\n        deduped.append(\n            \"ALL \" + str(len(raw_chunks))\
+          \ + \" RETRIEVED CHUNKS WERE REFERENCE LISTS \"\n            \"AND FILTERED\
+          \ OUT. The query may match bibliography sections rather \"\n           \
+          \ \"than paper body text. Try a more specific query or different search\
+          \ terms.\"\n        )\n\n    return {\n        \"filtered_chunks\": deduped[:30],\n\
+          \        \"chunk_count\": min(len(deduped), 30),\n        \"chunks_removed\"\
+          : removed,\n        \"doc_names\": sorted(seen_docs)[:30]\n    }"
         code_language: python3
         isInIteration: false
         isInLoop: false
