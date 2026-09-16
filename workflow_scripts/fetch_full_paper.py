@@ -162,16 +162,9 @@ def _core(
         return {
             "paper_context": "",
             "paper_fetch_error": (
-                "dataset_id not configured. DEBUG - raw inputs received by this "
-                f"code node: dataset_id_input={dataset_id_input!r} "
-                f"(type={type(dataset_id_input).__name__}), "
-                f"doc_id={doc_id!r}, item_title={item_title!r}, "
-                f"os.getenv(DIFY_DATASET_ID)={os.getenv('DIFY_DATASET_ID')!r}. "
-                "If dataset_id_input shows None here, the input variable name "
-                "configured in this node's UI panel does not exactly match the "
-                "function parameter name 'dataset_id_input' (Dify binds inputs "
-                "by exact name) - open the node, check the Input Variables list, "
-                "and confirm the variable name is exactly 'dataset_id_input'."
+                f"dataset_id not configured. "
+                f"dataset_id_input={dataset_id_input!r}, doc_id={doc_id!r}. "
+                "Check that 'dataset_id_input' variable is mapped in this node's UI."
             ),
         }
     if not api_key:
@@ -234,9 +227,9 @@ def _core(
     )
     header = f"=== {meta_line} ==="
     n = _safe_int(paper_count, default=1)
-    # With MAX_PAPERS_FOR_SUMMARY=8: 8 papers × 6000 chars = 48K total
-    # Fits in 65K context window with room for prompt (~13K) + output (~4K)
-    chars_per_paper = max(4000, 48000 // n)
+    # With MAX_PAPERS_FOR_SUMMARY=37: 37 papers × ~3200 chars ≈ 120K total
+    # Fits in 131K context window (H100 vLLM) with room for prompt + output
+    chars_per_paper = max(3000, 120000 // n)
     context = f"{header}\n\n{text[:chars_per_paper]}"
     return {"paper_context": context, "paper_fetch_error": ""}
 

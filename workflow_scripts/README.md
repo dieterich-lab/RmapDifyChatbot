@@ -1,71 +1,69 @@
 # Workflow Code Scripts
 
-Diese Directory enthält die Python-Code-Nodes aus dem Dify Workflow als separate Dateien.
+This directory contains the Python code nodes from the Dify Workflow as separate files.
 
 ## Problem
 
-Dify DSL (YAML) speichert Python-Code direkt eingebettet in den Code-Nodes. Das macht es schwierig:
-- Code zu editieren (schlechtes Syntax-Highlighting in YAML)
-- Änderungen zu verfolgen (Git-Diffs sind unübersichtlich)
-- Code zu testen (inline in YAML schwer testbar)
+Dify DSL (YAML) stores Python code directly embedded in Code Nodes. This makes it difficult to:
+- Edit code (poor syntax highlighting in YAML)
+- Track changes (Git diffs are hard to read)
+- Test code (inline in YAML is hard to test)
 
-## Lösung
+## Solution
 
-**Source of Truth:** Python-Files hier in `workflow_scripts/`
+**Source of Truth:** Python files here in `workflow_scripts/`
 
-**Build-Pipeline:** Skripte injizieren den Code automatisch in die DSL
+**Build Pipeline:** Scripts inject the code automatically into the DSL
 
 ## Workflow
 
-### 1. Code bearbeiten
+### 1. Edit code
 
-Ändere die Python-Dateien hier:
-- `final_answer_sanitizer.py`
-- `metadata_query.py`
-- `parse_extractor_paper_list.py`
-- `follow_up_memory_subset.py`
-- `resolve_paper_list.py`
-- `update_paper_memory.py`
-- `fetch_full_paper.py`
+Edit the Python files here (see Node-Mapping below for the full list).
 
-### 2. DSL rebuilden
+### 2. Rebuild DSL
 
 ```bash
 python scripts/build_dsl.py
 ```
 
-Dies injiziert den Code in `config/RMAP Chatbot Iterative Retrieval.yml`.
+This injects the code into `config/RMAP Chatbot Iterative Retrieval.yml`.
 
-### 3. In Dify importieren
+### 3. Import into Dify
 
 ```bash
 scripts/import_dify_dsl.sh "config/RMAP Chatbot Iterative Retrieval.yml" --app-id <app-id>
 ```
 
-## Änderungen aus Dify extrahieren
+## Extract changes from Dify
 
-Falls du Code direkt in Dify bearbeitet hast:
+If you edited code directly in Dify:
 
 ```bash
 python scripts/extract_dsl_code.py
 ```
 
-Dies überschreibt die lokalen Dateien mit dem Code aus der DSL.
+This overwrites the local files with the code from the DSL.
 
 ## Node-Mapping
 
-| Python-File | Dify Node Title |
-|-------------|----------------|
-| `final_answer_sanitizer.py` | Final Answer Sanitizer |
+| Python File | Dify Node Title |
+|---|---|
+| `parse_router_output.py` | Parse Router Output |
 | `metadata_query.py` | Metadata Query |
-| `parse_extractor_paper_list.py` | Parse Extractor Paper List |
-| `follow_up_memory_subset.py` | Follow-up Memory Subset |
-| `resolve_paper_list.py` | Resolve Paper List |
-| `update_paper_memory.py` | Update Paper Memory |
+| `kr_chunk_filter.py` | KR Chunk Filter |
+| `kr_rrf.py` | KR RRF |
 | `fetch_full_paper.py` | Fetch Full Paper |
+| `final_answer_sanitizer.py` | Final Answer Sanitizer |
+| `follow_up_memory_subset.py` | Follow-up Memory Subset |
+| `parse_extractor_paper_list.py` | Parse Extractor Paper List |
+| `resolve_paper_list.py` | Resolve Paper List |
+| `update_metadata_paper_query.py` | Update Paper Memory (metadata branch) |
+| `update_iterator_paper_memory.py` | Update Paper Memory (iterator branch) |
 
-## Hinweise
+## Notes
 
-- Die Header-Kommentare (`# Code Node: ...`, `# Node ID: ...`) werden beim Build automatisch entfernt
-- YAML-Formatierung kann sich beim Build leicht ändern (Zeilenumbrüche), aber die Funktionalität bleibt gleich
-- **Wichtig:** Bearbeite die DSL-Datei nicht manuell für Code-Änderungen — nutze die Python-Files hier
+- The header comments (`# Code Node: ...`, `# Node ID: ...`) are stripped automatically during build
+- YAML formatting may change slightly during build (line breaks), but functionality stays the same
+- **Important:** Do not manually edit the DSL file for code changes — use the Python files here
+- Each code node runs in Dify's sandboxed execution environment — nodes cannot import shared modules

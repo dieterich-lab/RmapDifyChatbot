@@ -5,18 +5,8 @@ from urllib.error import HTTPError, URLError
 from urllib.parse import urlencode
 from urllib.request import Request, urlopen
 
-CODE_VERSION = "metadata_query_v2026-07-15_broad-query-fix"
-
 _EMPTY_TOKENS = {
-    "",
-    "null",
-    "none",
-    "unknown",
-    "n/a",
-    "na",
-    "[]",
-    "{}",
-    "-",
+    "", "null", "none", "unknown", "n/a", "na", "[]", "{}", "-",
 }
 
 
@@ -65,14 +55,19 @@ def _to_string_list(value) -> list[str]:
     return []
 
 
+# ── Author name matching ────────────────────────────────────────────
+
 def _author_variants(author: str) -> list[str]:
+    """Generate search variants for an author name.
+    Handles 'Last, First' ↔ 'First Last', initials, umlauts.
+    """
     text = " ".join(str(author).strip().split())
     if not text:
         return []
 
     variants = [text]
 
-    # Normalize "Last, First" → "First Last"
+    # "Last, First" → "First Last"
     if "," in text:
         comma_parts = [p.strip() for p in text.split(",", 1)]
         if len(comma_parts) == 2 and comma_parts[0] and comma_parts[1]:
@@ -87,23 +82,22 @@ def _author_variants(author: str) -> list[str]:
             variants.append(f"{first[0]} {last}")
             variants.append(last)
 
-    # Always add just the last word as a variant (handles "Dieterich", "Helm" etc.)
+    # Last word as standalone variant (handles "Dieterich", "Helm")
     if parts:
         last_word = parts[-1].strip(".,;")
         if last_word and last_word.lower() not in {v.lower() for v in variants}:
             variants.append(last_word)
 
+    # Deduplicate
     seen = set()
     deduped = []
     for item in variants:
         key = item.lower()
-        if key in seen:
-            continue
-        seen.add(key)
-        deduped.append(item)
+        if key not in seen:
+            seen.add(key)
+            deduped.append(item)
 
-    # Umlaut normalization: add both ö→oe AND ö→o variants
-    # PubMed strips umlauts (ö→o), German expansion uses oe (ö→oe)
+    # Umlaut normalization: ö→oe (German expansion) and ö→o (PubMed strips umlauts)
     umlaut_expand = str.maketrans(
         {"ö": "oe", "ü": "ue", "ä": "ae", "ß": "ss", "Ö": "Oe", "Ü": "Ue", "Ä": "Ae"}
     )
@@ -123,6 +117,39 @@ def _author_variants(author: str) -> list[str]:
     return deduped
 
 
+def _any_author_matches(author_inputs, meta_authors_lower) -> bool:
+    """Return True if ANY of the input author names match the metadata authors (OR logic)."""
+    all_names = []
+    for a in author_inputs:
+        for part in a.split(","):
+            part = part.strip()
+            if part:
+                all_names.append(part)
+
+    for name in all_names:
+        variants = [v.lower() for v in _author_variants(name)]
+        if any(v in meta_authors_lower for v in variants):
+            return True
+        last_name = name.strip().split()[-1].strip(".,;").lower()
+        if last_name and last_name in meta_authors_lower:
+            return True
+
+    return False
+
+
+def _all_authors_match(author_inputs, meta_authors_lower) -> bool:
+    """Return True if ALL input author names match the metadata authors (AND logic)."""
+    for author in author_inputs:
+        variants = [v.lower() for v in _author_variants(author)]
+        if not any(v in meta_authors_lower for v in variants):
+            last_name = author.strip().split()[-1].strip(".,;").lower()
+            if not last_name or last_name not in meta_authors_lower:
+                return False
+    return True
+
+
+# ── Dify API helpers ────────────────────────────────────────────────
+
 def _build_headers(api_key: str) -> dict:
     return {
         "Authorization": f"Bearer {api_key}",
@@ -130,9 +157,8 @@ def _build_headers(api_key: str) -> dict:
     }
 
 
-def _run_json_get(
-    url: str, headers: dict, timeout: int = 30
-) -> tuple[dict, str | None]:
+def _run_json_get(url: str, headers: dict, timeout: int = 30) -> tuple[dict, str | None]:
+    """Execute a GET request and return (parsed_json, error_string_or_None)."""
     request = Request(url=url, headers=headers, method="GET")
     try:
         with urlopen(request, timeout=timeout) as response:
@@ -174,6 +200,8 @@ def _metadata_to_dict(detail: dict) -> dict[str, str]:
     return result
 
 
+# ── Filter logic ────────────────────────────────────────────────────
+
 def _matches_filters(meta: dict[str, str], year, authors, journal, title) -> bool:
     meta_year = _normalize_text(meta.get("year", ""))
     meta_authors = _normalize_text(meta.get("authors", ""))
@@ -186,47 +214,22 @@ def _matches_filters(meta: dict[str, str], year, authors, journal, title) -> boo
 
     if _is_set(year_text) and year_text.lower() != meta_year.lower():
         return False
-
     if _is_set(journal_text) and journal_text.lower() not in meta_journal.lower():
         return False
-
     if _is_set(title_text) and title_text.lower() not in meta_title.lower():
         return False
 
     author_inputs = _to_string_list(authors)
+    if not author_inputs:
+        return True
 
-    # Multi-author OR matching: if any input contains commas, split and OR-match
     has_multi = any("," in a for a in author_inputs)
-    if has_multi:
-        all_names = []
-        for a in author_inputs:
-            for part in a.split(","):
-                part = part.strip()
-                if part:
-                    all_names.append(part)
-        # Paper matches if ANY of the comma-separated names match
-        for name in all_names:
-            variants = [v.lower() for v in _author_variants(name)]
-            if any(v in meta_authors.lower() for v in variants):
-                break  # matched this name
-            last_name = name.strip().split()[-1].strip(".,;").lower()
-            if last_name and last_name in meta_authors.lower():
-                break  # matched via last name
-        else:
-            return False  # no name matched
-    else:
-        # Single-author: all must match (AND logic, typically just one)
-        for author in author_inputs:
-            variants = [v.lower() for v in _author_variants(author)]
-            if not any(v in meta_authors.lower() for v in variants):
-                # Last resort: extract just the last name and check again.
-                # Handles "Chr. Dieterich" vs "Christoph Dieterich" where
-                # the first name abbreviation doesn't match.
-                last_name = author.strip().split()[-1].strip(".,;").lower()
-                if not last_name or last_name not in meta_authors.lower():
-                    return False
+    meta_authors_lower = meta_authors.lower()
 
-    return True
+    if has_multi:
+        return _any_author_matches(author_inputs, meta_authors_lower)
+    else:
+        return _all_authors_match(author_inputs, meta_authors_lower)
 
 
 def _sanitize_year_filter(value) -> str:
@@ -250,6 +253,8 @@ def _sanitize_free_text_filter(value, max_len: int = 120) -> str:
         return ""
     return text
 
+
+# ── Data collection ─────────────────────────────────────────────────
 
 def _collect_documents(
     api_base: str, dataset_id: str, headers: dict
@@ -299,6 +304,23 @@ def _collect_documents(
     return docs, errors
 
 
+def _dedupe_docs(docs: list[dict]) -> list[dict]:
+    """Deduplicate documents by (title, authors, year, journal)."""
+    unique = {}
+    for doc in docs:
+        key = (
+            (doc.get("title") or "").strip().lower(),
+            (doc.get("authors") or "").strip().lower(),
+            (doc.get("year") or "").strip(),
+            (doc.get("journal") or "").strip().lower(),
+        )
+        if key not in unique:
+            unique[key] = doc
+    return list(unique.values())
+
+
+# ── Result rendering ────────────────────────────────────────────────
+
 def _render_result(
     matches: list[dict], total_docs: int, is_multi_author: bool = False
 ) -> str:
@@ -313,8 +335,7 @@ def _render_result(
     truncated = len(matches) > MAX_RESULTS
     display_docs = matches[:MAX_RESULTS] if truncated else matches
 
-    # For multi-author queries: pre-format the output to look like LLM output,
-    # so the downstream Metadata LLM just passes it through verbatim.
+    # Multi-author: pre-format output for LLM-bypass
     if is_multi_author:
         lines = [f"{len(matches)} papers", ""]
         for idx, doc in enumerate(matches, start=1):
@@ -326,8 +347,6 @@ def _render_result(
             if doc.get("journal"):
                 lines.append(f"   - Journal: {doc['journal']}")
             lines.append("")
-        # No cap for multi-author: the Metadata LLM is bypassed, so no context limit.
-        # Final Answer Sanitizer passes result_text through verbatim.
         if len(matches) > MAX_RESULTS:
             lines.append(
                 f"(Showing all {len(matches)} results. "
@@ -335,16 +354,13 @@ def _render_result(
             )
         return "\n".join(lines)
 
-    # Standard format for single-author / non-multi queries
+    # Standard single-author format
     lines = []
     for idx, doc in enumerate(display_docs, start=1):
         lines.append(
             f"{idx}. **{doc['title']}** | {doc['authors']} | {doc['year']} | {doc['journal']}"
         )
-    header = (f"Papers:"
-        #f"Code-Version: {CODE_VERSION}; Dokumente geprueft: {total_docs}; "
-        #f"Treffer: {len(matches)}"
-    )
+    header = "Papers:"
     result = header + "\n" + "\n".join(lines)
     if truncated:
         result += (
@@ -354,33 +370,31 @@ def _render_result(
     return result
 
 
+# ── Collaboration analysis ──────────────────────────────────────────
+
 def _compute_collaborations(
     docs: list[dict], target_author: str = ""
 ) -> tuple[str, str]:
     """Compute co-author pairs from paper metadata.
-
     If target_author is set, filter to pairs involving that author.
-    Returns (result_text, intent_hint) for LLM-bypass output.
+    Returns (result_text, intent_hint).
     """
     from collections import Counter
 
     pair_counts: Counter = Counter()
-    pair_papers: dict[tuple, set] = {}  # (author_a, author_b) -> set of paper titles
+    pair_papers: dict[tuple, set] = {}
 
     for doc in docs:
         author_str = doc.get("authors", "")
         if not author_str:
             continue
         # Authors are "LastName1, FirstName1, LastName2, FirstName2, ..."
-        # Group every 2 items: (LastName, FirstName) → "FirstName LastName"
         raw = [a.strip() for a in author_str.split(",") if a.strip()]
-        # If odd count, skip last (malformed)
         if len(raw) % 2 != 0:
-            raw = raw[:-1]
+            raw = raw[:-1]  # Skip malformed odd entry
         names = []
         for i in range(0, len(raw), 2):
             last, first = raw[i], raw[i + 1]
-            # Normalize: "FirstName LastName"
             names.append(f"{first} {last}")
         if len(names) < 2:
             continue
@@ -389,16 +403,13 @@ def _compute_collaborations(
         for i in range(len(names)):
             for j in range(i + 1, len(names)):
                 a, b = names[i], names[j]
-                # Normalize: alphabetical order for consistent keys
                 key = (min(a, b, key=str.lower), max(a, b, key=str.lower))
                 pair_counts[key] += 1
                 if key not in pair_papers:
                     pair_papers[key] = set()
                 pair_papers[key].add(title)
 
-    # Filter by target author(s) if specified.
-    # Single author: "Mark Helm" → match pairs containing "mark helm".
-    # Dual author (pipe-separated): "Mark Helm|Yuri Motorin" → match exact pair.
+    # Filter by target author(s)
     target_authors = []
     if target_author:
         if "|" in target_author:
@@ -407,35 +418,25 @@ def _compute_collaborations(
             target_authors = [target_author]
 
     if len(target_authors) == 2:
-        # Dual-author: show papers they co-authored together
-        a1, a2 = target_authors
-        a1_lower, a2_lower = a1.lower(), a2.lower()
-        pair_counts = Counter(
-            {
-                k: v
-                for k, v in pair_counts.items()
-                if (a1_lower in k[0].lower() and a2_lower in k[1].lower())
-                or (a2_lower in k[0].lower() and a1_lower in k[1].lower())
-            }
-        )
+        a1_lower, a2_lower = target_authors[0].lower(), target_authors[1].lower()
+        pair_counts = Counter({
+            k: v for k, v in pair_counts.items()
+            if (a1_lower in k[0].lower() and a2_lower in k[1].lower())
+            or (a2_lower in k[0].lower() and a1_lower in k[1].lower())
+        })
         pair_papers = {
-            k: v
-            for k, v in pair_papers.items()
+            k: v for k, v in pair_papers.items()
             if (a1_lower in k[0].lower() and a2_lower in k[1].lower())
             or (a2_lower in k[0].lower() and a1_lower in k[1].lower())
         }
     elif len(target_authors) == 1:
         target_lower = target_authors[0].lower()
-        pair_counts = Counter(
-            {
-                k: v
-                for k, v in pair_counts.items()
-                if target_lower in k[0].lower() or target_lower in k[1].lower()
-            }
-        )
+        pair_counts = Counter({
+            k: v for k, v in pair_counts.items()
+            if target_lower in k[0].lower() or target_lower in k[1].lower()
+        })
         pair_papers = {
-            k: v
-            for k, v in pair_papers.items()
+            k: v for k, v in pair_papers.items()
             if target_lower in k[0].lower() or target_lower in k[1].lower()
         }
 
@@ -453,8 +454,8 @@ def _compute_collaborations(
     )
 
     lines = [
-        f"Co-Author Collaboration Analysis",
-        f"",
+        "Co-Author Collaboration Analysis",
+        "",
         f"Dataset: {len(docs)} papers, {total_papers_with_pairs} with ≥2 authors",
         f"Unique co-author pairs found: {total_pairs}",
     ]
@@ -465,22 +466,21 @@ def _compute_collaborations(
         if pair_counts:
             total_papers_count = sum(pair_counts.values())
             lines.append(f"Shared papers: {total_papers_count}")
-        lines.append(f"")
-        # Dual-author: show ALL shared papers, not pairs
+        lines.append("")
         all_shared = set()
         for papers in pair_papers.values():
             all_shared |= papers
         if all_shared:
             for idx, paper in enumerate(sorted(all_shared), 1):
                 lines.append(f"{idx}. {paper}")
-            lines.append(f"")
+            lines.append("")
     elif len(target_authors) == 1:
         lines.insert(1, f"Collaborator: {target_authors[0]}")
-        lines.append(f"")
+        lines.append("")
     else:
-        lines.append(f"")
-        lines.append(f"Top 20 most frequent co-author pairs:")
-        lines.append(f"")
+        lines.append("")
+        lines.append("Top 20 most frequent co-author pairs:")
+        lines.append("")
 
     # Render pair list (skip for dual-author — already shown as paper list)
     if len(target_authors) != 2:
@@ -494,17 +494,12 @@ def _compute_collaborations(
                 f"{idx}. **{a}** + **{b}** — {count} paper{'s' if count > 1 else ''}"
             )
             lines.append(f"   Papers: {paper_list}")
-            lines.append(f"")
+            lines.append("")
 
-    # Future computation modes (not yet implemented):
-    # - publication_timeline: papers grouped by year
-    # - journal_distribution: papers grouped by journal
-    # - author_productivity: paper count per author
-    # - topic_clustering: title-based keyword co-occurrence
-    intent_hint = "collaboration"
+    return "\n".join(lines), "collaboration"
 
-    return "\n".join(lines), intent_hint
 
+# ── Main entry point ────────────────────────────────────────────────
 
 def main(
     year=None,
@@ -517,9 +512,7 @@ def main(
     api_key_input=None,
     dataset_id_input=None,
 ):
-    api_base = (os.getenv("DIFY_API_URL") or "http://rmap-chatbot-demo-dify/v1").rstrip(
-        "/"
-    )
+    api_base = (os.getenv("DIFY_API_URL") or "http://rmap-chatbot-demo-dify/v1").rstrip("/")
     dataset_id = dataset_id_input or os.getenv("DIFY_DATASET_ID") or ""
     api_key = api_key_input or os.getenv("DIFY_API_KEY") or ""
 
@@ -531,7 +524,7 @@ def main(
             )
         }
 
-    # Extract filter values from paper_list if passed (Parse Router Output)
+    # Extract filter values from paper_list if passed (from Parse Router Output)
     if isinstance(paper_list, list) and len(paper_list) > 0:
         first = paper_list[0]
         if isinstance(first, dict):
@@ -541,8 +534,7 @@ def main(
                 journal = first.get("journal", "")
             if not _is_set(title):
                 title = first.get("title", "")
-        # Collect authors from ALL entries (supports multi-name OR queries
-        # where parse_router_output splits "X, Y" into separate entries)
+        # Collect authors from ALL entries (multi-name OR queries)
         if not _is_set(authors):
             all_authors = []
             for entry in paper_list:
@@ -556,14 +548,12 @@ def main(
     headers = _build_headers(str(api_key).strip())
     docs, errors = _collect_documents(str(api_base), str(dataset_id).strip(), headers)
 
-    # ── Collaboration Analysis Mode ─────────────────────────────────
-    # Detects queries like "who has collaborated the most?", "collaboration network",
-    # "co-authors of X". Returns co-author pair frequencies, bypasses LLM.
+    # ── Collaboration Analysis Mode ──
     if _is_set(collaboration_mode):
         target = str(collaboration_mode).strip()
         target_author = (
             target if target.lower() not in ("true", "1", "yes", "all") else ""
-    )
+        )
 
         # Apply year/journal/title filters before collaboration analysis
         year_filter = _sanitize_year_filter(year)
@@ -591,28 +581,21 @@ def main(
         result_lines = result_text.split("\n") if result_text else []
         if len(result_lines) > 100:
             result_lines = result_lines[:100]
-        return {
-            "result": result_lines,
-            "result_text": result_text,
-        }
+        return {"result": result_lines, "result_text": result_text}
 
+    # ── Standard metadata query ──
     year_filter = _sanitize_year_filter(year)
     journal_filter = _sanitize_free_text_filter(journal, max_len=80)
     title_filter = _sanitize_free_text_filter(title, max_len=160)
 
-    has_any_filter = any(
-        [
-            _is_set(year_filter),
-            _is_set(journal_filter),
-            _is_set(title_filter),
-            _is_set(authors),
-        ]
-    )
+    has_any_filter = any([
+        _is_set(year_filter), _is_set(journal_filter),
+        _is_set(title_filter), _is_set(authors),
+    ])
 
     # No-filter query → return all documents or distinct authors
     if not has_any_filter:
         if str(list_mode or "").strip().lower() == "authors":
-            # Extract distinct authors from all docs
             author_set = set()
             for d in docs:
                 for a in d.get("authors", "").split(","):
@@ -626,63 +609,27 @@ def main(
             text = f"Distinct authors in dataset: {total}\n\n" + "\n".join(lines)
             if total > 100:
                 text += f"\n\n(Showing first 100 of {total} authors. Use 'Papers by <name>' to find specific authors.)"
-            return {
-                "result": text.split("\n")[:30],
-                "result_text": text,
-            }
+            return {"result": text.split("\n")[:30], "result_text": text}
         else:
-            uniq = {}
-            for d in docs:
-                k = (
-                    d.get("title", "").strip().lower(),
-                    d.get("authors", "").strip().lower(),
-                    d.get("year", "").strip(),
-                    d.get("journal", "").strip().lower(),
-                )
-                if k not in uniq:
-                    uniq[k] = d
-            all_docs = list(uniq.values())
+            all_docs = _dedupe_docs(docs)
             total = len(all_docs)
             lines = [
                 f"{i}. {d['title']}, {d['year']}, {d['journal']}"
                 for i, d in enumerate(all_docs, 1)
             ]
             text = f"Total papers in dataset: {total}\n\n" + "\n".join(lines)
-            return {
-                "result": text.split("\n")[:30],
-                "result_text": text,
-            }
+            return {"result": text.split("\n")[:30], "result_text": text}
 
-    matches = []
-    for doc in docs:
-        if _matches_filters(doc, year_filter, authors, journal_filter, title_filter):
-            matches.append(doc)
+    # Filtered query
+    matches = [doc for doc in docs if _matches_filters(doc, year_filter, authors, journal_filter, title_filter)]
+    final_docs = _dedupe_docs(matches)
 
-    unique = {}
-    for doc in matches:
-        key = (
-            (doc.get("title") or "").strip().lower(),
-            (doc.get("authors") or "").strip().lower(),
-            (doc.get("year") or "").strip(),
-            (doc.get("journal") or "").strip().lower(),
-        )
-        if key not in unique:
-            unique[key] = doc
-    final_docs = list(unique.values())
-
-    # Detect multi-author OR query for result header hint
     is_multi = "," in str(authors or "")
-
-    result_text = _render_result(
-        final_docs, total_docs=len(docs), is_multi_author=is_multi
-    )
+    result_text = _render_result(final_docs, total_docs=len(docs), is_multi_author=is_multi)
     if errors:
         result_text += "\nFehlerdetails:\n" + "\n".join(f"- {e}" for e in errors[:8])
-    # Cap result array at 30 elements (Dify limit); split only display lines
+
     result_lines = result_text.split("\n") if result_text else []
     if len(result_lines) > 100:
         result_lines = result_lines[:100]
-    return {
-        "result": result_lines,
-        "result_text": result_text,
-    }
+    return {"result": result_lines, "result_text": result_text}

@@ -19,6 +19,7 @@ def _to_text(value):
 
 
 def _clean_obj(item):
+    """Normalize a paper dict. Canonical copy: see parse_router_output.py _clean_paper."""
     if not isinstance(item, dict):
         return None
     year_value = _to_text(item.get("year"))
@@ -27,6 +28,7 @@ def _clean_obj(item):
         "authors": _to_text(item.get("authors") or item.get("author")),
         "year": year_value if re.fullmatch(r"^(19|20)[0-9]{2}$", year_value) else "",
         "journal": _to_text(item.get("journal")),
+        "doc_id": str(item.get("doc_id") or "").strip(),
     }
 
 
