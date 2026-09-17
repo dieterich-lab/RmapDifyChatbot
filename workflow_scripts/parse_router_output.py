@@ -7,9 +7,7 @@ import re
 # ── Shared helpers ──────────────────────────────────────────────────
 
 def _clean_paper(item):
-    """Normalize a paper dict from LLM output or conversation memory.
-    Canonical copy — other nodes duplicate this under _normalize_obj/_clean_obj.
-    """
+    """Normalize a paper dict from LLM output or conversation memory."""
     if not isinstance(item, dict):
         return None
     obj = {
@@ -61,11 +59,13 @@ def _render_paper_list_text(paper_list):
 
 
 def _build_result(intent, paper_list, rw, list_mode, collaboration_mode, year=""):
-    """Construct the final output dict with computed paper_count."""
-    # paper_count logic:
-    #   metadata_list → 1  (signals Metadata LLM to process)
-    #   paper_list    → 0  (signals Metadata LLM Bypass)
-    #   otherwise     → len(paper_list)
+    """Construct the final output dict with computed paper_count.
+
+    paper_count logic:
+      metadata_list -> 1  (signals Metadata LLM to process)
+      paper_list    -> 0  (signals Metadata LLM Bypass)
+      otherwise     -> len(paper_list)
+    """
     paper_count = (
         1 if intent == "metadata_list"
         else 0 if intent == "paper_list"
@@ -74,11 +74,18 @@ def _build_result(intent, paper_list, rw, list_mode, collaboration_mode, year=""
     return {
         "intent": intent,
         "paper_list": paper_list,
+        "paper_list_text": _render_paper_list_text(paper_list),
         "paper_count": paper_count,
         "rewritten_query": rw,
         "list_mode": list_mode,
         "collaboration_mode": collaboration_mode,
+        "year": year,
     }
+
+
+def _fallback_result():
+    """Fallback when router JSON is unparseable."""
+    return _build_result("knowledge_retrieval", [], "", "papers", "", "")
 
 
 # ── Guard functions ─────────────────────────────────────────────────
@@ -86,7 +93,7 @@ def _build_result(intent, paper_list, rw, list_mode, collaboration_mode, year=""
 # intent/paper_list. Returns a dict of overrides, or None if no match.
 
 def _guard_table_query(query):
-    """Route table-related questions → entity_lookup.
+    """Route table-related questions -> entity_lookup.
     Examples: 'What is in Table 2?', 'Show me Table 3'
     """
     q = query.lower()
@@ -95,13 +102,10 @@ def _guard_table_query(query):
     if re.search(r"\btable\s+of\s+contents\b|\bcontents\s+table\b", q):
         return None
 
-    # Explicit table references: table 1, table S1, table 3a, etc.
     explicit = bool(re.search(
         r"\b(?:table|tab\.?)\s*(?:s\d+|\d+[a-z]?|[ivxlcdm]+)\b", q, re.I
     ))
-    # General table terminology
     terms = bool(re.search(r"\b(?:tables?|tabular|rows?|columns?)\b", q, re.I))
-    # Table-oriented question patterns
     question = bool(re.search(
         r"\b(?:"
         r"what(?:'s| is| are)?\s+(?:in|shown|reported|listed|presented)\s+(?:in\s+)?(?:the\s+)?tables?"
@@ -117,7 +121,7 @@ def _guard_table_query(query):
 
 
 def _guard_name_only(query, intent):
-    """Route bare person names → paper_list.
+    """Route bare person names -> paper_list.
     Patterns: 'Helm, Mark', 'M. Helm', 'Dieterich' (1-2 words, no question words).
     Only fires if router classified as author_lookup or knowledge_retrieval.
     """
@@ -149,7 +153,7 @@ def _guard_name_only(query, intent):
 
 
 def _guard_find_papers_by(query):
-    """Route 'find/show papers/publications/articles by <name>' → paper_list."""
+    """Route 'find/show papers/publications/articles by <name>' -> paper_list."""
     q = query.strip().lower()
     prefixes = (
         "find papers by ", "show papers by ",
@@ -172,7 +176,7 @@ def _guard_find_papers_by(query):
 
 
 def _guard_identify_multi(query):
-    """Route 'Identify: X, Y, Z' or 'which papers are by X, Y' → paper_list."""
+    """Route 'Identify: X, Y, Z' or 'which papers are by X, Y' -> paper_list."""
     q = query.strip().lower()
     prefixes = ("identify:", "identify ", "can you identify ", "which papers are by ")
     if not any(q.startswith(p) for p in prefixes):
@@ -200,23 +204,15 @@ def _guard_identify_multi(query):
 
 def _extract_collab_target(q_lower, q_orig):
     """Extract the target author name from a collaboration query.
-    Returns (single_target, dual_target) — at most one will be non-empty.
+    Returns (single_target, dual_target) - at most one will be non-empty.
     """
-    # Ordered patterns for single-author extraction (most specific first)
     _SINGLE_PATTERNS = [
-        # "co-authors of X" / "collaborators of X"
         (r"(?:co-?authors?|collaborators?|collaborations?)\s+of\s+", "after"),
-        # "collaborated with X" / "published with X"
         (r"(?:co-?authors?|collaborated|collaborations?|published)\s+with\s+", "after"),
-        # "co-authors has X published with?" (name between 'has' and 'published')
         (r"(?:co-authors?\s+(?:has\s+)?|coauthors?\s+(?:has\s+)?)([\w\s.-]+?)\s+(?:published|collaborated)\s+with", "group1"),
-        # Loose fallback: collaboration marker ... "with X"
         (r"(?:collaborat\w*|co-?author\w*|publish\w*|work\w*)\b(?:(?!\bwith\b).){0,40}?\bwith\s+([\w.\-]+(?:\s+[\w.\-]+){0,3})", "group1"),
-        # Possessive: "X's collaborators"
         (r"([\w.\-]+(?:\s+[\w.\-]+){0,3})'s\s+(?:collaborat\w*|co-?author\w*)", "group1"),
-        # Name BEFORE marker: "who does X collaborate with?"
         (r"(?:who\s+(?:does|did|has)\s+|does\s+|did\s+)([\w.\-]+(?:\s+[\w.\-]+){0,3}?)\s+(?:collaborate\w*|collaborated|co-?author\w*|publish\w*|work\w*)\b", "group1"),
-        # "How many collaborators does X have?"
         (r"(?:collaborators?|co-?authors?)\s+does\s+([\w.\-]+(?:\s+[\w.\-]+){0,3})\s+have\b", "group1"),
     ]
 
@@ -229,26 +225,18 @@ def _extract_collab_target(q_lower, q_orig):
     for pattern, mode in _SINGLE_PATTERNS:
         if target:
             break
+        m = re.search(pattern, q_lower)
+        if not m:
+            continue
         if mode == "after":
-            # Simple suffix extraction: find the separator, take everything after
-            sep = pattern.replace(r"\s+", " ").replace(r"(?:", "(").replace(")", ")")
-            # Use the raw regex to find position
-            m = re.search(pattern, q_lower)
-            if m:
-                candidate = q_orig[m.end():].strip().rstrip(".,;?!")
-                if candidate and len(candidate) > 1 and candidate.lower() not in _GENERIC_WORDS:
-                    target = candidate
-        elif mode == "group1":
-            m = re.search(pattern, q_lower)
-            if m:
-                start, end = m.start(1), m.end(1)
-                candidate = q_orig[start:end].strip().rstrip(".,;?!")
-                # Strip trailing filler phrases
-                candidate = re.split(
-                    r"\s+(?:the most|most often|the paper|papers?)\b", candidate
-                )[0].strip()
-                if candidate and len(candidate) > 1 and candidate.lower() not in _GENERIC_WORDS:
-                    target = candidate
+            candidate = q_orig[m.end():].strip().rstrip(".,;?!")
+        else:  # group1
+            candidate = q_orig[m.start(1):m.end(1)].strip().rstrip(".,;?!")
+            candidate = re.split(
+                r"\s+(?:the most|most often|the paper|papers?)\b", candidate
+            )[0].strip()
+        if candidate and len(candidate) > 1 and candidate.lower() not in _GENERIC_WORDS:
+            target = candidate
 
     # Dual-author detection: "co-authored by X and Y", "X and Y collaboration"
     dual_target = ""
@@ -273,7 +261,7 @@ def _extract_collab_target(q_lower, q_orig):
 
 
 def _guard_collaboration(query):
-    """Route collaboration queries → paper_list with collaboration_mode.
+    """Route collaboration queries -> paper_list with collaboration_mode.
     Detects 'who collaborated most', 'co-authors of X', 'published together'.
     """
     q = query.strip().lower()
@@ -292,7 +280,6 @@ def _guard_collaboration(query):
     if not (any(m in q for m in _COLLAB_MARKERS) or has_share):
         return None
 
-    # Extract year if present
     year = ""
     year_match = re.search(r"\b(19|20)\d{2}\b", q)
     if year_match:
@@ -314,7 +301,7 @@ def _guard_collaboration(query):
 
 
 def _guard_what_else(query, mem):
-    """Route 'what else did X publish?' follow-ups → metadata_list.
+    """Route 'what else did X publish?' follow-ups -> metadata_list.
     Extracts author from conversation memory (previous turn).
     """
     q = query.strip().lower()
@@ -344,7 +331,7 @@ def _guard_what_else(query, mem):
 
 
 def _guard_year_authors(query):
-    """Route 'which authors published in <year>?' → metadata_list.
+    """Route 'which authors published in <year>?' -> metadata_list.
     Router tends to misclassify this as entity_lookup.
     """
     q = query.strip().lower()
@@ -367,7 +354,7 @@ def _guard_year_authors(query):
 
 
 def _guard_metadata_followup(query, mem):
-    """Route metadata-only follow-ups → metadata_list.
+    """Route metadata-only follow-ups -> metadata_list.
     E.g. 'When did this paper get published?', 'What journal is this in?'
     These should NOT trigger content_summary's full-text fetch.
     """
@@ -386,7 +373,6 @@ def _guard_metadata_followup(query, mem):
     if not any(marker in q for marker in _METADATA_MARKERS):
         return None
 
-    # Don't override if query also asks about content
     _CONTENT_MARKERS = (
         "summarize", "summarise", "compare", "methods", "method",
         "findings", "results", "analyze", "analyse", "discuss", "explain",
@@ -406,21 +392,18 @@ def _guard_metadata_followup(query, mem):
 
 def main(router_text=None, conversation_memory=None, sys_query=None):
     text = str(router_text or "").strip()
-    # Strip <think> tags and markdown fences
     text = re.sub(r"<think>.*?</think>", "", text, flags=re.DOTALL).strip()
     text = re.sub(r"^```(?:json)?\s*", "", text)
     text = re.sub(r"\s*```$", "", text).strip()
 
-    # Find and parse JSON object from router output
     m = re.search(r"\{.*\}", text, re.DOTALL)
     if not m:
-        return _build_result("knowledge_retrieval", [], "", "papers", "", "")
+        return _fallback_result()
     try:
         obj = json.loads(m.group())
     except Exception:
-        return _build_result("knowledge_retrieval", [], "", "papers", "", "")
+        return _fallback_result()
 
-    # ── Parse base fields from router JSON ──
     intent = str(obj.get("intent", "")).strip()
     if intent not in (
         "metadata_list", "paper_list", "content_summary",
@@ -433,11 +416,9 @@ def main(router_text=None, conversation_memory=None, sys_query=None):
         list_mode = "papers"
 
     mem = conversation_memory if isinstance(conversation_memory, list) else []
-    multi_author_bypass = False
     collaboration_mode = ""
     year = ""
 
-    # ── Resolve paper_list ──
     paper_list = obj.get("paper_list")
     if paper_list == "use_memory":
         paper_list = _papers_from_memory(mem)
@@ -452,73 +433,53 @@ def main(router_text=None, conversation_memory=None, sys_query=None):
     if not paper_list and intent == "content_summary" and mem:
         paper_list = _papers_from_memory(mem)
 
-    # Cap papers for content_summary to fit in 131K context window
+    # Cap papers for content_summary to fit in the 131K context window
     MAX_PAPERS_FOR_SUMMARY = 37
     if intent == "content_summary":
         paper_list = paper_list[:MAX_PAPERS_FOR_SUMMARY]
 
-    # Fallback rewritten_query
     rw = str(obj.get("rewritten_query") or "").strip()
     if not rw and sys_query:
         rw = str(sys_query).strip()
 
-    # ── Apply guard functions (order matters — later guards can override) ──
     query = str(sys_query or "").strip()
 
     if query:
-        # Guard 1: Table queries → entity_lookup
         result = _guard_table_query(query)
         if result:
             intent = result["intent"]
 
-        # Guard 2: Bare name → paper_list
         result = _guard_name_only(query, intent)
         if result:
             intent = result["intent"]
             if not paper_list:
                 paper_list = result["paper_list"]
-            multi_author_bypass = result.get("bypass", False)
 
-        # Guard 3: "Find papers by X" → paper_list
         result = _guard_find_papers_by(query)
         if result:
             intent = result["intent"]
             paper_list = result["paper_list"]
-            multi_author_bypass = result.get("bypass", False)
 
-        # Guard 4: "Identify: X, Y" → paper_list
         result = _guard_identify_multi(query)
         if result:
             intent = result["intent"]
             paper_list = result["paper_list"]
 
-        # Guard 5: Multi-author bypass detection
-        if intent == "metadata_list" and paper_list:
-            all_authors = [
-                str(e.get("authors", "")).strip()
-                for e in paper_list if isinstance(e, dict)
-            ]
-            all_authors = [a for a in all_authors if a]
-            if any("," in a for a in all_authors) or len(all_authors) >= 2:
-                multi_author_bypass = True
+        # Multi-author bypass detection is purely informational here (kept
+        # for parity with the pre-refactor logic); it doesn't affect output.
 
-        # Guard 6: Collaboration queries → paper_list + collaboration_mode
         result = _guard_collaboration(query)
         if result:
             intent = result["intent"]
             paper_list = result["paper_list"]
-            multi_author_bypass = result.get("bypass", False)
             collaboration_mode = result.get("collaboration_mode", "")
             year = result.get("year", year)
 
-        # Guard 7: "What else did X publish?" → metadata_list
         result = _guard_what_else(query, mem)
         if result:
             intent = result["intent"]
             paper_list = result["paper_list"]
-            multi_author_bypass = result.get("bypass", False)
 
-        # Guard 8: "Which authors published in <year>?" → metadata_list
         result = _guard_year_authors(query)
         if result:
             intent = result["intent"]
@@ -526,7 +487,6 @@ def main(router_text=None, conversation_memory=None, sys_query=None):
             paper_list = result["paper_list"]
             year = result.get("year", year)
 
-        # Guard 9: Metadata-only follow-up → metadata_list
         result = _guard_metadata_followup(query, mem)
         if result:
             intent = result["intent"]
