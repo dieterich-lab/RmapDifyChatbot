@@ -66,7 +66,7 @@ def _is_reference_chunk(text):
         return True
 
     first_line = t.split(NL)[0].strip()
-    if (re.match(r"^\d+[\.,]\s", first_line) or re.match(r"^\[\d+\]", first_line)):
+    if re.match(r"^\d+[\.,]\s", first_line) or re.match(r"^\[\d+\]", first_line):
         if density > 0.8:
             return True
 
@@ -82,18 +82,23 @@ def _metadata_looks_garbled(title, authors, year, journal):
 
     if len(t) > 15 and " " not in t:
         return True
+
     a_lower = a.lower()
-    if any(m in a_lower for m in ("editor", "series", "ethods in", "olecular biology")):
+    garbled_author_markers = ("editor", "series", "ethods in", "olecular biology")
+    if any(m in a_lower for m in garbled_author_markers):
         return True
+
     if y and not re.fullmatch(r"(19|20)\d{2}", y):
         return True
     if j and re.fullmatch(r"\d+[\-–]\d+", j):
         return True
+
     return False
 
 
 def _get_doc_info(chunk):
-    """Extract a human-readable paper header from chunk metadata."""
+    """Extract a human-readable paper header from chunk metadata, falling
+    back to a parsed document name/title when doc_metadata is unusable."""
     if not isinstance(chunk, dict):
         return None
 
@@ -125,36 +130,32 @@ def _get_doc_info(chunk):
 
     # Fallback: parse from document name/title field
     title = str(chunk.get("title", "")).strip()
-    if title:
-        title = re.sub(r"__[a-z_]+_\d{10,}(?:\.pdf)?$", "", title, flags=re.IGNORECASE)
-        title = re.sub(r"\.pdf$", "", title, flags=re.IGNORECASE).strip()
-        if title:
-            parts = [p.strip() for p in title.split(",")]
-            if len(parts) >= 3:
-                maybe_authors = parts[0]
-                maybe_year = parts[1].strip()
-                maybe_journal = parts[2].strip()
-                if re.fullmatch(r"(19|20)\d{2}", maybe_year):
-                    header = f'"{title}"'
-                    if maybe_authors:
-                        header += f" by {maybe_authors}"
-                    header += f" ({maybe_journal}, {maybe_year})"
-                    return header
-            return title
+    if not title:
+        return None
 
-    return None
+    title = re.sub(r"__[a-z_]+_\d{10,}(?:\.pdf)?$", "", title, flags=re.IGNORECASE)
+    title = re.sub(r"\.pdf$", "", title, flags=re.IGNORECASE).strip()
+    if not title:
+        return None
+
+    parts = [p.strip() for p in title.split(",")]
+    if len(parts) >= 3:
+        maybe_authors, maybe_year, maybe_journal = parts[0], parts[1].strip(), parts[2].strip()
+        if re.fullmatch(r"(19|20)\d{2}", maybe_year):
+            header = f'"{title}"'
+            if maybe_authors:
+                header += f" by {maybe_authors}"
+            header += f" ({maybe_journal}, {maybe_year})"
+            return header
+
+    return title
 
 
-def _process_chunks(chunks, filter_refs=True):
-    """Process retrieval chunks: extract text, optionally filter references,
-    prepend paper metadata headers.
+def _process_chunks(chunks, filter_refs):
+    """Extract text from each chunk, optionally drop reference/bibliography
+    chunks, and prepend a paper header where one can be resolved.
 
-    Args:
-        chunks: Raw retrieval result list.
-        filter_refs: If True, filter out reference/bibliography chunks.
-
-    Returns:
-        (kept_chunks, removed_count, seen_docs)
+    Returns (kept_texts, removed_count, seen_doc_headers).
     """
     kept = []
     removed = 0
@@ -179,49 +180,54 @@ def _process_chunks(chunks, filter_refs=True):
     return kept, removed, seen_docs
 
 
-# Accepts both 'kr_result' (Dify configured name) and 'result' (fallback)
-def main(result=None, kr_result=None, **kwargs):
-    raw_chunks = kr_result if kr_result is not None else result
+def _dedupe_by_paper(chunks):
+    """Keep at most one chunk per paper header, preserving discovery order."""
+    by_doc = {}
+    for chunk in chunks:
+        parts = chunk.split(NL, 1)
+        doc_key = parts[0] if parts[0].startswith("From paper:") else "_unknown"
+        content = parts[1] if len(parts) > 1 else chunk
+        by_doc.setdefault(doc_key, []).append(content)
+
+    return [doc_key + NL + contents[0] for doc_key, contents in by_doc.items()]
+
+
+# Dify's input variable for this node is named "result"; kr_result is
+# accepted too in case the node is wired under that name instead.
+def main(result=None, kr_result=None, doc_names=None, **kwargs):
+    raw_chunks = result if isinstance(result, list) else kr_result
     if not isinstance(raw_chunks, list):
         return {
             "filtered_chunks": [],
             "chunk_count": 0,
             "chunks_removed": 0,
-            "doc_names": []
+            "doc_names": [],
         }
+
+    incoming_doc_names = doc_names if isinstance(doc_names, list) else []
 
     kept, removed, seen_docs = _process_chunks(raw_chunks, filter_refs=True)
 
-    # Safety fallback: if filtering removed too many chunks, retry without filter
+    # Safety fallback: if reference-filtering removed too much, retry without it
     if len(kept) < 3 and len(raw_chunks) >= 3:
         kept, removed, seen_docs = _process_chunks(raw_chunks, filter_refs=False)
-        removed = 0
 
-    # Deduplicate: keep max 1 chunk per paper
-    by_doc = {}
-    for chunk in kept:
-        parts = chunk.split(NL, 1)
-        doc_key = parts[0] if parts[0].startswith("From paper:") else "_unknown"
-        content = parts[1] if len(parts) > 1 else chunk
-        if doc_key not in by_doc:
-            by_doc[doc_key] = []
-        by_doc[doc_key].append(content)
-
-    deduped = []
-    for doc_key, contents in by_doc.items():
-        merged = NL.join(contents[:1])  # Keep max 1 chunk per paper
-        deduped.append(doc_key + NL + merged)
+    deduped = _dedupe_by_paper(kept)
 
     if not deduped:
         deduped.append(
-            "ALL " + str(len(raw_chunks)) + " RETRIEVED CHUNKS WERE REFERENCE LISTS "
+            f"ALL {len(raw_chunks)} RETRIEVED CHUNKS WERE REFERENCE LISTS "
             "AND FILTERED OUT. The query may match bibliography sections rather "
             "than paper body text. Try a more specific query or different search terms."
         )
+
+    # Prefer doc names discovered from the actual chunks; fall back to
+    # whatever an upstream retrieval/merge step (e.g. RRF) already found.
+    final_doc_names = sorted(seen_docs)[:30] or incoming_doc_names[:30]
 
     return {
         "filtered_chunks": deduped[:30],
         "chunk_count": min(len(deduped), 30),
         "chunks_removed": removed,
-        "doc_names": sorted(seen_docs)[:30]
+        "doc_names": final_doc_names,
     }
