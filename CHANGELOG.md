@@ -1,5 +1,31 @@
 # Changelog
 
+
+## [0.4.23] - 2026-09-25
+
+### Changed
+Aside from the Unified Router(qwen2.5:14b) and the Embedding Model(nomic-embed-text-v2-moe:latest), the main LLMs have been both changed from Ollama to vLLM and from qwen3.8:27b to Qwen3.8-27B-FP8. FP8 quantization allows a larger headroom for the GPU to handle multiple incoming queries. This is calculated to be enough for 10 users, our initial use case.
+
+Dify code has been refactored: 
+
+
+**Modularized Core Code Nodes** (-308 net lines):
+1. parse_router_output.py: Decomposed the 590-line monolithic main function into modular guard handlers (_guard_table_query, _guard_collaboration, etc.), consolidated duplicate regex patterns, and ensured all output variables (paper_list_text, year) are properly returned.
+2. kr_chunk_filter.py: Consolidated redundant filtering loops into _process_chunks(), extracted paper deduplication, and added fallback handling for incoming doc_names from RRF.
+3. metadata_query.py: Modularized author matching (_any_author_matches, _all_authors_match) and unified document deduplication while preserving all query logic and German responses.
+4. fetch_full_paper.py: Scaled text budget to 120K characters to leverage the H100 131K context window.
+    Verification: Verified 100% logic and output equivalence against the pre-refactoring baseline across all test query scenarios.
+5. Restored Paper Count Conditional: Re-added the exact paper_count conditional block (lines 641–643) directly into the return statement of parse_router_output.py:
+```
+"paper_count": (
+    1 if intent == "metadata_list"
+    else 0 if intent == "paper_list"
+    else len(paper_list)
+)
+```
+
+
+
 ## [0.4.22] - 2026-09-01
 
 ### Added
