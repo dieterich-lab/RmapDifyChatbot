@@ -1843,22 +1843,13 @@ workflow:
           authors\"])\n        if p.get(\"year\"):\n            parts.append(p[\"\
           year\"])\n        if p.get(\"journal\"):\n            parts.append(p[\"\
           journal\"])\n        lines.append(f\"{idx}. \" + \" | \".join(parts))\n\
-          \    return \"\\n\".join(lines)\n\n\ndef _build_result(intent, paper_list,\
-          \ rw, list_mode, collaboration_mode, year=\"\"):\n    \"\"\"Construct the\
-          \ final output dict with computed paper_count.\n\n    paper_count logic:\n\
-          \      metadata_list -> 1  (signals Metadata LLM to process)\n      paper_list\
-          \    -> 0  (signals Metadata LLM Bypass)\n      otherwise     -> len(paper_list)\n\
-          \    \"\"\"\n    paper_count = (\n        1 if intent == \"metadata_list\"\
-          \n        else 0 if intent == \"paper_list\"\n        else len(paper_list)\n\
-          \    )\n    return {\n        \"intent\": intent,\n        \"paper_list\"\
-          : paper_list,\n        \"paper_list_text\": _render_paper_list_text(paper_list),\n\
-          \        \"paper_count\": paper_count,\n        \"rewritten_query\": rw,\n\
-          \        \"list_mode\": list_mode,\n        \"collaboration_mode\": collaboration_mode,\n\
-          \        \"year\": year,\n    }\n\n\ndef _fallback_result():\n    \"\"\"\
-          Fallback when router JSON is unparseable.\"\"\"\n    return _build_result(\"\
-          knowledge_retrieval\", [], \"\", \"papers\", \"\", \"\")\n\n\n# ── Guard\
-          \ functions ─────────────────────────────────────────────────\n# Each guard\
-          \ inspects the user query and optionally overrides\n# intent/paper_list.\
+          \    return \"\\n\".join(lines)\n\n\ndef _fallback_result():\n    \"\"\"\
+          Fallback when router JSON is unparseable.\"\"\"\n    return {\n        \"\
+          intent\": \"knowledge_retrieval\",\n        \"paper_list\": [],\n      \
+          \  \"paper_list_text\": \"\",\n        \"paper_count\": 0,\n        \"rewritten_query\"\
+          : \"\",\n        \"list_mode\": \"papers\",\n        \"collaboration_mode\"\
+          : \"\",\n        \"year\": \"\",\n    }\n\n\n# ── Guard functions ─────────────────────────────────────────────────\n\
+          # Each guard inspects the user query and optionally overrides\n# intent/paper_list.\
           \ Returns a dict of overrides, or None if no match.\n\ndef _guard_table_query(query):\n\
           \    \"\"\"Route table-related questions -> entity_lookup.\n    Examples:\
           \ 'What is in Table 2?', 'Show me Table 3'\n    \"\"\"\n    q = query.lower()\n\
@@ -1914,11 +1905,12 @@ workflow:
           \             \"intent\": \"paper_list\",\n                \"paper_list\"\
           : [\n                    {\"authors\": n, \"title\": \"\", \"year\": \"\"\
           , \"journal\": \"\"}\n                    for n in names\n             \
-          \   ],\n            }\n    return None\n\n\ndef _extract_collab_target(q_lower,\
-          \ q_orig):\n    \"\"\"Extract the target author name from a collaboration\
-          \ query.\n    Returns (single_target, dual_target) - at most one will be\
-          \ non-empty.\n    \"\"\"\n    _SINGLE_PATTERNS = [\n        (r\"(?:co-?authors?|collaborators?|collaborations?)\\\
-          s+of\\s+\", \"after\"),\n        (r\"(?:co-?authors?|collaborated|collaborations?|published)\\\
+          \   ],\n                \"bypass\": True,\n            }\n    return None\n\
+          \n\ndef _extract_collab_target(q_lower, q_orig):\n    \"\"\"Extract the\
+          \ target author name from a collaboration query.\n    Returns (single_target,\
+          \ dual_target) - at most one will be non-empty.\n    \"\"\"\n    _SINGLE_PATTERNS\
+          \ = [\n        (r\"(?:co-?authors?|collaborators?|collaborations?)\\s+of\\\
+          s+\", \"after\"),\n        (r\"(?:co-?authors?|collaborated|collaborations?|published)\\\
           s+with\\s+\", \"after\"),\n        (r\"(?:co-authors?\\s+(?:has\\s+)?|coauthors?\\\
           s+(?:has\\s+)?)([\\w\\s.-]+?)\\s+(?:published|collaborated)\\s+with\", \"\
           group1\"),\n        (r\"(?:collaborat\\w*|co-?author\\w*|publish\\w*|work\\\
@@ -2044,30 +2036,51 @@ workflow:
           \   if intent == \"content_summary\":\n        paper_list = paper_list[:MAX_PAPERS_FOR_SUMMARY]\n\
           \n    rw = str(obj.get(\"rewritten_query\") or \"\").strip()\n    if not\
           \ rw and sys_query:\n        rw = str(sys_query).strip()\n\n    query =\
-          \ str(sys_query or \"\").strip()\n\n    if query:\n        result = _guard_table_query(query)\n\
-          \        if result:\n            intent = result[\"intent\"]\n\n       \
-          \ result = _guard_name_only(query, intent)\n        if result:\n       \
-          \     intent = result[\"intent\"]\n            if not paper_list:\n    \
-          \            paper_list = result[\"paper_list\"]\n\n        result = _guard_find_papers_by(query)\n\
-          \        if result:\n            intent = result[\"intent\"]\n         \
-          \   paper_list = result[\"paper_list\"]\n\n        result = _guard_identify_multi(query)\n\
-          \        if result:\n            intent = result[\"intent\"]\n         \
-          \   paper_list = result[\"paper_list\"]\n\n        # Multi-author bypass\
-          \ detection is purely informational here (kept\n        # for parity with\
-          \ the pre-refactor logic); it doesn't affect output.\n\n        result =\
-          \ _guard_collaboration(query)\n        if result:\n            intent =\
-          \ result[\"intent\"]\n            paper_list = result[\"paper_list\"]\n\
-          \            collaboration_mode = result.get(\"collaboration_mode\", \"\"\
-          )\n            year = result.get(\"year\", year)\n\n        result = _guard_what_else(query,\
-          \ mem)\n        if result:\n            intent = result[\"intent\"]\n  \
-          \          paper_list = result[\"paper_list\"]\n\n        result = _guard_year_authors(query)\n\
-          \        if result:\n            intent = result[\"intent\"]\n         \
-          \   list_mode = result.get(\"list_mode\", list_mode)\n            paper_list\
-          \ = result[\"paper_list\"]\n            year = result.get(\"year\", year)\n\
-          \n        result = _guard_metadata_followup(query, mem)\n        if result:\n\
+          \ str(sys_query or \"\").strip()\n\n    multi_author_bypass = False\n\n\
+          \    if query:\n        result = _guard_table_query(query)\n        if result:\n\
+          \            intent = result[\"intent\"]\n\n        result = _guard_name_only(query,\
+          \ intent)\n        if result:\n            intent = result[\"intent\"]\n\
+          \            if not paper_list:\n                paper_list = result[\"\
+          paper_list\"]\n            if result.get(\"bypass\"):\n                multi_author_bypass\
+          \ = True\n\n        result = _guard_find_papers_by(query)\n        if result:\n\
           \            intent = result[\"intent\"]\n            paper_list = result[\"\
-          paper_list\"]\n\n    return _build_result(intent, paper_list, rw, list_mode,\
-          \ collaboration_mode, year)"
+          paper_list\"]\n            if result.get(\"bypass\"):\n                multi_author_bypass\
+          \ = True\n\n        result = _guard_identify_multi(query)\n        if result:\n\
+          \            intent = result[\"intent\"]\n            paper_list = result[\"\
+          paper_list\"]\n            if result.get(\"bypass\"):\n                multi_author_bypass\
+          \ = True\n\n        result = _guard_collaboration(query)\n        if result:\n\
+          \            intent = result[\"intent\"]\n            paper_list = result[\"\
+          paper_list\"]\n            collaboration_mode = result.get(\"collaboration_mode\"\
+          , \"\")\n            year = result.get(\"year\", year)\n            if result.get(\"\
+          bypass\"):\n                multi_author_bypass = True\n\n        result\
+          \ = _guard_what_else(query, mem)\n        if result:\n            intent\
+          \ = result[\"intent\"]\n            paper_list = result[\"paper_list\"]\n\
+          \            if result.get(\"bypass\"):\n                multi_author_bypass\
+          \ = True\n\n        result = _guard_year_authors(query)\n        if result:\n\
+          \            intent = result[\"intent\"]\n            list_mode = result.get(\"\
+          list_mode\", list_mode)\n            paper_list = result[\"paper_list\"\
+          ]\n            year = result.get(\"year\", year)\n\n        result = _guard_metadata_followup(query,\
+          \ mem)\n        if result:\n            intent = result[\"intent\"]\n  \
+          \          paper_list = result[\"paper_list\"]\n\n    # ── Multi-author\
+          \ bypass: skip Metadata LLM ───────────────────────\n    # For metadata_list\
+          \ queries with multiple distinct authors (comma-separated\n    # or split\
+          \ across paper_list entries), metadata_query produces pre-formatted\n  \
+          \  # output. The Metadata LLM (qwen2.5:14b) cannot reliably pass through\n\
+          \    # OR-matched results. Setting paper_count=0 routes through the Metadata\
+          \ LLM\n    # Bypass directly to Final Answer Sanitizer, which passes result_text\
+          \ through.\n    if intent == \"metadata_list\" and paper_list:\n       \
+          \ all_authors = []\n        for entry in paper_list:\n            if isinstance(entry,\
+          \ dict):\n                a = str(entry.get(\"authors\", \"\")).strip()\n\
+          \                if a:\n                    all_authors.append(a)\n    \
+          \    has_comma = any(\",\" in a for a in all_authors)\n        if has_comma\
+          \ or len(all_authors) >= 2:\n            multi_author_bypass = True\n\n\
+          \    return {\n        \"intent\": intent,\n        \"paper_list\": paper_list,\n\
+          \        \"paper_list_text\": _render_paper_list_text(paper_list),\n   \
+          \     \"paper_count\": (\n            1 if intent == \"metadata_list\"\n\
+          \            else 0 if intent == \"paper_list\"\n            else len(paper_list)\n\
+          \        ),\n        \"rewritten_query\": rw,\n        \"list_mode\": list_mode,\n\
+          \        \"collaboration_mode\": collaboration_mode,\n        \"year\":\
+          \ year,\n    }"
         code_language: python3
         isInIteration: false
         isInLoop: false

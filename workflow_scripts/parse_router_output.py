@@ -58,34 +58,18 @@ def _render_paper_list_text(paper_list):
     return "\n".join(lines)
 
 
-def _build_result(intent, paper_list, rw, list_mode, collaboration_mode, year=""):
-    """Construct the final output dict with computed paper_count.
-
-    paper_count logic:
-      metadata_list -> 1  (signals Metadata LLM to process)
-      paper_list    -> 0  (signals Metadata LLM Bypass)
-      otherwise     -> len(paper_list)
-    """
-    paper_count = (
-        1 if intent == "metadata_list"
-        else 0 if intent == "paper_list"
-        else len(paper_list)
-    )
-    return {
-        "intent": intent,
-        "paper_list": paper_list,
-        "paper_list_text": _render_paper_list_text(paper_list),
-        "paper_count": paper_count,
-        "rewritten_query": rw,
-        "list_mode": list_mode,
-        "collaboration_mode": collaboration_mode,
-        "year": year,
-    }
-
-
 def _fallback_result():
     """Fallback when router JSON is unparseable."""
-    return _build_result("knowledge_retrieval", [], "", "papers", "", "")
+    return {
+        "intent": "knowledge_retrieval",
+        "paper_list": [],
+        "paper_list_text": "",
+        "paper_count": 0,
+        "rewritten_query": "",
+        "list_mode": "papers",
+        "collaboration_mode": "",
+        "year": "",
+    }
 
 
 # ── Guard functions ─────────────────────────────────────────────────
@@ -198,6 +182,7 @@ def _guard_identify_multi(query):
                     {"authors": n, "title": "", "year": "", "journal": ""}
                     for n in names
                 ],
+                "bypass": True,
             }
     return None
 
@@ -444,6 +429,8 @@ def main(router_text=None, conversation_memory=None, sys_query=None):
 
     query = str(sys_query or "").strip()
 
+    multi_author_bypass = False
+
     if query:
         result = _guard_table_query(query)
         if result:
@@ -454,19 +441,22 @@ def main(router_text=None, conversation_memory=None, sys_query=None):
             intent = result["intent"]
             if not paper_list:
                 paper_list = result["paper_list"]
+            if result.get("bypass"):
+                multi_author_bypass = True
 
         result = _guard_find_papers_by(query)
         if result:
             intent = result["intent"]
             paper_list = result["paper_list"]
+            if result.get("bypass"):
+                multi_author_bypass = True
 
         result = _guard_identify_multi(query)
         if result:
             intent = result["intent"]
             paper_list = result["paper_list"]
-
-        # Multi-author bypass detection is purely informational here (kept
-        # for parity with the pre-refactor logic); it doesn't affect output.
+            if result.get("bypass"):
+                multi_author_bypass = True
 
         result = _guard_collaboration(query)
         if result:
@@ -474,11 +464,15 @@ def main(router_text=None, conversation_memory=None, sys_query=None):
             paper_list = result["paper_list"]
             collaboration_mode = result.get("collaboration_mode", "")
             year = result.get("year", year)
+            if result.get("bypass"):
+                multi_author_bypass = True
 
         result = _guard_what_else(query, mem)
         if result:
             intent = result["intent"]
             paper_list = result["paper_list"]
+            if result.get("bypass"):
+                multi_author_bypass = True
 
         result = _guard_year_authors(query)
         if result:
@@ -492,4 +486,34 @@ def main(router_text=None, conversation_memory=None, sys_query=None):
             intent = result["intent"]
             paper_list = result["paper_list"]
 
-    return _build_result(intent, paper_list, rw, list_mode, collaboration_mode, year)
+    # ── Multi-author bypass: skip Metadata LLM ───────────────────────
+    # For metadata_list queries with multiple distinct authors (comma-separated
+    # or split across paper_list entries), metadata_query produces pre-formatted
+    # output. The Metadata LLM (qwen2.5:14b) cannot reliably pass through
+    # OR-matched results. Setting paper_count=0 routes through the Metadata LLM
+    # Bypass directly to Final Answer Sanitizer, which passes result_text through.
+    if intent == "metadata_list" and paper_list:
+        all_authors = []
+        for entry in paper_list:
+            if isinstance(entry, dict):
+                a = str(entry.get("authors", "")).strip()
+                if a:
+                    all_authors.append(a)
+        has_comma = any("," in a for a in all_authors)
+        if has_comma or len(all_authors) >= 2:
+            multi_author_bypass = True
+
+    return {
+        "intent": intent,
+        "paper_list": paper_list,
+        "paper_list_text": _render_paper_list_text(paper_list),
+        "paper_count": (
+            1 if intent == "metadata_list"
+            else 0 if intent == "paper_list"
+            else len(paper_list)
+        ),
+        "rewritten_query": rw,
+        "list_mode": list_mode,
+        "collaboration_mode": collaboration_mode,
+        "year": year,
+    }
