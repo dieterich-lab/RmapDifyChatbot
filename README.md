@@ -2,18 +2,28 @@
 
 RmapDifyChatbot is a Dify-based academic literature assistant for the RMaP project. It answers questions about 84 RNA-modification papers using hybrid retrieval (keyword + vector) and intent-based routing.
 
-## Status Snapshot (2026-09-01)
+## Status Snapshot (2026-09-25)
 
-**v0.4.22 — Summary Length and Collaborations, Context Size and Max Token**
-1. Regex pattern to calculate collaborations between authors
+**v0.4.23 — vLLM and Dify Refactor**
+Aside from the Unified Router(qwen2.5:14b) and the Embedding Model(nomic-embed-text-v2-moe:latest), the main LLMs have been both changed from Ollama to vLLM and from qwen3.8:27b to Qwen3.8-27B-FP8. FP8 quantization allows a larger headroom for the GPU to handle multiple incoming queries. This is calculated to be enough for 10 users, our initial use case.
 
-2. Collaboration filter for year, journal and title
+Dify code has been refactored: 
 
-3. Changed context length to 131072 and maximum token output to 32768 to generate 40 token/s speed.
 
-4. CODE_MAX_OBJECT_ARRAY_LENGTH set to 100
-
-5. Increased MAX_PAPERS_FOR_SUMMARY to 37 Increased result_line from 30 to 100, now 37 papers can be summarized
+**Modularized Core Code Nodes** (-308 net lines):
+1. parse_router_output.py: Decomposed the 590-line monolithic main function into modular guard handlers (_guard_table_query, _guard_collaboration, etc.), consolidated duplicate regex patterns, and ensured all output variables (paper_list_text, year) are properly returned.
+2. kr_chunk_filter.py: Consolidated redundant filtering loops into _process_chunks(), extracted paper deduplication, and added fallback handling for incoming doc_names from RRF.
+3. metadata_query.py: Modularized author matching (_any_author_matches, _all_authors_match) and unified document deduplication while preserving all query logic and German responses.
+4. fetch_full_paper.py: Scaled text budget to 120K characters to leverage the H100 131K context window.
+    Verification: Verified 100% logic and output equivalence against the pre-refactoring baseline across all test query scenarios.
+5. Restored Paper Count Conditional: Re-added the exact paper_count conditional block (lines 641–643) directly into the return statement of parse_router_output.py:
+```
+"paper_count": (
+    1 if intent == "metadata_list"
+    else 0 if intent == "paper_list"
+    else len(paper_list)
+)
+```
 
 ---
 
